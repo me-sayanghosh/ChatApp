@@ -1,50 +1,50 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { connectSocket, disconnectSocket } from '../socket.js';
+import { api, getAccessToken, setTokens, clearTokens } from '../api.js';
+import { clearAllCryptoKeys } from '../crypto.js';
 
 const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [accessToken, setAccessToken] = useState(() => getAccessToken());
   const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setBootstrapped(true);
-      return;
-    }
-    fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000/api'}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    api.get('/auth/me')
+      .then((r) => r.data)
       .then((data) => {
         setUser(data.user);
+        const token = getAccessToken();
+        setAccessToken(token);
         connectSocket(token);
       })
       .catch(() => {
-        localStorage.removeItem('token');
-        setToken(null);
+        clearTokens();
+        clearAllCryptoKeys();
+        setAccessToken(null);
         setUser(null);
       })
       .finally(() => setBootstrapped(true));
-  }, [token]);
+  }, []);
 
-  function login({ token: t, user: u }) {
-    localStorage.setItem('token', t);
-    setToken(t);
+  function login({ accessToken: at, refreshToken: rt, user: u }) {
+    setTokens(at, rt);
+    setAccessToken(at);
     setUser(u);
-    connectSocket(t);
+    connectSocket(at);
   }
 
   function logout() {
-    localStorage.removeItem('token');
-    setToken(null);
+    clearTokens();
+    clearAllCryptoKeys();
+    setAccessToken(null);
     setUser(null);
     disconnectSocket();
   }
 
   if (!bootstrapped) return null;
-  return <AuthCtx.Provider value={{ user, token, login, logout }}>{children}</AuthCtx.Provider>;
+  return <AuthCtx.Provider value={{ user, token: accessToken, login, logout }}>{children}</AuthCtx.Provider>;
 }
 
 export function useAuth() {

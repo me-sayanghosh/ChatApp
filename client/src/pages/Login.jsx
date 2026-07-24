@@ -22,7 +22,7 @@ export default function Login() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'login failed');
-      login(data);
+      login({ accessToken: data.accessToken, refreshToken: data.refreshToken, user: data.user });
       nav('/chat');
     } catch (e) {
       setErr(e.message);
