@@ -22,6 +22,7 @@ import PresenceMap from '../components/PresenceMap.jsx';
 import ThreadPanel from '../components/ThreadPanel.jsx';
 import AIPanel from '../components/AIPanel.jsx';
 import VoiceRoom from '../components/VoiceRoom.jsx';
+import PendingRequests from '../components/PendingRequests.jsx';
 
 export default function Chat() {
   const { user, logout } = useAuth();
@@ -40,6 +41,8 @@ export default function Chat() {
   const [decryptedMessages, setDecryptedMessages] = useState({});
   const [keyStatus, setKeyStatus] = useState(null);
   const [currentInput, setCurrentInput] = useState('');
+  const [memberRooms, setMemberRooms] = useState(new Set());
+  const [pendingRooms, setPendingRooms] = useState(new Set());
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
@@ -56,8 +59,11 @@ export default function Chat() {
       .then((r) => {
         const fetchedRooms = r.data.rooms || [];
         setRooms(fetchedRooms);
+        setMemberRooms(new Set(r.data.memberships || []));
+        setPendingRooms(new Set(r.data.pending || []));
         if (fetchedRooms.length > 0 && !currentRoomRef.current) {
-          selectRoom(fetchedRooms[0]);
+          const firstMemberRoom = fetchedRooms.find((room) => (r.data.memberships || []).includes(room.id));
+          selectRoom(firstMemberRoom || fetchedRooms[0]);
         }
       })
       .catch(() => {});
@@ -264,6 +270,25 @@ export default function Chat() {
       }
     });
 
+    socket.on('room:request-granted', ({ roomId, userId }) => {
+      if (userId === userRef.current?.id) {
+        setMemberRooms((prev) => new Set([...prev, roomId]));
+        setPendingRooms((prev) => { const next = new Set(prev); next.delete(roomId); return next; });
+        fetchRooms();
+      }
+    });
+
+    socket.on('room:request-denied', ({ roomId, userId }) => {
+      if (userId === userRef.current?.id) {
+        setPendingRooms((prev) => { const next = new Set(prev); next.delete(roomId); return next; });
+      }
+    });
+
+    socket.on('room:auto-join', ({ roomId }) => {
+      const room = rooms.find((r) => r.id === roomId);
+      if (room) selectRoom(room);
+    });
+
     return () => {
       socket.off('message:new');
       socket.off('room:online');
@@ -277,6 +302,9 @@ export default function Chat() {
       socket.off('presence:update');
       socket.off('room:key-receive');
       socket.off('room:key-share-request');
+      socket.off('room:request-granted');
+      socket.off('room:request-denied');
+      socket.off('room:auto-join');
     };
   }, [user]);
 
@@ -347,6 +375,9 @@ export default function Chat() {
     setDecryptedMessages({});
     setKeyStatus(null);
 
+    const isMember = memberRooms.has(room.id);
+    if (room.type === 'private' && !isMember) return;
+
     const res = await api.get(`/rooms/${room.id}/messages`);
     let msgs = res.data.messages || [];
 
@@ -387,6 +418,16 @@ export default function Chat() {
       setDecryptedMessages({});
       setKeyStatus(null);
     }
+  }
+
+  function handleRequestJoin(room) {
+    const socket = getSocket();
+    if (!socket) return;
+    socket.emit('room:request-join', { roomId: room.id }, (resp) => {
+      if (resp?.ok) {
+        setPendingRooms((prev) => new Set([...prev, room.id]));
+      }
+    });
   }
 
   async function send(text) {
@@ -478,7 +519,16 @@ export default function Chat() {
           </div>
         </div>
 
-        <RoomList rooms={rooms} current={currentRoom} onSelect={selectRoom} onCreate={createRoom} onLeave={leaveRoom} />
+        <RoomList
+          rooms={rooms}
+          current={currentRoom}
+          onSelect={selectRoom}
+          onCreate={createRoom}
+          onLeave={leaveRoom}
+          onRequestJoin={handleRequestJoin}
+          memberRooms={memberRooms}
+          pendingRooms={pendingRooms}
+        />
         
         <button className="logout" onClick={logout}>
           <span>🚪</span> Log out
@@ -555,6 +605,11 @@ export default function Chat() {
                     roomId={currentRoom.id}
                     currentUserId={user?.id}
                     onMemberUpdate={refreshMembers}
+                  />
+                  <PendingRequests
+                    roomId={currentRoom.id}
+                    isAdmin={members.some((m) => m.user === user?.id && (m.role === 'owner' || m.role === 'moderator'))}
+                    onRequestHandled={refreshMembers}
                   />
                 </aside>
               )}

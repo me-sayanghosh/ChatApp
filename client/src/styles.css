@@ -121,6 +121,44 @@ body {
 .room-list li:hover .room-leave, .room-list li.active .room-leave { opacity: 1; }
 .room-list .room-leave:hover { color: #f87171; background: rgba(248, 113, 113, 0.1); }
 
+.room-list li.private-locked { opacity: 0.7; cursor: default; }
+.room-list li.private-locked:hover { background: transparent; }
+.room-request-join {
+  background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #818cf8; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem;
+  border-radius: 6px; cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+}
+.room-request-join:hover { background: rgba(99, 102, 241, 0.25); border-color: #6366f1; }
+.room-request-status {
+  font-size: 0.72rem; font-weight: 500; padding: 0.2rem 0.6rem;
+  border-radius: 6px; white-space: nowrap;
+}
+.room-request-status.pending { color: #fbbf24; background: rgba(245, 158, 11, 0.1); }
+
+.pending-requests { margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 0.75rem; }
+.pending-header { margin-bottom: 0.5rem; }
+.pending-title { font-size: 0.75rem; font-weight: 700; color: #fbbf24; letter-spacing: 0.05em; text-transform: uppercase; }
+.pending-list { list-style: none; padding: 0; margin: 0; }
+.pending-item {
+  display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04); flex-wrap: wrap;
+}
+.pending-user { font-size: 0.88rem; font-weight: 500; color: #f1f5f9; flex: 1; }
+.pending-time { font-size: 0.7rem; color: #64748b; }
+.pending-actions { display: flex; gap: 0.35rem; width: 100%; }
+.grant-btn {
+  flex: 1; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399; padding: 0.3rem 0.5rem; border-radius: 6px; cursor: pointer;
+  font-size: 0.78rem; font-weight: 600; transition: all 0.15s ease;
+}
+.grant-btn:hover { background: rgba(16, 185, 129, 0.25); }
+.deny-btn {
+  flex: 1; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2);
+  color: #f87171; padding: 0.3rem 0.5rem; border-radius: 6px; cursor: pointer;
+  font-size: 0.78rem; font-weight: 600; transition: all 0.15s ease;
+}
+.deny-btn:hover { background: rgba(248, 113, 113, 0.2); }
+
 .logout {
   margin-top: auto; background: rgba(255, 255, 255, 0.03); color: #94a3b8;
   border: 1px solid rgba(255, 255, 255, 0.06); padding: 0.6rem;

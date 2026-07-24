@@ -453,6 +453,102 @@ export function attachSocket(httpServer) {
       }
     });
 
+    socket.on('room:request-join', async ({ roomId }, ack) => {
+      try {
+        if (!roomId) throw new Error('roomId required');
+        const room = await Room.findById(roomId);
+        if (!room) throw new Error('room not found');
+        if (room.type !== 'private') throw new Error('only private rooms require join requests');
+
+        const isMember = room.members.some((m) => m.user.toString() === socket.user.id);
+        if (isMember) throw new Error('already a member');
+
+        const alreadyRequested = room.pendingRequests.some((r) => r.user.toString() === socket.user.id);
+        if (alreadyRequested) throw new Error('request already pending');
+
+        room.pendingRequests.push({ user: socket.user.id, requestedAt: new Date() });
+        await room.save();
+
+        io.to(roomId).emit('room:new-request', {
+          roomId,
+          user: { id: socket.user.id, username: socket.user.username },
+          requestedAt: new Date(),
+        });
+
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
+    socket.on('room:grant-join', async ({ roomId, userId }, ack) => {
+      try {
+        if (!roomId || !userId) throw new Error('roomId and userId required');
+        const room = await Room.findById(roomId);
+        if (!room) throw new Error('room not found');
+
+        const self = room.members.find((m) => m.user.toString() === socket.user.id);
+        if (!self || (self.role !== 'owner' && self.role !== 'moderator')) {
+          throw new Error('only admins can grant requests');
+        }
+
+        const requestIndex = room.pendingRequests.findIndex((r) => r.user.toString() === userId);
+        if (requestIndex === -1) throw new Error('request not found');
+
+        room.pendingRequests.splice(requestIndex, 1);
+        room.members.push({ user: userId, role: 'member', joinedAt: new Date(), muted: false });
+        await room.save();
+
+        io.to(roomId).emit('room:request-granted', { roomId, userId });
+        io.to(roomId).emit('room:user-joined', { roomId, user: { id: userId } });
+
+        const sockets = await io.in(roomId).fetchSockets();
+        const online = sockets.map((s) => s.user);
+        const members = room.members.map((m) => ({
+          user: m.user.toString(),
+          role: m.role,
+          muted: m.muted,
+        }));
+        io.to(roomId).emit('room:online', { roomId, online, members });
+
+        const targetSockets = await io.in(roomId).fetchSockets();
+        for (const s of targetSockets) {
+          if (s.user.id === userId) {
+            s.emit('room:auto-join', { roomId });
+          }
+        }
+
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
+    socket.on('room:deny-join', async ({ roomId, userId }, ack) => {
+      try {
+        if (!roomId || !userId) throw new Error('roomId and userId required');
+        const room = await Room.findById(roomId);
+        if (!room) throw new Error('room not found');
+
+        const self = room.members.find((m) => m.user.toString() === socket.user.id);
+        if (!self || (self.role !== 'owner' && self.role !== 'moderator')) {
+          throw new Error('only admins can deny requests');
+        }
+
+        const requestIndex = room.pendingRequests.findIndex((r) => r.user.toString() === userId);
+        if (requestIndex === -1) throw new Error('request not found');
+
+        room.pendingRequests.splice(requestIndex, 1);
+        await room.save();
+
+        io.to(roomId).emit('room:request-denied', { roomId, userId });
+
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
     socket.on('disconnect', async () => {
       try {
         for (const roomId of joined) {

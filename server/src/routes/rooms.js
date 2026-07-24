@@ -25,7 +25,23 @@ router.get('/', async (req, res) => {
       }
       rooms = await Room.find().sort({ createdAt: 1 });
     }
-    res.json({ rooms: rooms.map((r) => r.toSummary()) });
+
+    const membershipIds = new Set();
+    const pendingIds = new Set();
+    for (const r of rooms) {
+      if (r.members.some((m) => m.user.toString() === req.user.id)) {
+        membershipIds.add(r._id.toString());
+      }
+      if (r.pendingRequests.some((pr) => pr.user.toString() === req.user.id)) {
+        pendingIds.add(r._id.toString());
+      }
+    }
+
+    res.json({
+      rooms: rooms.map((r) => r.toSummary()),
+      memberships: [...membershipIds],
+      pending: [...pendingIds],
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -100,6 +116,103 @@ router.put('/:roomId', async (req, res) => {
 
     await room.save();
     res.json({ room: room.toClient() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:roomId/request-join', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'room not found' });
+    if (room.type !== 'private') return res.status(400).json({ error: 'only private rooms require join requests' });
+
+    const isMember = room.members.some((m) => m.user.toString() === req.user.id);
+    if (isMember) return res.status(400).json({ error: 'already a member' });
+
+    const alreadyRequested = room.pendingRequests.some((r) => r.user.toString() === req.user.id);
+    if (alreadyRequested) return res.status(400).json({ error: 'request already pending' });
+
+    room.pendingRequests.push({ user: req.user.id, requestedAt: new Date() });
+    await room.save();
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/:roomId/pending-requests', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'room not found' });
+
+    const member = room.members.find((m) => m.user.toString() === req.user.id);
+    if (!member || (member.role !== 'owner' && member.role !== 'moderator')) {
+      return res.status(403).json({ error: 'only admins can view pending requests' });
+    }
+
+    const requests = [];
+    for (const r of room.pendingRequests) {
+      const { User } = await import('../models/User.js');
+      const user = await User.findById(r.user).select('username').lean();
+      requests.push({
+        user: r.user.toString(),
+        username: user?.username || 'unknown',
+        requestedAt: r.requestedAt,
+      });
+    }
+
+    res.json({ requests });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:roomId/pending-requests/:requestId/grant', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'room not found' });
+
+    const member = room.members.find((m) => m.user.toString() === req.user.id);
+    if (!member || (member.role !== 'owner' && member.role !== 'moderator')) {
+      return res.status(403).json({ error: 'only admins can grant requests' });
+    }
+
+    const requestIndex = room.pendingRequests.findIndex((r) => r.user.toString() === req.params.requestId);
+    if (requestIndex === -1) return res.status(404).json({ error: 'request not found' });
+
+    const request = room.pendingRequests[requestIndex];
+    const userId = request.user.toString();
+
+    room.pendingRequests.splice(requestIndex, 1);
+    room.members.push({ user: userId, role: 'member', joinedAt: new Date(), muted: false });
+    await room.save();
+
+    res.json({ ok: true, userId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:roomId/pending-requests/:requestId/deny', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'room not found' });
+
+    const member = room.members.find((m) => m.user.toString() === req.user.id);
+    if (!member || (member.role !== 'owner' && member.role !== 'moderator')) {
+      return res.status(403).json({ error: 'only admins can deny requests' });
+    }
+
+    const requestIndex = room.pendingRequests.findIndex((r) => r.user.toString() === req.params.requestId);
+    if (requestIndex === -1) return res.status(404).json({ error: 'request not found' });
+
+    const userId = room.pendingRequests[requestIndex].user.toString();
+    room.pendingRequests.splice(requestIndex, 1);
+    await room.save();
+
+    res.json({ ok: true, userId });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

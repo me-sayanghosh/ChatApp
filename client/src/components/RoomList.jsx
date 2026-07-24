@@ -7,7 +7,7 @@ const ROOM_TYPES = [
   { id: 'voice', label: 'Voice', icon: '🎙️', color: '#ec4899' },
 ];
 
-export default function RoomList({ rooms, current, onSelect, onCreate, onLeave }) {
+export default function RoomList({ rooms, current, onSelect, onCreate, onLeave, onRequestJoin, memberRooms, pendingRooms }) {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState('public');
@@ -33,6 +33,11 @@ export default function RoomList({ rooms, current, onSelect, onCreate, onLeave }
   function leave(e, room) {
     e.stopPropagation();
     onLeave?.(room);
+  }
+
+  function requestJoin(e, room) {
+    e.stopPropagation();
+    onRequestJoin?.(room);
   }
 
   return (
@@ -76,24 +81,43 @@ export default function RoomList({ rooms, current, onSelect, onCreate, onLeave }
       <ul className="room-list">
         {rooms.map((r) => {
           const typeObj = ROOM_TYPES.find((t) => t.id === (r.type || 'public')) || ROOM_TYPES[0];
+          const isMember = memberRooms?.has(r.id);
+          const isPending = pendingRooms?.has(r.id);
+          const isPrivateNotMember = r.type === 'private' && !isMember;
+
           return (
             <li
               key={r.id}
-              className={current?.id === r.id ? 'active' : ''}
-              onClick={() => onSelect(r)}
+              className={`${current?.id === r.id ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''}`}
+              onClick={() => !isPrivateNotMember && onSelect(r)}
             >
               <span className="room-type-icon" style={{ color: typeObj.color }}>
                 {typeObj.icon}
               </span>
               <span className="room-name">{r.name}</span>
-              <button
-                type="button"
-                className="room-leave"
-                title={`Leave #${r.name}`}
-                onClick={(e) => leave(e, r)}
-              >
-                &times;
-              </button>
+              {isPrivateNotMember ? (
+                isPending ? (
+                  <span className="room-request-status pending">Requested</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="room-request-join"
+                    title={`Request to join #${r.name}`}
+                    onClick={(e) => requestJoin(e, r)}
+                  >
+                    Join
+                  </button>
+                )
+              ) : (
+                <button
+                  type="button"
+                  className="room-leave"
+                  title={`Leave #${r.name}`}
+                  onClick={(e) => leave(e, r)}
+                >
+                  &times;
+                </button>
+              )}
             </li>
           );
         })}
