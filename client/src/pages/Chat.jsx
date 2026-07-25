@@ -42,6 +42,7 @@ export default function Chat() {
   const [currentInput, setCurrentInput] = useState('');
   const [memberRooms, setMemberRooms] = useState(new Set());
   const [pendingRooms, setPendingRooms] = useState(new Set());
+  const [socketConnected, setSocketConnected] = useState(false);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
@@ -163,6 +164,10 @@ export default function Chat() {
     const socket = getSocket();
     if (!socket) return;
     socketRef.current = socket;
+
+    setSocketConnected(socket.connected);
+    socket.on('connect', () => setSocketConnected(true));
+    socket.on('disconnect', () => setSocketConnected(false));
 
     socket.on('message:new', ({ roomId, message }) => {
       if (roomId === currentRoomRef.current) {
@@ -562,8 +567,12 @@ export default function Chat() {
         <div className="me-card">
           <div className="avatar">{user?.username?.[0]?.toUpperCase() || 'U'}</div>
           <div className="user-details">
-            <span className="username">{user?.username}</span>
-            <span className="status-badge"><span className="dot online"></span> Active</span>
+            <span className="me-name">{user?.name || user?.username}</span>
+            <span className="me-username">@{user?.username}</span>
+            <span className="status-badge">
+              <span className={`dot ${socketConnected ? 'online' : 'offline'}`}></span>
+              {socketConnected ? 'Online' : 'Offline'}
+            </span>
           </div>
         </div>
 
