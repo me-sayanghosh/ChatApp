@@ -2,9 +2,21 @@ import { useState } from 'react';
 import AnimatedList from './AnimatedList.jsx';
 
 const ROOM_TYPES = [
-  { id: 'public', label: 'Public', icon: '#', color: '#38bdf8' },
-  { id: 'private', label: 'Private (E2EE)', icon: '🔒', color: '#f59e0b' },
-  { id: 'ephemeral', label: 'Ephemeral', icon: '⏳', color: '#a855f7' },
+  { 
+    id: 'public', label: 'Public', 
+    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    color: '#E8720C' 
+  },
+  { 
+    id: 'private', label: 'Private (E2EE)', 
+    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    color: '#F5C518' 
+  },
+  { 
+    id: 'ephemeral', label: 'Ephemeral', 
+    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    color: '#A855F7' 
+  },
 ];
 
 export default function Channels({ rooms, current, onSelect, onCreate, onLeave, onRequestJoin, memberRooms, pendingRooms }) {

@@ -30,7 +30,34 @@ router.get('/:roomId/messages', async (req, res) => {
 
     const cap = Math.min(parseInt(limit, 10) || 100, 500);
     const messages = await Message.find(query).sort({ _id: 1 }).limit(cap);
-    res.json({ messages: messages.map((m) => m.toClient()) });
+
+    const filtered = messages.filter((m) => {
+      if (m.deletedFor && m.deletedFor.some((id) => id.toString() === req.user.id)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Collect replyTo IDs
+    const replyToIds = filtered.filter(m => m.replyTo).map(m => m.replyTo);
+    let replyToMap = {};
+    if (replyToIds.length > 0) {
+      const replyToMsgs = await Message.find({ _id: { $in: replyToIds } }).populate('sender', 'username').lean();
+      for (const rm of replyToMsgs) {
+        replyToMap[rm._id.toString()] = {
+          id: rm._id.toString(),
+          senderUsername: rm.sender?.username || 'unknown',
+          text: rm.text ? rm.text.substring(0, 100) : '',
+        };
+      }
+    }
+
+    res.json({
+      messages: filtered.map((m) => ({
+        ...m.toClient(),
+        replyToData: replyToMap[m._id.toString()] || null,
+      })),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -103,6 +130,8 @@ export async function backfillMessages(userId, rooms) {
           clientMsgId: m.clientMsgId || null,
           text: m.text,
           parentMessage: m.parentMessage ? m.parentMessage.toString() : null,
+          replyTo: m.replyTo ? m.replyTo.toString() : null,
+          deletedFor: (m.deletedFor || []).map(id => id.toString()),
           deleted: m.deleted,
           reported: m.reported,
           reactions: (m.reactions || []).map((rx) => ({

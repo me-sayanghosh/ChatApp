@@ -46,6 +46,10 @@ export default function Chat() {
   const [currentInput, setCurrentInput] = useState('');
   const [memberRooms, setMemberRooms] = useState(new Set());
   const [pendingRooms, setPendingRooms] = useState(new Set());
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyToData, setReplyToData] = useState({});
+  const [membersMap, setMembersMap] = useState({});
+  const [toast, setToast] = useState(null);
   const socketRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -57,6 +61,24 @@ export default function Chat() {
 
   const isPrivate = currentRoom?.type === 'private';
   const hasKey = isPrivate && getRoomKey(currentRoom?.id);
+
+  useEffect(() => {
+    const map = {};
+    for (const m of members) {
+      map[m.user] = m.username;
+    }
+    setMembersMap(map);
+  }, [members]);
+
+  useEffect(() => {
+    const map = {};
+    for (const m of messages) {
+      if (m.replyToData) {
+        map[m.replyTo] = m.replyToData;
+      }
+    }
+    setReplyToData(map);
+  }, [messages]);
 
   const fetchRooms = useCallback(() => {
     api.get('/rooms')
@@ -205,6 +227,12 @@ export default function Chat() {
       }
     });
 
+    socket.on('message:deleted-for-me', ({ roomId, messageId }) => {
+      if (roomId === currentRoomRef.current) {
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      }
+    });
+
     socket.on('message:reaction', ({ roomId, messageId, reactions }) => {
       if (roomId === currentRoomRef.current) {
         setMessages((prev) =>
@@ -230,6 +258,7 @@ export default function Chat() {
         setThreadCounts({});
         setDecryptedMessages({});
         setKeyStatus(null);
+        setReplyTo(null);
         clearRoomKey(roomId);
         fetchRooms();
       }
@@ -304,6 +333,7 @@ export default function Chat() {
       socket.off('message:new');
       socket.off('room:online');
       socket.off('message:deleted');
+      socket.off('message:deleted-for-me');
       socket.off('message:reaction');
       socket.off('room:user-kicked');
       socket.off('room:kicked');
@@ -422,6 +452,7 @@ export default function Chat() {
     setThreadCounts({});
     setDecryptedMessages({});
     setKeyStatus(null);
+    setReplyTo(null);
 
     const isMember = memberRooms.has(room.id);
     if (room.type === 'private' && !isMember) return;
@@ -469,6 +500,7 @@ export default function Chat() {
       setThreadMessage(null);
       setDecryptedMessages({});
       setKeyStatus(null);
+      setReplyTo(null);
     }
   }
 
@@ -497,7 +529,12 @@ export default function Chat() {
     }
 
     const clientMsgId = crypto.randomUUID();
-    sendOffline('message:send', { roomId: currentRoom.id, text: textToSend, clientMsgId });
+    const payload = { roomId: currentRoom.id, text: textToSend, clientMsgId };
+    if (replyTo) {
+      payload.replyTo = replyTo.id;
+    }
+    sendOffline('message:send', payload);
+    setReplyTo(null);
     if (isTypingRef.current) {
       const socket = getSocket();
       if (socket) socket.emit('user:stopped-typing', { roomId: currentRoom.id });
@@ -527,6 +564,13 @@ export default function Chat() {
     const socket = socketRef.current;
     if (!socket) return;
     socket.emit('message:delete', { roomId: currentRoom.id, messageId });
+  }
+
+  function deleteForMe(messageId) {
+    if (!currentRoom) return;
+    const socket = socketRef.current;
+    if (!socket) return;
+    socket.emit('message:delete-for-me', { roomId: currentRoom.id, messageId });
   }
 
   function handleReadReceipt(messageId) {
@@ -580,19 +624,34 @@ export default function Chat() {
           memberRooms={memberRooms}
           pendingRooms={pendingRooms}
         />
-        
+
         <button className="logout" onClick={logout}>
-          <span>🚪</span> Log out
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Log out
         </button>
       </aside>
-      
+
       <main className="main">
         <header className="chat-header">
           {currentRoom ? (
             <>
               <div className="header-left">
                 <div className="header-room-icon" style={{ color: currentRoom.type === 'private' ? '#f59e0b' : currentRoom.type === 'ephemeral' ? '#a855f7' : '#38bdf8' }}>
-                  {currentRoom.type === 'private' ? '🔒' : currentRoom.type === 'ephemeral' ? '⏳' : '#'}
+                  {currentRoom.type === 'private' ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  ) : currentRoom.type === 'ephemeral' ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="4" y1="9" x2="20" y2="9" /><line x1="4" y1="15" x2="20" y2="15" /><line x1="10" y1="3" x2="8" y2="21" /><line x1="16" y1="3" x2="14" y2="21" />
+                    </svg>
+                  )}
                 </div>
                 <div className="header-room-info">
                   <h2 className="header-room-name">{currentRoom.name}</h2>
@@ -651,6 +710,7 @@ export default function Chat() {
                     messages={displayMessages}
                     meId={user?.id}
                     onDelete={deleteMessage}
+                    onDeleteForMe={deleteForMe}
                     members={members}
                     onRead={handleReadReceipt}
                     readReceipts={readReceipts}
@@ -658,6 +718,9 @@ export default function Chat() {
                     onOpenThread={setThreadMessage}
                     onReact={handleReact}
                     threadCounts={threadCounts}
+                    onReply={setReplyTo}
+                    replyToData={replyToData}
+                    membersMap={membersMap}
                   />
                   <ScrollToBottom containerRef={messagesContainerRef} />
                 </div>
@@ -667,7 +730,14 @@ export default function Chat() {
                   currentInput={currentInput}
                   onSuggestionClick={(s) => setCurrentInput(s)}
                 />
-                <MessageInput onSend={send} onTyping={handleTyping} onTextChange={setCurrentInput} />
+                <MessageInput
+                  onSend={send}
+                  onTyping={handleTyping}
+                  onTextChange={setCurrentInput}
+                  replyTo={replyTo}
+                  onClearReply={() => setReplyTo(null)}
+                  membersMap={membersMap}
+                />
               </div>
               {showMembers && (
                 <aside className="members-panel">
@@ -702,7 +772,11 @@ export default function Chat() {
             </>
           ) : (
             <div className="empty-state">
-              <div className="empty-icon">💬</div>
+              <div className="empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </div>
               <h3>No channel selected</h3>
               <p>Select a channel from the left sidebar or create a new one to start real-time messaging.</p>
               {rooms.length > 0 && (

@@ -153,7 +153,7 @@ export function attachSocket(httpServer) {
       }
     });
 
-    socket.on('message:send', async ({ roomId, text, clientMsgId }, ack) => {
+    socket.on('message:send', async ({ roomId, text, clientMsgId, replyTo }, ack) => {
       try {
         if (!roomId || !text || !text.trim()) throw new Error('roomId and text required');
 
@@ -196,8 +196,9 @@ export function attachSocket(httpServer) {
           sender: socket.user.id,
           text: text.trim(),
           clientMsgId: clientMsgId || null,
+          replyTo: replyTo || null,
         });
-        const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username } };
+        const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username }, replyTo: msg.replyTo ? msg.replyTo.toString() : null };
         io.to(roomId).emit('message:new', { roomId, message: payload });
         ack?.({ ok: true, message: payload });
       } catch (err) {
@@ -344,7 +345,31 @@ export function attachSocket(httpServer) {
       }
     });
 
-    socket.on('message:thread-reply', async ({ roomId, parentMessageId, text, clientMsgId }, ack) => {
+    socket.on('message:delete-for-me', async ({ roomId, messageId }, ack) => {
+      try {
+        if (!roomId || !messageId) throw new Error('roomId and messageId required');
+        const room = await Room.findById(roomId);
+        if (!room) throw new Error('room not found');
+
+        const member = room.members.find((m) => m.user.toString() === socket.user.id);
+        if (!member) throw new Error('not a member');
+
+        const msg = await Message.findOne({ _id: messageId, room: roomId });
+        if (!msg) throw new Error('message not found');
+
+        if (!msg.deletedFor.some((id) => id.toString() === socket.user.id)) {
+          msg.deletedFor.push(socket.user.id);
+          await msg.save();
+        }
+
+        socket.emit('message:deleted-for-me', { roomId, messageId });
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
+    socket.on('message:thread-reply', async ({ roomId, parentMessageId, text, clientMsgId, replyTo }, ack) => {
       try {
         if (!roomId || !parentMessageId || !text || !text.trim()) {
           throw new Error('roomId, parentMessageId, and text required');
@@ -391,9 +416,10 @@ export function attachSocket(httpServer) {
           text: text.trim(),
           parentMessage: parentMessageId,
           clientMsgId: clientMsgId || null,
+          replyTo: replyTo || null,
         });
 
-        const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username } };
+        const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username }, replyTo: msg.replyTo ? msg.replyTo.toString() : null };
         io.to(roomId).emit('message:new', { roomId, message: payload });
         io.to(roomId).emit('message:thread-reply', {
           roomId,

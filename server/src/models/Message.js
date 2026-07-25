@@ -9,6 +9,8 @@ const messageSchema = new mongoose.Schema(
     parentMessage: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
     deleted: { type: Boolean, default: false },
     deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
+    deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     reported: { type: Boolean, default: false },
     reactions: [
       {
@@ -31,7 +33,9 @@ messageSchema.methods.toClient = function () {
     clientMsgId: this.clientMsgId || null,
     text: this.text,
     parentMessage: this.parentMessage ? this.parentMessage.toString() : null,
+    replyTo: this.replyTo ? this.replyTo.toString() : null,
     deleted: this.deleted,
+    deletedFor: this.deletedFor.map((u) => u.toString()),
     reported: this.reported,
     reactions: this.reactions.map((r) => ({
       emoji: r.emoji,
