@@ -132,7 +132,7 @@ function MockChatDemo() {
         <div className="mock-chrome-dots">
           <span /><span /><span />
         </div>
-        <div className="mock-chrome-title">ChatApp</div>
+        <div className="mock-chrome-title">DropTalk</div>
         <div style={{ width: 48 }} />
       </div>
       <div className="mock-chat-header">
@@ -198,7 +198,7 @@ export default function Home() {
       <div className="home-content">
         {/* ── Nav ── */}
         <nav className="home-nav">
-          <span className="home-brand">ChatApp</span>
+          <span className="home-brand">DropTalk</span>
           <div className="home-nav-links">
             <Link to="/login" className="home-btn-ghost">Sign in</Link>
             <Link to="/register" className="home-btn-primary">Get Started</Link>

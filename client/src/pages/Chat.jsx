@@ -604,7 +604,7 @@ export default function Chat() {
     <div className="chat">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <span className="brand-title">ChatApp</span>
+          <span className="brand-title">DropTalk</span>
           <button className="sidebar-avatar" onClick={() => nav('/profile')} title="Profile Settings">
             {user?.profileImage ? (
               <img src={user.profileImage} alt="Profile" />
@@ -693,7 +693,7 @@ export default function Chat() {
               </div>
             </>
           ) : (
-            <h2>Welcome to ChatApp</h2>
+            <h2>Welcome to DropTalk</h2>
           )}
         </header>
         <div className="main-content">

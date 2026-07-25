@@ -65,35 +65,32 @@ float snoise(vec2 v){
   return 130.0 * dot(m, g);
 }
 
-struct ColorStop {
-  vec3 color;
-  float position;
-};
-
-#define COLOR_RAMP(colors, factor, finalColor) {
+vec3 colorRamp(vec3 colors[3], float positions[3], float factor) {
   int index = 0;
   for (int i = 0; i < 2; i++) {
-     ColorStop currentColor = colors[i];
-     bool isInBetween = currentColor.position <= factor;
-     index = int(mix(float(index), float(i), float(isInBetween)));
+    bool isInBetween = positions[i] <= factor;
+    index = int(mix(float(index), float(i), float(isInBetween)));
   }
-  ColorStop currentColor = colors[index];
-  ColorStop nextColor = colors[index + 1];
-  float range = nextColor.position - currentColor.position;
-  float lerpFactor = (factor - currentColor.position) / range;
-  finalColor = mix(currentColor.color, nextColor.color, lerpFactor);
+  int nextIndex = index + 1;
+  float range = positions[nextIndex] - positions[index];
+  float lerpFactor = (factor - positions[index]) / range;
+  return mix(colors[index], colors[nextIndex], lerpFactor);
 }
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
 
-  ColorStop colors[3];
-  colors[0] = ColorStop(uColorStops[0], 0.0);
-  colors[1] = ColorStop(uColorStops[1], 0.5);
-  colors[2] = ColorStop(uColorStops[2], 1.0);
+  vec3 colors[3];
+  colors[0] = uColorStops[0];
+  colors[1] = uColorStops[1];
+  colors[2] = uColorStops[2];
 
-  vec3 rampColor;
-  COLOR_RAMP(colors, uv.x, rampColor);
+  float positions[3];
+  positions[0] = 0.0;
+  positions[1] = 0.5;
+  positions[2] = 1.0;
+
+  vec3 rampColor = colorRamp(colors, positions, uv.x);
 
   float height = snoise(vec2(uv.x * 2.0 + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude;
   height = exp(height);
@@ -166,12 +163,23 @@ export default function Aurora(props) {
       }
     });
 
+    if (!program.uniformLocations) {
+      console.warn('Aurora: shader program failed to link, skipping render');
+      return () => {
+        if (ctn && gl.canvas.parentNode === ctn) {
+          ctn.removeChild(gl.canvas);
+        }
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      };
+    }
+
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
     let animateId = 0;
     const update = t => {
       animateId = requestAnimationFrame(update);
+      if (!program.uniformLocations) return;
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
