@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { api } from '../api.js';
-import { getSocket } from '../socket.js';
-import { getRoomKey, encryptText, decryptText } from '../crypto.js';
+import { api } from '../../utils/api.js';
+import { getSocket } from '../../utils/socket.js';
+import { getRoomKey, encryptText, decryptText } from '../../utils/crypto.js';
 
 export default function ThreadPanel({ parentMessage, roomId, meId, isPrivate, onClose }) {
   const [replies, setReplies] = useState([]);

@@ -1,6 +1,5 @@
 import { Room } from '../models/Room.js';
-
-const ROLE_HIERARCHY = { owner: 3, moderator: 2, member: 1 };
+import { ROLE_HIERARCHY } from '../utils/constants.js';
 
 export function requireRole(...allowedRoles) {
   return async (req, res, next) => {

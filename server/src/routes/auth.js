@@ -4,24 +4,14 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../models/User.js';
 import { requireAuth } from '../middleware/auth.js';
+import { TOKEN_EXPIRY, USERNAME_REGEX, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } from '../utils/constants.js';
+import { parseExpiry, escapeRegex, generateAutoUsername } from '../utils/errors.js';
 
 const router = Router();
 
-const ACCESS_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m';
-const REFRESH_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '7d';
-
-function parseExpiry(str) {
-  const match = str.match(/^(\d+)(s|m|h|d)$/);
-  if (!match) return 7 * 24 * 60 * 60 * 1000;
-  const val = parseInt(match[1], 10);
-  const unit = match[2];
-  const multipliers = { s: 1000, m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 60 * 1000 };
-  return val * multipliers[unit];
-}
-
 function signAccessToken(user) {
   return jwt.sign({ sub: user._id.toString(), username: user.username }, process.env.JWT_SECRET, {
-    expiresIn: ACCESS_EXPIRY,
+    expiresIn: TOKEN_EXPIRY.access,
   });
 }
 
@@ -30,7 +20,7 @@ function signRefreshToken() {
 }
 
 function getRefreshExpiry() {
-  return new Date(Date.now() + parseExpiry(REFRESH_EXPIRY));
+  return new Date(Date.now() + parseExpiry(TOKEN_EXPIRY.refresh));
 }
 
 async function storeRefreshToken(userId, token, family = null) {
@@ -77,12 +67,12 @@ router.post('/register', async (req, res) => {
     let needsUsername = false;
 
     if (cleanUsername) {
-      const usernameRegex = new RegExp(`^${cleanUsername.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+      const usernameRegex = new RegExp(`^${escapeRegex(cleanUsername)}$`, 'i');
       const usernameExists = await User.findOne({ username: usernameRegex });
       if (usernameExists) return res.status(409).json({ error: 'username already in use' });
       finalUsername = cleanUsername;
     } else {
-      finalUsername = `user_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      finalUsername = generateAutoUsername();
       needsUsername = true;
     }
 
@@ -105,7 +95,7 @@ router.post('/login', async (req, res) => {
     const { identifier, password } = req.body || {};
     if (!identifier || !password) return res.status(400).json({ error: 'identifier and password required' });
     const cleanId = identifier.trim();
-    const idRegex = new RegExp(`^${cleanId.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+    const idRegex = new RegExp(`^${escapeRegex(cleanId)}$`, 'i');
 
     const user = await User.findOne({ $or: [{ email: cleanId.toLowerCase() }, { username: idRegex }] });
     if (!user) return res.status(401).json({ error: 'invalid credentials' });
@@ -187,10 +177,10 @@ router.get('/check-username/:username', requireAuth, async (req, res) => {
   try {
     const clean = req.params.username?.trim();
     if (!clean) return res.status(400).json({ error: 'username required' });
-    if (clean.length < 3 || clean.length > 24) return res.json({ available: false });
-    if (!/^[a-zA-Z0-9_-]+$/.test(clean)) return res.json({ available: false });
+    if (clean.length < USERNAME_MIN_LENGTH || clean.length > USERNAME_MAX_LENGTH) return res.json({ available: false });
+    if (!USERNAME_REGEX.test(clean)) return res.json({ available: false });
 
-    const usernameRegex = new RegExp(`^${clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+    const usernameRegex = new RegExp(`^${escapeRegex(clean)}$`, 'i');
     const exists = await User.findOne({ username: usernameRegex, _id: { $ne: req.user.id } });
     return res.json({ available: !exists });
   } catch (err) {
@@ -209,10 +199,10 @@ router.put('/profile', requireAuth, async (req, res) => {
 
     if (username !== undefined) {
       const clean = username.trim();
-      if (clean.length < 3 || clean.length > 24) return res.status(400).json({ error: 'username must be 3-24 characters' });
-      if (!/^[a-zA-Z0-9_-]+$/.test(clean)) return res.status(400).json({ error: 'username can only contain letters, numbers, underscores, and hyphens' });
+      if (clean.length < USERNAME_MIN_LENGTH || clean.length > USERNAME_MAX_LENGTH) return res.status(400).json({ error: `username must be ${USERNAME_MIN_LENGTH}-${USERNAME_MAX_LENGTH} characters` });
+      if (!USERNAME_REGEX.test(clean)) return res.status(400).json({ error: 'username can only contain letters, numbers, underscores, and hyphens' });
 
-      const usernameRegex = new RegExp(`^${clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+      const usernameRegex = new RegExp(`^${escapeRegex(clean)}$`, 'i');
       const exists = await User.findOne({ username: usernameRegex, _id: { $ne: req.user.id } });
       if (exists) return res.status(409).json({ error: 'username already taken, try another one' });
 
@@ -239,10 +229,10 @@ router.put('/username', requireAuth, async (req, res) => {
     if (!username || !username.trim()) return res.status(400).json({ error: 'username required' });
 
     const clean = username.trim();
-    if (clean.length < 3 || clean.length > 24) return res.status(400).json({ error: 'username must be 3-24 characters' });
-    if (!/^[a-zA-Z0-9_-]+$/.test(clean)) return res.status(400).json({ error: 'username can only contain letters, numbers, underscores, and hyphens' });
+    if (clean.length < USERNAME_MIN_LENGTH || clean.length > USERNAME_MAX_LENGTH) return res.status(400).json({ error: `username must be ${USERNAME_MIN_LENGTH}-${USERNAME_MAX_LENGTH} characters` });
+    if (!USERNAME_REGEX.test(clean)) return res.status(400).json({ error: 'username can only contain letters, numbers, underscores, and hyphens' });
 
-    const usernameRegex = new RegExp(`^${clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+    const usernameRegex = new RegExp(`^${escapeRegex(clean)}$`, 'i');
     const exists = await User.findOne({ username: usernameRegex, _id: { $ne: req.user.id } });
     if (exists) return res.status(409).json({ error: 'username already in use' });
 

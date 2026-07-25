@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import Stepper, { Step } from './Stepper.jsx';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';

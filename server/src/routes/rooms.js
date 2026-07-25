@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Room } from '../models/Room.js';
 import { requireAuth } from '../middleware/auth.js';
+import { DEFAULT_ROOMS, ROOM_TYPES } from '../utils/constants.js';
 
 const router = Router();
 
@@ -10,12 +11,7 @@ router.get('/', async (req, res) => {
   try {
     let rooms = await Room.find().sort({ createdAt: 1 });
     if (rooms.length === 0 && req.user?.id) {
-      const defaults = [
-        { name: 'general', type: 'public' },
-        { name: 'random', type: 'public' },
-        { name: 'lounge', type: 'public' },
-      ];
-      for (const d of defaults) {
+      for (const d of DEFAULT_ROOMS) {
         await Room.create({
           name: d.name,
           createdBy: req.user.id,
@@ -52,7 +48,7 @@ router.post('/', async (req, res) => {
     const { name, type, inactivityMinutes } = req.body || {};
     if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
 
-    const roomType = ['public', 'private', 'ephemeral'].includes(type) ? type : 'public';
+    const roomType = ROOM_TYPES.includes(type) ? type : 'public';
 
     const existing = await Room.findOne({ name: name.trim() });
     if (existing) return res.status(200).json({ room: existing.toSummary() });
@@ -105,7 +101,7 @@ router.put('/:roomId', async (req, res) => {
 
     const { name, type, inactivityMinutes } = req.body || {};
     if (name && name.trim()) room.name = name.trim();
-    if (['public', 'private', 'ephemeral'].includes(type)) room.type = type;
+    if (ROOM_TYPES.includes(type)) room.type = type;
 
     if (room.type === 'ephemeral') {
       const minutes = typeof inactivityMinutes === 'number' && inactivityMinutes > 0 ? inactivityMinutes : 60;

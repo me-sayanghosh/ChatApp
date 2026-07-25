@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
-import { getSocket } from '../socket.js';
+import { api } from '../../utils/api.js';
+import { getSocket } from '../../utils/socket.js';
 
 export default function PendingRequests({ roomId, isAdmin, onRequestHandled }) {
   const [requests, setRequests] = useState([]);

@@ -1,10 +1,11 @@
 import redis from '../config/redis.js';
+import { PRESENCE, TYPING_TTL_MS } from '../utils/constants.js';
 
 const PRESENCE_KEY = 'presence';
 const ONLINE_SET = 'presence:online';
 const CONN_COUNT_KEY = 'presence:connCount';
-const HEARTBEAT_TTL_MS = 60000;
-const HEARTBEAT_REFRESH_MS = 30000;
+const HEARTBEAT_TTL_MS = PRESENCE.HEARTBEAT_TTL_MS;
+const HEARTBEAT_REFRESH_MS = PRESENCE.HEARTBEAT_REFRESH_MS;
 
 export async function setPresence(userId, { status = 'online', currentRoom = null }) {
   const data = { status, currentRoom, lastSeen: Date.now() };

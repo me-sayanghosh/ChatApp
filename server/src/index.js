@@ -4,6 +4,8 @@ import dns from 'node:dns/promises';
 import express from 'express';
 import cors from 'cors';
 
+import { CORS_ORIGINS } from './utils/constants.js';
+
 dns.setServers(['1.1.1.1', '8.8.8.8']);
 
 process.on('uncaughtException', (err) => {
@@ -25,10 +27,7 @@ import { attachSocket } from './socket/index.js';
 import { reconcilePresence } from './services/presence.js';
 
 const app = express();
-const corsOrigin = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
-app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));

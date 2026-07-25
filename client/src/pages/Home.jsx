@@ -5,15 +5,15 @@ import {
   Lock, MessageSquare, Sparkles, GitBranch, SmilePlus,
   Shield, Eye, RefreshCw, KeyRound,
 } from 'lucide-react';
-import Aurora from '../components/Aurora.jsx';
-import RotatingText from '../components/RotatingText.jsx';
-import ScrollFloat from '../components/ScrollFloat.jsx';
+import Aurora from '../components/home/Aurora.jsx';
+import RotatingText from '../components/home/RotatingText.jsx';
+import ScrollFloat from '../components/home/ScrollFloat.jsx';
 import {
   E2EEIllustration, RealTimeIllustration, AIAssistantIllustration,
   ThreadRepliesIllustration, ReactionsIllustration, ModerationIllustration,
   PresenceIllustration, OfflineSyncIllustration, AccessControlIllustration,
   SecurityShieldIllustration,
-} from '../components/Illustrations.jsx';
+} from '../components/home/Illustrations.jsx';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

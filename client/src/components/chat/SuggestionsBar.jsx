@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from '../api.js';
+import { api } from '../../utils/api.js';
 
 export default function SuggestionsBar({ roomId, currentInput, onSuggestionClick }) {
   const [suggestions, setSuggestions] = useState([]);

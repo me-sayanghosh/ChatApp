@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import PostRegisterStepper from '../components/PostRegisterStepper.jsx';
+import PostRegisterStepper from '../components/ui/PostRegisterStepper.jsx';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 

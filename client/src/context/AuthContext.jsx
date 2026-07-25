@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { connectSocket, disconnectSocket } from '../socket.js';
-import { api, getAccessToken, setTokens, clearTokens } from '../api.js';
-import { clearAllCryptoKeys } from '../crypto.js';
+import { connectSocket, disconnectSocket } from '../utils/socket.js';
+import { api, getAccessToken, setTokens, clearTokens } from '../utils/api.js';
+import { clearAllCryptoKeys } from '../utils/crypto.js';
 
 const AuthCtx = createContext(null);
 
