@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema(
     username: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 24 },
     name: { type: String, trim: true, default: '' },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    profileImage: { type: String, default: '' },
     needsUsername: { type: Boolean, default: false },
     passwordHash: { type: String, required: true },
     refreshTokens: [
@@ -27,7 +28,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.methods.toClient = function () {
-  return { id: this._id.toString(), username: this.username, name: this.name || '', email: this.email, needsUsername: !!this.needsUsername };
+  return { id: this._id.toString(), username: this.username, name: this.name || '', email: this.email, profileImage: this.profileImage || '', needsUsername: !!this.needsUsername };
 };
 
 export const User = mongoose.model('User', userSchema);

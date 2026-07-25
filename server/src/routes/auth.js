@@ -183,6 +183,56 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/check-username/:username', requireAuth, async (req, res) => {
+  try {
+    const clean = req.params.username?.trim();
+    if (!clean) return res.status(400).json({ error: 'username required' });
+    if (clean.length < 3 || clean.length > 24) return res.json({ available: false });
+    if (!/^[a-zA-Z0-9_-]+$/.test(clean)) return res.json({ available: false });
+
+    const usernameRegex = new RegExp(`^${clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+    const exists = await User.findOne({ username: usernameRegex, _id: { $ne: req.user.id } });
+    return res.json({ available: !exists });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/profile', requireAuth, async (req, res) => {
+  try {
+    const { name, username, profileImage } = req.body || {};
+    const update = {};
+
+    if (name !== undefined) {
+      update.name = name.trim();
+    }
+
+    if (username !== undefined) {
+      const clean = username.trim();
+      if (clean.length < 3 || clean.length > 24) return res.status(400).json({ error: 'username must be 3-24 characters' });
+      if (!/^[a-zA-Z0-9_-]+$/.test(clean)) return res.status(400).json({ error: 'username can only contain letters, numbers, underscores, and hyphens' });
+
+      const usernameRegex = new RegExp(`^${clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+      const exists = await User.findOne({ username: usernameRegex, _id: { $ne: req.user.id } });
+      if (exists) return res.status(409).json({ error: 'username already taken, try another one' });
+
+      update.username = clean;
+      update.needsUsername = false;
+    }
+
+    if (profileImage !== undefined) {
+      update.profileImage = profileImage;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, update, { new: true });
+    if (!user) return res.status(404).json({ error: 'not found' });
+
+    return res.json({ user: user.toClient() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.put('/username', requireAuth, async (req, res) => {
   try {
     const { username } = req.body || {};

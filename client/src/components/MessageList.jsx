@@ -2,13 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import ReactionPicker from './ReactionPicker.jsx';
 
 export default function MessageList({ messages, meId, onDelete, members, onRead, readReceipts, onlineUserIds, onOpenThread, onReact, threadCounts }) {
-  const ref = useRef(null);
   const lastReadRef = useRef(null);
   const [reactionPickerFor, setReactionPickerFor] = useState(null);
-
-  useEffect(() => {
-    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
-  }, [messages]);
 
   useEffect(() => {
     if (messages.length > 0 && onRead) {
@@ -57,7 +52,7 @@ export default function MessageList({ messages, meId, onDelete, members, onRead,
   const topLevel = messages.filter((m) => !m.parentMessage);
 
   return (
-    <div className="messages" ref={ref}>
+    <div className="messages">
       {topLevel.length === 0 && <div className="empty">No messages yet. Say hi!</div>}
       {topLevel.map((m) => {
         const mine = m.senderId === meId || m.sender?.id === meId;

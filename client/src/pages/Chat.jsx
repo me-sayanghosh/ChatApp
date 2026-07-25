@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getSocket, sendOffline, setLastSeenMessage, getLastSeenMessages, onReconnect } from '../socket.js';
 import { api } from '../api.js';
@@ -22,9 +23,12 @@ import PresenceMap from '../components/PresenceMap.jsx';
 import ThreadPanel from '../components/ThreadPanel.jsx';
 import AIPanel from '../components/AIPanel.jsx';
 import PendingRequests from '../components/PendingRequests.jsx';
+import ScrollToBottom from '../components/ScrollToBottom.jsx';
+import SuggestionsBar from '../components/SuggestionsBar.jsx';
 
 export default function Chat() {
   const { user, logout } = useAuth();
+  const nav = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -42,8 +46,8 @@ export default function Chat() {
   const [currentInput, setCurrentInput] = useState('');
   const [memberRooms, setMemberRooms] = useState(new Set());
   const [pendingRooms, setPendingRooms] = useState(new Set());
-  const [socketConnected, setSocketConnected] = useState(false);
   const socketRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
   const userRef = useRef(user);
@@ -164,10 +168,6 @@ export default function Chat() {
     const socket = getSocket();
     if (!socket) return;
     socketRef.current = socket;
-
-    setSocketConnected(socket.connected);
-    socket.on('connect', () => setSocketConnected(true));
-    socket.on('disconnect', () => setSocketConnected(false));
 
     socket.on('message:new', ({ roomId, message }) => {
       if (roomId === currentRoomRef.current) {
@@ -560,20 +560,14 @@ export default function Chat() {
     <div className="chat">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-logo">💬</div>
           <span className="brand-title">ChatApp</span>
-        </div>
-
-        <div className="me-card">
-          <div className="avatar">{user?.username?.[0]?.toUpperCase() || 'U'}</div>
-          <div className="user-details">
-            <span className="me-name">{user?.name || user?.username}</span>
-            <span className="me-username">@{user?.username}</span>
-            <span className="status-badge">
-              <span className={`dot ${socketConnected ? 'online' : 'offline'}`}></span>
-              {socketConnected ? 'Online' : 'Offline'}
-            </span>
-          </div>
+          <button className="sidebar-avatar" onClick={() => nav('/profile')} title="Profile Settings">
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt="Profile" />
+            ) : (
+              <span>{(user?.username || 'U')[0].toUpperCase()}</span>
+            )}
+          </button>
         </div>
 
         <Channels
@@ -593,31 +587,48 @@ export default function Chat() {
       </aside>
       
       <main className="main">
-        <header>
+        <header className="chat-header">
           {currentRoom ? (
             <>
-              <h2>
-                {currentRoom.type === 'private' && '🔒 '}
-                {currentRoom.type === 'ephemeral' && '⏳ '}
-                #{currentRoom.name}
-                {currentRoom.type === 'private' && keyStatus === 'waiting' && <span className="key-status waiting"> (exchanging keys...)</span>}
-                {currentRoom.type === 'private' && keyStatus === 'error' && <span className="key-status error"> (key error)</span>}
-              </h2>
-              <div className="header-right">
-                <div className="online">
-                  <span className="dot online"></span> {online.length} Online
+              <div className="header-left">
+                <div className="header-room-icon" style={{ color: currentRoom.type === 'private' ? '#f59e0b' : currentRoom.type === 'ephemeral' ? '#a855f7' : '#38bdf8' }}>
+                  {currentRoom.type === 'private' ? '🔒' : currentRoom.type === 'ephemeral' ? '⏳' : '#'}
                 </div>
+                <div className="header-room-info">
+                  <h2 className="header-room-name">{currentRoom.name}</h2>
+                  <div className="header-room-meta">
+                    <span className="dot online"></span>
+                    <span>{online.length} online</span>
+                    <span className="header-sep">&middot;</span>
+                    <span>{members.length} members</span>
+                    {currentRoom.type === 'private' && keyStatus === 'waiting' && (
+                      <span className="key-status waiting"> &middot; exchanging keys...</span>
+                    )}
+                    {currentRoom.type === 'private' && keyStatus === 'error' && (
+                      <span className="key-status error"> &middot; key error</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="header-right">
                 <button
-                  className={`members-toggle ${showPresence ? 'active' : ''}`}
+                  className={`header-action ${showPresence ? 'active' : ''}`}
                   onClick={() => { setShowPresence(!showPresence); setShowMembers(false); }}
+                  title="Presence"
                 >
-                  👤 Presence
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                  </svg>
                 </button>
                 <button
-                  className={`members-toggle ${showMembers ? 'active' : ''}`}
+                  className={`header-action ${showMembers ? 'active' : ''}`}
                   onClick={() => { setShowMembers(!showMembers); setShowPresence(false); }}
+                  title="Members"
                 >
-                  Members ({members.length})
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <span className="header-action-count">{members.length}</span>
                 </button>
                 <AIPanel roomId={currentRoom.id} currentInput={currentInput} />
               </div>
@@ -635,19 +646,27 @@ export default function Chat() {
                     {keyStatus === 'waiting' ? 'Waiting for encryption keys...' : 'Encryption key error'}
                   </div>
                 )}
-                <MessageList
-                  messages={displayMessages}
-                  meId={user?.id}
-                  onDelete={deleteMessage}
-                  members={members}
-                  onRead={handleReadReceipt}
-                  readReceipts={readReceipts}
-                  onlineUserIds={online.map((u) => u.id)}
-                  onOpenThread={setThreadMessage}
-                  onReact={handleReact}
-                  threadCounts={threadCounts}
-                />
+                <div className="messages-container" ref={messagesContainerRef}>
+                  <MessageList
+                    messages={displayMessages}
+                    meId={user?.id}
+                    onDelete={deleteMessage}
+                    members={members}
+                    onRead={handleReadReceipt}
+                    readReceipts={readReceipts}
+                    onlineUserIds={online.map((u) => u.id)}
+                    onOpenThread={setThreadMessage}
+                    onReact={handleReact}
+                    threadCounts={threadCounts}
+                  />
+                  <ScrollToBottom containerRef={messagesContainerRef} />
+                </div>
                 <TypingIndicator typingUsers={typingUsers} />
+                <SuggestionsBar
+                  roomId={currentRoom.id}
+                  currentInput={currentInput}
+                  onSuggestionClick={(s) => setCurrentInput(s)}
+                />
                 <MessageInput onSend={send} onTyping={handleTyping} onTextChange={setCurrentInput} />
               </div>
               {showMembers && (
