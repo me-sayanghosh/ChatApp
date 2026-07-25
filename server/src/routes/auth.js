@@ -64,7 +64,7 @@ async function cleanExpiredTokens(userId) {
 
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body || {};
+    const { username, name, email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
     if (password.length < 6) return res.status(400).json({ error: 'password too short' });
 
@@ -87,7 +87,7 @@ router.post('/register', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ username: finalUsername, email: cleanEmail, passwordHash, needsUsername });
+    const user = await User.create({ username: finalUsername, name: name?.trim() || '', email: cleanEmail, passwordHash, needsUsername });
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken();

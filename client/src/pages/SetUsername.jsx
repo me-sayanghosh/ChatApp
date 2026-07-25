@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import Stepper, { Step } from '../components/Stepper.jsx';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 
@@ -38,23 +37,28 @@ export default function SetUsername() {
 
   return (
     <div className="auth">
-      <div className="auth-card stepper-no-footer">
-        <Stepper initialStep={2} disableStepIndicators>
-          <Step>
-            <h1>Account created</h1>
-            <p className="muted">Your account is ready.</p>
-          </Step>
-          <Step>
-            <h1>Pick a username</h1>
-            <p className="muted">This is how others will see you. You can change it later.</p>
-            <form onSubmit={handleSubmit}>
-              <input placeholder="Username (3-24 chars)" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus minLength={3} maxLength={24} pattern="[a-zA-Z0-9_-]+" required autoComplete="username" />
-              {err && <div className="error">{err}</div>}
-              <button disabled={busy}>{busy ? 'Saving…' : 'Save & start chatting'}</button>
-            </form>
-            <button className="skip-username" onClick={() => nav('/chat')}>Skip for now</button>
-          </Step>
-        </Stepper>
+      <div className="auth-card">
+        <h1>Pick a username</h1>
+        <p className="muted">This is how others will see you in chats. You can skip and set it later.</p>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Username (3-24 chars)"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoFocus
+            minLength={3}
+            maxLength={24}
+            pattern="[a-zA-Z0-9_-]+"
+            required
+            autoComplete="username"
+          />
+          {err && <div className="error">{err}</div>}
+          <button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save & continue'}</button>
+        </form>
+        <p className="muted" style={{ marginTop: '1.25rem', textAlign: 'center' }}>
+          <Link to="/chat" className="link">Skip for now</Link>
+        </p>
       </div>
     </div>
   );

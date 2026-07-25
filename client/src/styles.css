@@ -37,14 +37,25 @@ body {
 .auth-card .error { color: #f87171; font-size: 0.85rem; }
 .auth-card .link { color: #818cf8; cursor: pointer; font-weight: 500; }
 
-/* Hide Stepper's built-in Next/Back buttons — forms use their own submit buttons */
+/* Hide Stepper's built-in Next/Back buttons when used inside auth cards */
 .stepper-no-footer .footer-container { display: none; }
-.skip-username {
-  background: none; border: 1px solid #334155; color: #94a3b8; padding: 0.6rem;
-  border-radius: 10px; font-size: 0.85rem; cursor: pointer; margin-top: 0.75rem; width: 100%;
-  transition: all 0.2s ease;
+
+/* Post-Register Stepper Modal Overlay */
+.post-register-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(9, 13, 22, 0.85);
+  backdrop-filter: blur(6px);
 }
-.skip-username:hover { border-color: #475569; color: #e2e8f0; }
+.post-register-modal {
+  width: 480px; max-width: 95vw; max-height: 90vh;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
 
 /* Main Chat Layout */
 .chat { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
