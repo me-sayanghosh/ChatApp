@@ -539,6 +539,32 @@ body {
 .home-accent {
   color: var(--primary);
 }
+/* RotatingText in hero — stable width container to prevent layout reflow */
+.rotating-text-wrap {
+  display: inline-block;
+  min-width: 320px;
+  vertical-align: bottom;
+}
+.rotating-text-wrap .text-rotate {
+  display: inline-flex;
+  align-items: baseline;
+}
+.rotating-text-wrap .text-rotate-element {
+  color: var(--primary-hover);
+}
+/* ScrollFloat — override default oversized heading styles to match section titles */
+.scroll-float-title {
+  display: inline-block;
+}
+.scroll-float-title .scroll-float-text {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+}
+.scroll-float-cta .scroll-float-text {
+  font-size: inherit;
+}
 .home-subtitle {
   margin: 0 0 2.5rem;
   font-size: 1.1rem;

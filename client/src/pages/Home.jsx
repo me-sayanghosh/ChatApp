@@ -6,6 +6,8 @@ import {
   Shield, Eye, RefreshCw, KeyRound,
 } from 'lucide-react';
 import Aurora from '../components/Aurora.jsx';
+import RotatingText from '../components/RotatingText.jsx';
+import ScrollFloat from '../components/ScrollFloat.jsx';
 import {
   E2EEIllustration, RealTimeIllustration, AIAssistantIllustration,
   ThreadRepliesIllustration, ReactionsIllustration, ModerationIllustration,
@@ -219,7 +221,17 @@ export default function Home() {
             transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
           >
             Chat without<br />
-            <span className="home-accent">boundaries.</span>
+            <span className="home-accent rotating-text-wrap">
+              <RotatingText
+                texts={['boundaries.', 'limits.', 'borders.', 'delays.']}
+                splitBy="characters"
+                rotationInterval={2700}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '-120%', opacity: 0 }}
+              />
+            </span>
           </motion.h1>
           <motion.p
             className="home-subtitle"
@@ -248,7 +260,7 @@ export default function Home() {
         {/* ── 2. Feature Grid ── */}
         <section className="home-section">
           <AnimatedSection>
-            <motion.h2 className="home-section-title" variants={fadeUp}>Everything you need to communicate</motion.h2>
+            <h2 className="home-section-title"><ScrollFloat containerClassName="scroll-float-title">Everything you need to communicate</ScrollFloat></h2>
             <motion.p className="home-section-sub" variants={fadeUp}>Nine features designed for secure, real-time collaboration.</motion.p>
           </AnimatedSection>
           <div className="home-feature-grid">
@@ -261,7 +273,7 @@ export default function Home() {
         {/* ── 3. How It Works ── */}
         <section className="home-section home-section-alt">
           <AnimatedSection>
-            <motion.h2 className="home-section-title" variants={fadeUp}>How it works</motion.h2>
+            <h2 className="home-section-title"><ScrollFloat containerClassName="scroll-float-title">How it works</ScrollFloat></h2>
             <motion.p className="home-section-sub" variants={fadeUp}>From sign-up to your first message in under a minute.</motion.p>
           </AnimatedSection>
           <div className="home-steps">
@@ -330,7 +342,7 @@ export default function Home() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.55, ease: 'easeOut' }}
           >
-            <h2 className="home-cta-title">Ready to start chatting?</h2>
+            <h2 className="home-cta-title"><ScrollFloat containerClassName="scroll-float-title scroll-float-cta">Ready to start chatting?</ScrollFloat></h2>
             <p className="home-cta-sub">Join for free. No credit card required.</p>
             <div className="home-cta-actions">
               <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
