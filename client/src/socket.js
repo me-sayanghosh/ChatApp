@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { API_BASE, getAccessToken, getRefreshToken, setTokens } from './api.js';
+import { API_BASE, api, getAccessToken, getRefreshToken, setTokens } from './api.js';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:4000';
 const OFFLINE_QUEUE_KEY = 'chatapp:offlineQueue';
@@ -111,13 +111,8 @@ export function connectSocket(accessToken) {
       const refreshToken = getRefreshToken();
       if (!refreshToken) return;
       try {
-        const res = await fetch(`${API_BASE}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        });
-        if (!res.ok) throw new Error('refresh failed');
-        const data = await res.json();
+        const { data } = await api.post('/auth/refresh', { refreshToken });
+        if (data.error && data.error.includes('reuse detected')) return;
         setTokens(data.accessToken, data.refreshToken);
         socket.auth.token = data.accessToken;
         socket.connect();

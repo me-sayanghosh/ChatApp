@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
   }
 
   if (!bootstrapped) return null;
-  return <AuthCtx.Provider value={{ user, token: accessToken, login, logout }}>{children}</AuthCtx.Provider>;
+  return <AuthCtx.Provider value={{ user, token: accessToken, login, logout, setUser }}>{children}</AuthCtx.Provider>;
 }
 
 export function useAuth() {

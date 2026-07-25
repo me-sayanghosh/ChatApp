@@ -147,7 +147,21 @@ router.get('/:roomId/members', async (req, res) => {
     const { roomId } = req.params;
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).json({ error: 'room not found' });
-    res.json({ members: room.members });
+
+    const { User } = await import('../models/User.js');
+    const userIds = room.members.map((m) => m.user);
+    const users = await User.find({ _id: { $in: userIds } }).select('username').lean();
+    const usernameMap = new Map(users.map((u) => [u._id.toString(), u.username]));
+
+    const members = room.members.map((m) => ({
+      user: m.user.toString(),
+      username: usernameMap.get(m.user.toString()) || 'unknown',
+      role: m.role,
+      muted: m.muted,
+      joinedAt: m.joinedAt,
+    }));
+
+    res.json({ members });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

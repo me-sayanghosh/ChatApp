@@ -62,7 +62,6 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
         isRefreshing = false;
-        hardLogout();
         return Promise.reject(error);
       }
 

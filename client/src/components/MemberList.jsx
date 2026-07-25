@@ -84,22 +84,22 @@ export default function MemberList({ members, online, roomId, currentUserId, onM
                 <div className="member-actions">
                   {m.role === 'member' && selfMember?.role === 'owner' && (
                     <button onClick={() => setRole(m.user, 'moderator')} disabled={actionBusy === m.user} title="Promote to moderator">
-                      \u2B06
+                      {'\u2B06'}
                     </button>
                   )}
                   {m.role === 'moderator' && selfMember?.role === 'owner' && (
                     <button onClick={() => setRole(m.user, 'member')} disabled={actionBusy === m.user} title="Demote to member">
-                      \u2B07
+                      {'\u2B07'}
                     </button>
                   )}
                   <button onClick={() => toggleMute(m.user)} disabled={actionBusy === m.user} title={m.muted ? 'Unmute' : 'Mute'}>
                     {m.muted ? '\u{1F50A}' : '\u{1F507}'}
                   </button>
                   <button onClick={() => kick(m.user, false)} disabled={actionBusy === m.user} title="Kick" className="kick-btn">
-                    \u2716
+                    {'\u2716'}
                   </button>
                   <button onClick={() => kick(m.user, true)} disabled={actionBusy === m.user} title="Ban & Kick" className="kick-btn ban-btn">
-                    \u{1F6AB}
+                    {'\u{1F6AB}'}
                   </button>
                 </div>
               )}

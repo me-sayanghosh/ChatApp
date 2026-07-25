@@ -659,7 +659,7 @@ export default function Chat() {
               )}
               {showPresence && (
                 <aside className="members-panel">
-                  <PresenceMap presenceMap={presenceMap} currentUserId={user?.id} />
+                  <PresenceMap presenceMap={presenceMap} currentUserId={user?.id} rooms={rooms} />
                 </aside>
               )}
               {threadMessage && (

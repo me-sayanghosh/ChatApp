@@ -23,7 +23,11 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'login failed');
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken, user: data.user });
-      nav('/chat');
+      if (data.user.needsUsername) {
+        nav('/set-username');
+      } else {
+        nav('/chat');
+      }
     } catch (e) {
       setErr(e.message);
     } finally {

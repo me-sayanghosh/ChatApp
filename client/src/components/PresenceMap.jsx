@@ -1,5 +1,10 @@
-export default function PresenceMap({ presenceMap, currentUserId }) {
+export default function PresenceMap({ presenceMap, currentUserId, rooms = [] }) {
   const entries = Object.entries(presenceMap).filter(([userId]) => userId !== currentUserId);
+
+  const roomNameMap = {};
+  for (const r of rooms) {
+    roomNameMap[r.id] = r.name;
+  }
 
   if (entries.length === 0) {
     return (
@@ -23,7 +28,7 @@ export default function PresenceMap({ presenceMap, currentUserId }) {
       {Object.entries(grouped).map(([roomName, users]) => (
         <div key={roomName} className="presence-group">
           <div className="presence-room-label">
-            {roomName === 'lobby' ? 'In lobby' : `In #${roomName}`}
+            {roomName === 'lobby' ? 'In lobby' : `In #${roomNameMap[roomName] || roomName}`}
           </div>
           <ul>
             {users.map((u) => (

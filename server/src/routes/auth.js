@@ -65,17 +65,29 @@ async function cleanExpiredTokens(userId) {
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body || {};
-    if (!username || !email || !password) return res.status(400).json({ error: 'username, email, password required' });
+    if (!email || !password) return res.status(400).json({ error: 'email and password required' });
     if (password.length < 6) return res.status(400).json({ error: 'password too short' });
-    
-    const cleanUsername = username.trim();
-    const cleanEmail = email.trim().toLowerCase();
-    const usernameRegex = new RegExp(`^${cleanUsername.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
 
-    const exists = await User.findOne({ $or: [{ email: cleanEmail }, { username: usernameRegex }] });
-    if (exists) return res.status(409).json({ error: 'username or email already in use' });
+    const cleanEmail = email.trim().toLowerCase();
+    const emailExists = await User.findOne({ email: cleanEmail });
+    if (emailExists) return res.status(409).json({ error: 'email already in use' });
+
+    const cleanUsername = username?.trim();
+    let finalUsername;
+    let needsUsername = false;
+
+    if (cleanUsername) {
+      const usernameRegex = new RegExp(`^${cleanUsername.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+      const usernameExists = await User.findOne({ username: usernameRegex });
+      if (usernameExists) return res.status(409).json({ error: 'username already in use' });
+      finalUsername = cleanUsername;
+    } else {
+      finalUsername = `user_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      needsUsername = true;
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ username: cleanUsername, email: cleanEmail, passwordHash });
+    const user = await User.create({ username: finalUsername, email: cleanEmail, passwordHash, needsUsername });
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken();
@@ -165,6 +177,32 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: 'not found' });
+    return res.json({ user: user.toClient() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/username', requireAuth, async (req, res) => {
+  try {
+    const { username } = req.body || {};
+    if (!username || !username.trim()) return res.status(400).json({ error: 'username required' });
+
+    const clean = username.trim();
+    if (clean.length < 3 || clean.length > 24) return res.status(400).json({ error: 'username must be 3-24 characters' });
+    if (!/^[a-zA-Z0-9_-]+$/.test(clean)) return res.status(400).json({ error: 'username can only contain letters, numbers, underscores, and hyphens' });
+
+    const usernameRegex = new RegExp(`^${clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i');
+    const exists = await User.findOne({ username: usernameRegex, _id: { $ne: req.user.id } });
+    if (exists) return res.status(409).json({ error: 'username already in use' });
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { username: clean, needsUsername: false },
+      { new: true },
+    );
+    if (!user) return res.status(404).json({ error: 'not found' });
+
     return res.json({ user: user.toClient() });
   } catch (err) {
     res.status(500).json({ error: err.message });

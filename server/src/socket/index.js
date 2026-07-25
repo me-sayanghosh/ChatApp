@@ -113,8 +113,12 @@ export function attachSocket(httpServer) {
 
         const sockets = await io.in(roomId).fetchSockets();
         const online = sockets.map((s) => s.user);
+        const memberUserIds = room.members.map((m) => m.user);
+        const memberDocs = await User.find({ _id: { $in: memberUserIds } }).select('username').lean();
+        const memberUsernameMap = new Map(memberDocs.map((u) => [u._id.toString(), u.username]));
         const members = room.members.map((m) => ({
           user: m.user.toString(),
+          username: memberUsernameMap.get(m.user.toString()) || 'unknown',
           role: m.role,
           muted: m.muted,
         }));
@@ -592,8 +596,12 @@ export function attachSocket(httpServer) {
 
         const sockets = await io.in(roomId).fetchSockets();
         const online = sockets.map((s) => s.user);
+        const memberUserIds2 = room.members.map((m) => m.user);
+        const memberDocs2 = await User.find({ _id: { $in: memberUserIds2 } }).select('username').lean();
+        const memberUsernameMap2 = new Map(memberDocs2.map((u) => [u._id.toString(), u.username]));
         const members = room.members.map((m) => ({
           user: m.user.toString(),
+          username: memberUsernameMap2.get(m.user.toString()) || 'unknown',
           role: m.role,
           muted: m.muted,
         }));
