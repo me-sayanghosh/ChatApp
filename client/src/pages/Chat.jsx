@@ -13,7 +13,7 @@ import {
   getRoomKey,
   clearRoomKey,
 } from '../crypto.js';
-import RoomList from '../components/RoomList.jsx';
+import Channels from '../components/Channels.jsx';
 import MessageList from '../components/MessageList.jsx';
 import MessageInput from '../components/MessageInput.jsx';
 import MemberList from '../components/MemberList.jsx';
@@ -576,7 +576,7 @@ export default function Chat() {
           </div>
         </div>
 
-        <RoomList
+        <Channels
           rooms={rooms}
           current={currentRoom}
           onSelect={selectRoom}

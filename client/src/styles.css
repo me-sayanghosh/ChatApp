@@ -143,6 +143,24 @@ body {
 .room-list li:hover .room-leave, .room-list li.active .room-leave { opacity: 1; }
 .room-list .room-leave:hover { color: #f87171; background: rgba(248, 113, 113, 0.1); }
 
+/* Channel row (used inside AnimatedList) */
+.channel-row {
+  padding: 0.55rem 0.75rem; border-radius: 8px; cursor: pointer; color: #94a3b8;
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  font-size: 0.9rem; font-weight: 500; transition: all 0.15s ease;
+}
+.channel-row:hover { color: #f1f5f9; }
+.channel-row.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; font-weight: 600; }
+.channel-row .room-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.channel-row .room-leave {
+  background: transparent; border: 0; color: #64748b; font-size: 1.1rem;
+  cursor: pointer; padding: 0 0.3rem; border-radius: 4px; opacity: 0; transition: all 0.15s;
+}
+.channel-row:hover .room-leave, .channel-row.active .room-leave { opacity: 1; }
+.channel-row .room-leave:hover { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+.channel-row.private-locked { opacity: 0.7; cursor: default; }
+.channel-row.private-locked:hover { background: transparent; }
+
 .room-list li.private-locked { opacity: 0.7; cursor: default; }
 .room-list li.private-locked:hover { background: transparent; }
 .room-request-join {
