@@ -3,8 +3,10 @@ import { API_BASE, getAccessToken, getRefreshToken, setTokens } from './api.js';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:4000';
 const OFFLINE_QUEUE_KEY = 'chatapp:offlineQueue';
+const LAST_SEEN_KEY = 'chatapp:lastSeen';
 
 let socket = null;
+let onReconnectCallback = null;
 
 function getOfflineQueue() {
   try {
@@ -51,6 +53,32 @@ export function sendOffline(event, data) {
   }
 }
 
+function getLastSeenMap() {
+  try {
+    return JSON.parse(localStorage.getItem(LAST_SEEN_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveLastSeenMap(map) {
+  localStorage.setItem(LAST_SEEN_KEY, JSON.stringify(map));
+}
+
+export function setLastSeenMessage(roomId, messageId) {
+  const map = getLastSeenMap();
+  map[roomId] = messageId;
+  saveLastSeenMap(map);
+}
+
+export function getLastSeenMessages() {
+  return getLastSeenMap();
+}
+
+export function onReconnect(callback) {
+  onReconnectCallback = callback;
+}
+
 export function connectSocket(accessToken) {
   if (socket && socket.auth?.token === accessToken) {
     if (socket.connected || socket.connecting) return socket;
@@ -72,6 +100,9 @@ export function connectSocket(accessToken) {
 
   socket.on('connect', () => {
     flushOfflineQueue();
+    if (onReconnectCallback) {
+      onReconnectCallback();
+    }
   });
 
   socket.on('connect_error', async (err) => {
@@ -105,7 +136,15 @@ export function getSocket() {
 
 export function disconnectSocket() {
   if (socket) {
+    socket.removeAllListeners();
     socket.disconnect();
     socket = null;
   }
+  onReconnectCallback = null;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('app:hard-logout', () => {
+    disconnectSocket();
+  });
 }

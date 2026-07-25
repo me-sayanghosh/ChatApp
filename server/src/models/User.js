@@ -8,8 +8,16 @@ const userSchema = new mongoose.Schema(
     refreshTokens: [
       {
         token: { type: String, required: true },
+        family: { type: String, default: null },
         createdAt: { type: Date, default: Date.now },
         expiresAt: { type: Date, required: true },
+      },
+    ],
+    revokedTokens: [
+      {
+        token: { type: String, required: true },
+        revokedAt: { type: Date, default: Date.now },
+        family: { type: String, default: null },
       },
     ],
   },

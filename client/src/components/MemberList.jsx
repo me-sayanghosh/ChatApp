@@ -18,11 +18,12 @@ export default function MemberList({ members, online, roomId, currentUserId, onM
 
   const onlineIds = new Set(online.map((u) => u.id));
 
-  async function kick(userId) {
-    if (!confirm('Kick this member?')) return;
+  async function kick(userId, ban = false) {
+    const msg = ban ? 'Ban this member? They will not be able to rejoin.' : 'Kick this member?';
+    if (!confirm(msg)) return;
     setActionBusy(userId);
     try {
-      await api.post(`/rooms/${roomId}/members/${userId}/kick`);
+      await api.post(`/rooms/${roomId}/members/${userId}/kick`, { ban });
       onMemberUpdate?.();
     } catch (err) {
       console.error(err);
@@ -94,8 +95,11 @@ export default function MemberList({ members, online, roomId, currentUserId, onM
                   <button onClick={() => toggleMute(m.user)} disabled={actionBusy === m.user} title={m.muted ? 'Unmute' : 'Mute'}>
                     {m.muted ? '\u{1F50A}' : '\u{1F507}'}
                   </button>
-                  <button onClick={() => kick(m.user)} disabled={actionBusy === m.user} title="Kick" className="kick-btn">
+                  <button onClick={() => kick(m.user, false)} disabled={actionBusy === m.user} title="Kick" className="kick-btn">
                     \u2716
+                  </button>
+                  <button onClick={() => kick(m.user, true)} disabled={actionBusy === m.user} title="Ban & Kick" className="kick-btn ban-btn">
+                    \u{1F6AB}
                   </button>
                 </div>
               )}

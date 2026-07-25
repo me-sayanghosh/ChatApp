@@ -21,8 +21,8 @@ import moderationRoutes from './routes/moderation.js';
 import threadRoutes from './routes/threads.js';
 import keyRoutes from './routes/keys.js';
 import aiRoutes from './routes/ai.js';
-import voiceRoutes from './routes/voice.js';
 import { attachSocket } from './socket/index.js';
+import { reconcilePresence } from './services/presence.js';
 
 const app = express();
 const corsOrigin = process.env.CORS_ORIGIN
@@ -39,7 +39,6 @@ app.use('/api/rooms', moderationRoutes);
 app.use('/api/rooms', threadRoutes);
 app.use('/api/rooms', keyRoutes);
 app.use('/api/rooms', aiRoutes);
-app.use('/api/rooms', voiceRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chatapp';
@@ -65,6 +64,9 @@ server.on('error', (err) => {
 
 server.listen(PORT, () => {
   console.log(`[server] http://localhost:${PORT}`);
+  setInterval(() => {
+    reconcilePresence().catch((err) => console.error('[reconcile] error:', err.message));
+  }, 90000);
 });
 
 const gracefulShutdown = (signal) => {

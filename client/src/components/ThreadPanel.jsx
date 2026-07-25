@@ -43,7 +43,10 @@ export default function ThreadPanel({ parentMessage, roomId, meId, isPrivate, on
 
     function onThreadReply({ parentMessageId, reply }) {
       if (parentMessageId === parentMessage?.id) {
-        setReplies((prev) => [...prev, reply]);
+        setReplies((prev) => {
+          if (prev.some((m) => m.id === reply.id)) return prev;
+          return [...prev, reply];
+        });
         maybeDecryptReply(reply);
       }
     }
@@ -82,6 +85,7 @@ export default function ThreadPanel({ parentMessage, roomId, meId, isPrivate, on
       roomId,
       parentMessageId: parentMessage.id,
       text: textToSend,
+      clientMsgId: crypto.randomUUID(),
     });
     setText('');
   }

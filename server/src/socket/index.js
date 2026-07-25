@@ -8,6 +8,10 @@ import redis from '../config/redis.js';
 import { checkSocketRateLimit } from '../middleware/rateLimit.js';
 import {
   setPresence,
+  incrementPresence,
+  decrementPresence,
+  startHeartbeat,
+  reconcilePresence,
   removePresence,
   getPresenceMap,
   setUserCurrentRoom,
@@ -17,6 +21,12 @@ import {
   removeTyping,
 } from '../services/presence.js';
 import { setLastRead } from '../services/readReceipts.js';
+
+let ioInstance = null;
+
+export function getIO() {
+  return ioInstance;
+}
 
 export function attachSocket(httpServer) {
   const corsOrigin = process.env.CORS_ORIGIN
@@ -34,6 +44,7 @@ export function attachSocket(httpServer) {
   pubClient.on('error', (err) => console.error('[redis] pubClient error:', err.message));
   subClient.on('error', (err) => console.error('[redis] subClient error:', err.message));
   io.adapter(createAdapter(pubClient, subClient));
+  ioInstance = io;
 
   io.use(async (socket, next) => {
     try {
@@ -58,6 +69,8 @@ export function attachSocket(httpServer) {
     let typingTimeout = null;
 
     setPresence(socket.user.id, { status: 'online', currentRoom: null }).catch(() => {});
+    incrementPresence(socket.user.id, socket.id).catch(() => {});
+    const heartbeatInterval = startHeartbeat(socket.user.id, socket.id);
     io.emit('presence:update', { userId: socket.user.id, status: 'online', currentRoom: null });
 
     socket.on('room:join', async ({ roomId }, ack) => {
@@ -65,6 +78,9 @@ export function attachSocket(httpServer) {
         if (!roomId) throw new Error('roomId required');
         const room = await Room.findById(roomId);
         if (!room) throw new Error('room not found');
+
+        const isBanned = (room.bannedUsers || []).some((b) => b.user.toString() === socket.user.id);
+        if (isBanned) throw new Error('you are banned from this room');
 
         const existingMember = room.members.find((m) => m.user.toString() === socket.user.id);
 
@@ -133,10 +149,9 @@ export function attachSocket(httpServer) {
       }
     });
 
-    socket.on('message:send', async ({ roomId, text }, ack) => {
+    socket.on('message:send', async ({ roomId, text, clientMsgId }, ack) => {
       try {
         if (!roomId || !text || !text.trim()) throw new Error('roomId and text required');
-        if (!joined.has(roomId)) throw new Error('join the room before sending');
 
         const allowed = await checkSocketRateLimit(socket.user.id, 'message', { windowMs: 60000, max: 30 });
         if (!allowed) throw new Error('rate limit exceeded, slow down');
@@ -144,17 +159,51 @@ export function attachSocket(httpServer) {
         const room = await Room.findById(roomId);
         if (!room) throw new Error('room not found');
 
+        if (!joined.has(roomId)) throw new Error('join the room before sending');
+
+        const isBanned = (room.bannedUsers || []).some((b) => b.user.toString() === socket.user.id);
+        if (isBanned) {
+          joined.delete(roomId);
+          socket.leave(roomId);
+          throw new Error('you are banned from this room');
+        }
+
         const member = room.members.find((m) => m.user.toString() === socket.user.id);
-        if (!member) throw new Error('not a member of this room');
+        if (!member) {
+          joined.delete(roomId);
+          socket.leave(roomId);
+          throw new Error('not a member of this room');
+        }
         if (member.muted) throw new Error('you are muted in this room');
+
+        if (clientMsgId) {
+          const existing = await Message.findOne({ clientMsgId }).lean();
+          if (existing) {
+            const payload = { ...existing, roomId: existing.room.toString(), senderId: existing.sender.toString() };
+            ack?.({ ok: true, message: payload });
+            return;
+          }
+        }
 
         await removeTyping(roomId, socket.user.id);
 
-        const msg = await Message.create({ room: roomId, sender: socket.user.id, text: text.trim() });
+        const msg = await Message.create({
+          room: roomId,
+          sender: socket.user.id,
+          text: text.trim(),
+          clientMsgId: clientMsgId || null,
+        });
         const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username } };
         io.to(roomId).emit('message:new', { roomId, message: payload });
         ack?.({ ok: true, message: payload });
       } catch (err) {
+        if (err.code === 11000) {
+          const existing = await Message.findOne({ clientMsgId }).lean();
+          if (existing) {
+            ack?.({ ok: true, message: { ...existing, roomId: existing.room.toString(), senderId: existing.sender.toString() } });
+            return;
+          }
+        }
         ack?.({ ok: false, error: err.message });
         socket.emit('error', { message: err.message });
       }
@@ -215,7 +264,7 @@ export function attachSocket(httpServer) {
       }
     });
 
-    socket.on('room:kick', async ({ roomId, userId }, ack) => {
+    socket.on('room:kick', async ({ roomId, userId, ban }, ack) => {
       try {
         const room = await Room.findById(roomId);
         if (!room) throw new Error('room not found');
@@ -232,16 +281,23 @@ export function attachSocket(httpServer) {
           throw new Error('moderators cannot kick other moderators');
         }
 
+        if (ban) {
+          const alreadyBanned = (room.bannedUsers || []).some((b) => b.user.toString() === userId);
+          if (!alreadyBanned) {
+            room.bannedUsers.push({ user: userId, bannedAt: new Date(), bannedBy: socket.user.id });
+          }
+        }
+
         room.members = room.members.filter((m) => m.user.toString() !== userId);
         room.encryptedKeys = room.encryptedKeys.filter((ek) => ek.user.toString() !== userId);
         await room.save();
 
-        io.to(roomId).emit('room:user-kicked', { roomId, userId });
+        io.to(roomId).emit('room:user-kicked', { roomId, userId, banned: !!ban });
         const targetSockets = await io.in(roomId).fetchSockets();
         for (const s of targetSockets) {
           if (s.user.id === userId) {
             s.leave(roomId);
-            s.emit('room:kicked', { roomId });
+            s.emit('room:kicked', { roomId, banned: !!ban });
           }
         }
 
@@ -249,7 +305,7 @@ export function attachSocket(httpServer) {
         const online = remaining.map((s) => s.user);
         io.to(roomId).emit('room:online', { roomId, online });
 
-        ack?.({ ok: true });
+        ack?.({ ok: true, banned: !!ban });
       } catch (err) {
         ack?.({ ok: false, error: err.message });
         socket.emit('error', { message: err.message });
@@ -284,12 +340,11 @@ export function attachSocket(httpServer) {
       }
     });
 
-    socket.on('message:thread-reply', async ({ roomId, parentMessageId, text }, ack) => {
+    socket.on('message:thread-reply', async ({ roomId, parentMessageId, text, clientMsgId }, ack) => {
       try {
         if (!roomId || !parentMessageId || !text || !text.trim()) {
           throw new Error('roomId, parentMessageId, and text required');
         }
-        if (!joined.has(roomId)) throw new Error('join the room before sending');
 
         const allowed = await checkSocketRateLimit(socket.user.id, 'message', { windowMs: 60000, max: 30 });
         if (!allowed) throw new Error('rate limit exceeded, slow down');
@@ -297,18 +352,41 @@ export function attachSocket(httpServer) {
         const room = await Room.findById(roomId);
         if (!room) throw new Error('room not found');
 
+        if (!joined.has(roomId)) throw new Error('join the room before sending');
+
+        const isBanned = (room.bannedUsers || []).some((b) => b.user.toString() === socket.user.id);
+        if (isBanned) {
+          joined.delete(roomId);
+          socket.leave(roomId);
+          throw new Error('you are banned from this room');
+        }
+
         const member = room.members.find((m) => m.user.toString() === socket.user.id);
-        if (!member) throw new Error('not a member of this room');
+        if (!member) {
+          joined.delete(roomId);
+          socket.leave(roomId);
+          throw new Error('not a member of this room');
+        }
         if (member.muted) throw new Error('you are muted in this room');
 
         const parent = await Message.findOne({ _id: parentMessageId, room: roomId });
         if (!parent) throw new Error('parent message not found');
+
+        if (clientMsgId) {
+          const existing = await Message.findOne({ clientMsgId }).lean();
+          if (existing) {
+            const payload = { ...existing, roomId: existing.room.toString(), senderId: existing.sender.toString() };
+            ack?.({ ok: true, message: payload });
+            return;
+          }
+        }
 
         const msg = await Message.create({
           room: roomId,
           sender: socket.user.id,
           text: text.trim(),
           parentMessage: parentMessageId,
+          clientMsgId: clientMsgId || null,
         });
 
         const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username } };
@@ -320,6 +398,13 @@ export function attachSocket(httpServer) {
         });
         ack?.({ ok: true, message: payload });
       } catch (err) {
+        if (err.code === 11000) {
+          const existing = await Message.findOne({ clientMsgId }).lean();
+          if (existing) {
+            ack?.({ ok: true, message: { ...existing, roomId: existing.room.toString(), senderId: existing.sender.toString() } });
+            return;
+          }
+        }
         ack?.({ ok: false, error: err.message });
         socket.emit('error', { message: err.message });
       }
@@ -460,6 +545,9 @@ export function attachSocket(httpServer) {
         if (!room) throw new Error('room not found');
         if (room.type !== 'private') throw new Error('only private rooms require join requests');
 
+        const isBanned = (room.bannedUsers || []).some((b) => b.user.toString() === socket.user.id);
+        if (isBanned) throw new Error('you are banned from this room');
+
         const isMember = room.members.some((m) => m.user.toString() === socket.user.id);
         if (isMember) throw new Error('already a member');
 
@@ -551,16 +639,19 @@ export function attachSocket(httpServer) {
 
     socket.on('disconnect', async () => {
       try {
+        clearInterval(heartbeatInterval);
         for (const roomId of joined) {
           socket.to(roomId).emit('room:user-left', { roomId, userId: socket.user.id });
         }
-        await removePresence(socket.user.id).catch((err) =>
-          console.error('[socket] removePresence error:', err.message)
-        );
+        const remaining = await decrementPresence(socket.user.id, socket.id).catch(() => 0);
+        if (remaining === 0) {
+          io.emit('presence:update', { userId: socket.user.id, status: 'offline', currentRoom: null });
+        } else {
+          clearUserCurrentRoom(socket.user.id).catch(() => {});
+        }
       } catch (err) {
         console.error('[socket] disconnect error:', err.message);
       }
-      io.emit('presence:update', { userId: socket.user.id, status: 'offline', currentRoom: null });
     });
   });
 

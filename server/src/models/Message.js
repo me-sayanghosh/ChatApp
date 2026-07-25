@@ -4,6 +4,7 @@ const messageSchema = new mongoose.Schema(
   {
     room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', required: true, index: true },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    clientMsgId: { type: String, default: null },
     text: { type: String, required: true, maxlength: 2000 },
     parentMessage: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
     deleted: { type: Boolean, default: false },
@@ -20,12 +21,14 @@ const messageSchema = new mongoose.Schema(
 );
 
 messageSchema.index({ room: 1, parentMessage: 1, createdAt: 1 });
+messageSchema.index({ clientMsgId: 1 }, { unique: true, sparse: true, partialFilterExpression: { clientMsgId: { $ne: null } } });
 
 messageSchema.methods.toClient = function () {
   return {
     id: this._id.toString(),
     roomId: this.room.toString(),
     senderId: this.sender.toString ? this.sender.toString() : this.sender,
+    clientMsgId: this.clientMsgId || null,
     text: this.text,
     parentMessage: this.parentMessage ? this.parentMessage.toString() : null,
     deleted: this.deleted,

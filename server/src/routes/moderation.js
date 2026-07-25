@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { requireRole, requireAtLeastRole } from '../middleware/roles.js';
 import { Message } from '../models/Message.js';
 import { Room } from '../models/Room.js';
+import { getIO } from '../socket/index.js';
 
 const router = Router();
 
@@ -11,6 +12,7 @@ router.use(requireAuth);
 router.post('/:roomId/members/:userId/kick', requireAtLeastRole('moderator'), async (req, res) => {
   try {
     const { userId } = req.params;
+    const { ban } = req.body || {};
     const room = req.room;
 
     const target = room.members.find((m) => m.user.toString() === userId);
@@ -22,10 +24,33 @@ router.post('/:roomId/members/:userId/kick', requireAtLeastRole('moderator'), as
       return res.status(403).json({ error: 'moderators cannot kick other moderators' });
     }
 
+    if (ban) {
+      const alreadyBanned = (room.bannedUsers || []).some((b) => b.user.toString() === userId);
+      if (!alreadyBanned) {
+        room.bannedUsers.push({ user: userId, bannedAt: new Date(), bannedBy: req.user.id });
+      }
+    }
+
     room.members = room.members.filter((m) => m.user.toString() !== userId);
     await room.save();
 
-    res.json({ ok: true, kicked: userId });
+    const io = getIO();
+    if (io) {
+      const roomIdStr = room._id.toString();
+      io.to(roomIdStr).emit('room:user-kicked', { roomId: roomIdStr, userId, banned: !!ban });
+      const sockets = await io.in(roomIdStr).fetchSockets();
+      for (const s of sockets) {
+        if (s.user.id === userId) {
+          s.leave(roomIdStr);
+          s.emit('room:kicked', { roomId: roomIdStr, banned: !!ban });
+        }
+      }
+      const remaining = await io.in(roomIdStr).fetchSockets();
+      const online = remaining.map((s) => s.user);
+      io.to(roomIdStr).emit('room:online', { roomId: roomIdStr, online });
+    }
+
+    res.json({ ok: true, kicked: userId, banned: !!ban });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -123,6 +148,79 @@ router.get('/:roomId/members', async (req, res) => {
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).json({ error: 'room not found' });
     res.json({ members: room.members });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:roomId/ban/:userId', requireAtLeastRole('moderator'), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const room = req.room;
+
+    if (userId === req.user.id) return res.status(400).json({ error: 'cannot ban yourself' });
+
+    const alreadyBanned = (room.bannedUsers || []).some((b) => b.user.toString() === userId);
+    if (alreadyBanned) return res.status(400).json({ error: 'already banned' });
+
+    room.bannedUsers.push({ user: userId, bannedAt: new Date(), bannedBy: req.user.id });
+    room.members = room.members.filter((m) => m.user.toString() !== userId);
+    room.encryptedKeys = room.encryptedKeys.filter((ek) => ek.user.toString() !== userId);
+    await room.save();
+
+    const io = getIO();
+    if (io) {
+      const roomIdStr = room._id.toString();
+      io.to(roomIdStr).emit('room:user-kicked', { roomId: roomIdStr, userId, banned: true });
+      const sockets = await io.in(roomIdStr).fetchSockets();
+      for (const s of sockets) {
+        if (s.user.id === userId) {
+          s.leave(roomIdStr);
+          s.emit('room:kicked', { roomId: roomIdStr, banned: true });
+        }
+      }
+      const remaining = await io.in(roomIdStr).fetchSockets();
+      const online = remaining.map((s) => s.user);
+      io.to(roomIdStr).emit('room:online', { roomId: roomIdStr, online });
+    }
+
+    res.json({ ok: true, banned: userId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:roomId/unban/:userId', requireAtLeastRole('moderator'), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const room = req.room;
+
+    const banIndex = (room.bannedUsers || []).findIndex((b) => b.user.toString() === userId);
+    if (banIndex === -1) return res.status(404).json({ error: 'user not banned' });
+
+    room.bannedUsers.splice(banIndex, 1);
+    await room.save();
+
+    res.json({ ok: true, unbanned: userId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/:roomId/banned', requireAtLeastRole('moderator'), async (req, res) => {
+  try {
+    const room = req.room;
+    const banned = [];
+    for (const b of (room.bannedUsers || [])) {
+      const { User } = await import('../models/User.js');
+      const user = await User.findById(b.user).select('username').lean();
+      banned.push({
+        user: b.user.toString(),
+        username: user?.username || 'unknown',
+        bannedAt: b.bannedAt,
+      });
+    }
+    res.json({ banned });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

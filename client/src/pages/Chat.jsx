@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getSocket, sendOffline } from '../socket.js';
+import { getSocket, sendOffline, setLastSeenMessage, getLastSeenMessages, onReconnect } from '../socket.js';
 import { api } from '../api.js';
 import {
   getPublicKeyJwk,
@@ -21,7 +21,6 @@ import TypingIndicator from '../components/TypingIndicator.jsx';
 import PresenceMap from '../components/PresenceMap.jsx';
 import ThreadPanel from '../components/ThreadPanel.jsx';
 import AIPanel from '../components/AIPanel.jsx';
-import VoiceRoom from '../components/VoiceRoom.jsx';
 import PendingRequests from '../components/PendingRequests.jsx';
 
 export default function Chat() {
@@ -173,11 +172,15 @@ export default function Chat() {
             [message.parentMessage]: (prev[message.parentMessage] || 0) + 1,
           }));
         } else {
-          setMessages((prev) => [...prev, message]);
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === message.id)) return prev;
+            return [...prev, message];
+          });
           if (currentRoomRef.current && getRoomKey(currentRoomRef.current) && message.text) {
             maybeDecrypt(currentRoomRef.current, message);
           }
         }
+        setLastSeenMessage(roomId, message.id);
       }
     });
 
@@ -245,6 +248,9 @@ export default function Chat() {
     socket.on('message:read', ({ roomId, userId, lastReadMessageId }) => {
       if (roomId === currentRoomRef.current) {
         setReadReceipts((prev) => ({ ...prev, [userId]: lastReadMessageId }));
+        if (userId === userRef.current?.id) {
+          setLastSeenMessage(roomId, lastReadMessageId);
+        }
       }
     });
 
@@ -312,6 +318,43 @@ export default function Chat() {
   useEffect(() => { currentRoomRef.current = currentRoom?.id; }, [currentRoom]);
 
   useEffect(() => {
+    onReconnect(async () => {
+      const lastSeen = getLastSeenMessages();
+      const roomsToBackfill = Object.entries(lastSeen)
+        .filter(([, msgId]) => msgId)
+        .map(([roomId, after]) => ({ roomId, after }));
+
+      if (roomsToBackfill.length === 0) return;
+
+      try {
+        const res = await api.post('/rooms/messages/backfill', { rooms: roomsToBackfill });
+        const backfill = res.data.backfill || {};
+
+        for (const [roomId, newMsgs] of Object.entries(backfill)) {
+          if (!newMsgs || newMsgs.length === 0) continue;
+
+          if (roomId === currentRoomRef.current) {
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map((m) => m.id));
+              const unique = newMsgs.filter((m) => !existingIds.has(m.id));
+              return [...prev, ...unique];
+            });
+
+            for (const msg of newMsgs) {
+              if (getRoomKey(roomId) && !msg.deleted && msg.text) {
+                maybeDecrypt(roomId, msg);
+              }
+            }
+          }
+
+          const lastNew = newMsgs[newMsgs.length - 1];
+          setLastSeenMessage(roomId, lastNew.id);
+        }
+      } catch {
+        // backfill failed, will retry on next reconnect
+      }
+    });
+
     const socket = getSocket();
     if (!socket) return;
     socket.emit('presence:request-map', (map) => {
@@ -387,6 +430,10 @@ export default function Chat() {
 
     setMessages(msgs);
 
+    if (msgs.length > 0) {
+      setLastSeenMessage(room.id, msgs[msgs.length - 1].id);
+    }
+
     if (room.type === 'private' && getRoomKey(room.id)) {
       for (const msg of msgs) {
         if (!msg.deleted && msg.text) {
@@ -444,7 +491,8 @@ export default function Chat() {
       }
     }
 
-    sendOffline('message:send', { roomId: currentRoom.id, text: textToSend });
+    const clientMsgId = crypto.randomUUID();
+    sendOffline('message:send', { roomId: currentRoom.id, text: textToSend, clientMsgId });
     if (isTypingRef.current) {
       const socket = getSocket();
       if (socket) socket.emit('user:stopped-typing', { roomId: currentRoom.id });
@@ -542,7 +590,6 @@ export default function Chat() {
               <h2>
                 {currentRoom.type === 'private' && '🔒 '}
                 {currentRoom.type === 'ephemeral' && '⏳ '}
-                {currentRoom.type === 'voice' && '🎙️ '}
                 #{currentRoom.name}
                 {currentRoom.type === 'private' && keyStatus === 'waiting' && <span className="key-status waiting"> (exchanging keys...)</span>}
                 {currentRoom.type === 'private' && keyStatus === 'error' && <span className="key-status error"> (key error)</span>}
@@ -574,9 +621,6 @@ export default function Chat() {
           {currentRoom ? (
             <>
               <div className="chat-area">
-                {currentRoom.type === 'voice' && (
-                  <VoiceRoom roomId={currentRoom.id} roomName={currentRoom.name} currentUser={user} />
-                )}
                 {isPrivate && keyStatus !== 'ready' && keyStatus !== null && (
                   <div className="encryption-notice">
                     {keyStatus === 'waiting' ? 'Waiting for encryption keys...' : 'Encryption key error'}

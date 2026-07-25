@@ -33,10 +33,13 @@ function getRefreshExpiry() {
   return new Date(Date.now() + parseExpiry(REFRESH_EXPIRY));
 }
 
-async function storeRefreshToken(userId, token) {
+async function storeRefreshToken(userId, token, family = null) {
   const expiresAt = getRefreshExpiry();
   await User.findByIdAndUpdate(userId, {
-    $push: { refreshTokens: { token, createdAt: new Date(), expiresAt } },
+    $push: {
+      refreshTokens: { token, family, createdAt: new Date(), expiresAt },
+      ...(family ? { revokedTokens: { token, revokedAt: new Date(), family } } : {}),
+    },
   });
   return expiresAt;
 }
@@ -44,6 +47,12 @@ async function storeRefreshToken(userId, token) {
 async function removeRefreshToken(userId, token) {
   await User.findByIdAndUpdate(userId, {
     $pull: { refreshTokens: { token } },
+  });
+}
+
+async function revokeAllRefreshTokens(userId) {
+  await User.findByIdAndUpdate(userId, {
+    $set: { refreshTokens: [] },
   });
 }
 
@@ -70,7 +79,8 @@ router.post('/register', async (req, res) => {
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken();
-    await storeRefreshToken(user._id, refreshToken);
+    const family = uuidv4();
+    await storeRefreshToken(user._id, refreshToken, family);
 
     return res.status(201).json({ accessToken, refreshToken, user: user.toClient() });
   } catch (err) {
@@ -94,7 +104,8 @@ router.post('/login', async (req, res) => {
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken();
-    await storeRefreshToken(user._id, refreshToken);
+    const family = uuidv4();
+    await storeRefreshToken(user._id, refreshToken, family);
 
     return res.json({ accessToken, refreshToken, user: user.toClient() });
   } catch (err) {
@@ -107,22 +118,32 @@ router.post('/refresh', async (req, res) => {
     const { refreshToken } = req.body || {};
     if (!refreshToken) return res.status(400).json({ error: 'refreshToken required' });
 
-    const user = await User.findOne({ 'refreshTokens.token': refreshToken });
-    if (!user) return res.status(401).json({ error: 'invalid refresh token' });
+    let user = await User.findOne({ 'refreshTokens.token': refreshToken });
 
-    const stored = user.refreshTokens.find((rt) => rt.token === refreshToken);
-    if (!stored || new Date() > stored.expiresAt) {
+    if (user) {
+      const stored = user.refreshTokens.find((rt) => rt.token === refreshToken);
+      if (!stored || new Date() > stored.expiresAt) {
+        await removeRefreshToken(user._id, refreshToken);
+        return res.status(401).json({ error: 'refresh token expired' });
+      }
+
+      const family = stored.family || refreshToken.slice(0, 8);
       await removeRefreshToken(user._id, refreshToken);
-      return res.status(401).json({ error: 'refresh token expired' });
+
+      const newAccessToken = signAccessToken(user);
+      const newRefreshToken = signRefreshToken();
+      await storeRefreshToken(user._id, newRefreshToken, family);
+
+      return res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
     }
 
-    await removeRefreshToken(user._id, refreshToken);
+    const revokedUser = await User.findOne({ 'revokedTokens.token': refreshToken });
+    if (revokedUser) {
+      await revokeAllRefreshTokens(revokedUser._id);
+      return res.status(401).json({ error: 'refresh token reuse detected — all sessions revoked' });
+    }
 
-    const newAccessToken = signAccessToken(user);
-    const newRefreshToken = signRefreshToken();
-    await storeRefreshToken(user._id, newRefreshToken);
-
-    return res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    return res.status(401).json({ error: 'invalid refresh token' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

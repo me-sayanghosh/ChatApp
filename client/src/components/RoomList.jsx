@@ -4,7 +4,6 @@ const ROOM_TYPES = [
   { id: 'public', label: 'Public', icon: '#', color: '#38bdf8' },
   { id: 'private', label: 'Private (E2EE)', icon: '🔒', color: '#f59e0b' },
   { id: 'ephemeral', label: 'Ephemeral', icon: '⏳', color: '#a855f7' },
-  { id: 'voice', label: 'Voice', icon: '🎙️', color: '#ec4899' },
 ];
 
 export default function RoomList({ rooms, current, onSelect, onCreate, onLeave, onRequestJoin, memberRooms, pendingRooms }) {

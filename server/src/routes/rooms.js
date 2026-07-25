@@ -127,6 +127,9 @@ router.post('/:roomId/request-join', async (req, res) => {
     if (!room) return res.status(404).json({ error: 'room not found' });
     if (room.type !== 'private') return res.status(400).json({ error: 'only private rooms require join requests' });
 
+    const isBanned = (room.bannedUsers || []).some((b) => b.user.toString() === req.user.id);
+    if (isBanned) return res.status(403).json({ error: 'you are banned from this room' });
+
     const isMember = room.members.some((m) => m.user.toString() === req.user.id);
     if (isMember) return res.status(400).json({ error: 'already a member' });
 

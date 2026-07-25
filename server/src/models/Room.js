@@ -4,7 +4,7 @@ const roomSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true, trim: true, minlength: 1, maxlength: 40 },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, enum: ['public', 'private', 'ephemeral', 'voice'], default: 'public' },
+    type: { type: String, enum: ['public', 'private', 'ephemeral'], default: 'public' },
     members: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -24,6 +24,13 @@ const roomSchema = new mongoose.Schema(
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         requestedAt: { type: Date, default: Date.now },
+      },
+    ],
+    bannedUsers: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        bannedAt: { type: Date, default: Date.now },
+        bannedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
       },
     ],
     expiresAt: { type: Date, default: null },
@@ -48,6 +55,11 @@ roomSchema.methods.toClient = function () {
     pendingRequests: this.pendingRequests.map((r) => ({
       user: r.user.toString(),
       requestedAt: r.requestedAt,
+    })),
+    bannedUsers: (this.bannedUsers || []).map((b) => ({
+      user: b.user.toString(),
+      bannedAt: b.bannedAt,
+      bannedBy: b.bannedBy ? b.bannedBy.toString() : null,
     })),
     expiresAt: this.expiresAt,
   };
