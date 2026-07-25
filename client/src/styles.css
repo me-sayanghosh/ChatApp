@@ -170,6 +170,87 @@ body {
 .profile-card .error { color: #f87171; font-size: 0.85rem; }
 .success-msg { color: #22c55e; font-size: 0.85rem; }
 
+/* Home / Landing Page */
+.home {
+  position: relative; min-height: 100vh; overflow: hidden;
+  background: #090d16; color: #f1f5f9;
+}
+.home-aurora {
+  position: absolute; inset: 0; z-index: 0;
+  opacity: 0.6;
+}
+.home-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(9,13,22,0.3) 0%, rgba(9,13,22,0.85) 60%, #090d16 100%);
+}
+.home-content {
+  position: relative; z-index: 2;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+.home-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 3rem;
+}
+.home-brand { font-size: 1.2rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; }
+.home-nav-links { display: flex; align-items: center; gap: 0.6rem; }
+
+.home-btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border: 0;
+  padding: 0.55rem 1.2rem; border-radius: 10px; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.home-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); color: white; }
+.home-btn-primary.large { padding: 0.8rem 1.8rem; font-size: 1rem; border-radius: 12px; }
+.home-btn-ghost {
+  background: none; border: 1px solid rgba(255,255,255,0.15); color: #94a3b8;
+  padding: 0.55rem 1.2rem; border-radius: 10px; font-size: 0.88rem; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+  transition: all 0.15s ease;
+}
+.home-btn-ghost:hover { color: #e2e8f0; border-color: rgba(255,255,255,0.3); }
+.home-btn-ghost.large { padding: 0.8rem 1.8rem; font-size: 1rem; border-radius: 12px; }
+
+.home-hero {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 2rem 2rem 4rem;
+}
+.home-badge {
+  display: inline-block; padding: 0.35rem 0.9rem; border-radius: 20px;
+  background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #a5b4fc; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em;
+  margin-bottom: 1.5rem;
+}
+.home-hero h1 {
+  margin: 0 0 1.25rem; font-size: 4rem; font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.03em; color: #f8fafc;
+}
+.home-gradient {
+  background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.home-subtitle {
+  margin: 0 0 2.5rem; font-size: 1.1rem; color: #64748b; max-width: 480px;
+  line-height: 1.6;
+}
+.home-actions { display: flex; gap: 0.75rem; }
+
+.home-features {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+  padding: 0 3rem 4rem; max-width: 900px; margin: 0 auto; width: 100%;
+}
+.home-feature {
+  background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px; padding: 1.5rem; text-align: left;
+}
+.home-feature-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
+.home-feature h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+.home-feature p { margin: 0; font-size: 0.85rem; color: #64748b; line-height: 1.5; }
+
+.home-footer {
+  text-align: center; padding: 1.5rem; font-size: 0.78rem; color: #334155;
+}
+
 /* Main Chat Layout */
 .chat { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
 
