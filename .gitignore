@@ -21,6 +21,10 @@ build/
 .DS_Store
 Thumbs.db
 
+# Opencode
+opencode.json
+.opencode/
+
 # Logs
 *.log
 npm-debug.log*

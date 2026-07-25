@@ -403,7 +403,6 @@ body {
 /* 6. Home / Landing Page */
 .home {
   position: relative;
-  min-height: 100vh;
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
@@ -414,25 +413,34 @@ body {
   z-index: 0;
   background: var(--secondary);
   opacity: 0.08;
+  pointer-events: none;
 }
 .home-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: var(--bg);
+  pointer-events: none;
 }
 .home-content {
   position: relative;
   z-index: 2;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
+
+/* Nav */
 .home-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 3rem;
+  padding: 1rem 3rem;
+  background: rgba(255, 248, 231, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
 }
 .home-brand {
   font-size: 1.2rem;
@@ -446,7 +454,11 @@ body {
   gap: 0.6rem;
 }
 
+/* Buttons */
 .home-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--primary);
   color: #FFFDF7;
   border: 0;
@@ -469,6 +481,9 @@ body {
   border-radius: 12px;
 }
 .home-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: 1px solid var(--border);
   color: var(--text-muted);
@@ -490,14 +505,14 @@ body {
   border-radius: 12px;
 }
 
+/* Hero */
 .home-hero {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem 2rem 4rem;
+  padding: 5rem 2rem 3.5rem;
 }
 .home-badge {
   display: inline-block;
@@ -512,7 +527,7 @@ body {
 }
 .home-hero h1 {
   margin: 0 0 1.25rem;
-  font-size: 4rem;
+  font-size: 3.8rem;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -522,13 +537,13 @@ body {
   color: var(--primary);
 }
 .home-accent {
-  color: #F5871F;
+  color: var(--primary);
 }
 .home-subtitle {
   margin: 0 0 2.5rem;
   font-size: 1.1rem;
   color: var(--text-muted);
-  max-width: 480px;
+  max-width: 500px;
   line-height: 1.6;
 }
 .home-actions {
@@ -536,44 +551,435 @@ body {
   gap: 0.75rem;
 }
 
-.home-features {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  padding: 0 3rem 4rem;
-  max-width: 900px;
+/* Sections (shared) */
+.home-section {
+  padding: 5rem 3rem;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
 }
-.home-feature {
+.home-section-alt {
+  background: var(--surface);
+  max-width: none;
+  padding: 5rem 3rem;
+}
+.home-section-alt > * {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.home-section-title {
+  margin: 0 0 0.6rem;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-align: center;
+}
+.home-section-sub {
+  margin: 0 0 3rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Feature Grid (9 cards) */
+.home-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.home-feature-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.home-feature-icon {
-  font-size: 1.8rem;
-  margin-bottom: 0.75rem;
+.home-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px var(--shadow);
 }
-.home-feature h3 {
+.home-feature-card .home-feature-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+.home-feature-illustration {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+  background: var(--bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.home-feature-illustration svg {
+  width: 100%;
+  height: 100%;
+}
+.home-feature-icon-wrap {
+  margin-bottom: 0.6rem;
+}
+.home-feature-card h3 {
   margin: 0 0 0.4rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
 }
-.home-feature p {
+.home-feature-card p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* How It Works (Steps) */
+.home-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.home-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  position: relative;
+  padding-bottom: 2.5rem;
+}
+.home-step:last-child {
+  padding-bottom: 0;
+}
+.home-step-num {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #FFFDF7;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  position: relative;
+  z-index: 2;
+}
+.home-step-content {
+  padding-top: 0.35rem;
+}
+.home-step-content h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.home-step-content p {
+  margin: 0;
+  font-size: 0.9rem;
   color: var(--text-muted);
   line-height: 1.5;
 }
+.home-step-connector {
+  position: absolute;
+  left: 23px;
+  top: 48px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+  z-index: 1;
+}
 
-.home-footer {
-  text-align: center;
-  padding: 1.5rem;
+/* Security / Trust */
+.home-security {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+.home-security-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.home-security-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.home-security-list li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.home-security-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-security-illust {
+  width: 220px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  position: relative;
+}
+.lock-pulse-icon {
+  animation: lockPulse 2.5s ease-in-out infinite;
+}
+.home-security-label {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.03em;
+}
+
+/* Mock Chat Demo */
+.mock-chat {
+  max-width: 520px;
+  margin: 0 auto;
+  background: var(--other-bubble);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px var(--shadow);
+}
+.mock-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.mock-chat-header-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #FFFDF7;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.mock-chat-header-info {
+  display: flex;
+  flex-direction: column;
+}
+.mock-chat-header-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.mock-chat-header-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.mock-chat-messages {
+  padding: 1rem;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.mock-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+}
+.mock-msg-mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.mock-msg-sender {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.15rem;
+}
+.mock-msg-bubble {
+  padding: 0.55rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--other-bubble);
+  border: 1px solid var(--border);
+}
+.mock-msg-mine .mock-msg-bubble {
+  background: var(--own-bubble);
+  border-color: transparent;
+}
+.mock-msg-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.mock-typing {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+}
+.mock-typing-dots {
+  display: flex;
+  gap: 3px;
+}
+.mock-typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+.mock-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.mock-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+.mock-typing-text {
   font-size: 0.78rem;
   color: var(--text-muted);
+}
+.mock-chat-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.mock-chat-input-field {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.mock-chat-send-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #FFFDF7;
+  border-radius: 8px;
+  cursor: default;
+}
+
+/* CTA Band */
+.home-cta-band {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.home-cta-title {
+  margin: 0 0 0.6rem;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.home-cta-sub {
+  margin: 0 0 2rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+.home-cta-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* Footer */
+.home-footer {
+  text-align: center;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+.home-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.home-footer-link {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.home-footer-link:hover {
+  color: var(--primary);
+}
+.home-footer-sep {
+  color: var(--border);
+  font-size: 0.82rem;
+}
+.home-footer-copy {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--border);
+}
+
+/* Scroll Reveal — removed, Framer Motion handles all Home animations */
+
+/* Responsive */
+@media (max-width: 900px) {
+  .home-feature-grid { grid-template-columns: repeat(2, 1fr); }
+  .home-security { grid-template-columns: 1fr; gap: 2rem; }
+  .home-security-visual { order: -1; }
+}
+@media (max-width: 640px) {
+  .home-nav { padding: 1rem 1.5rem; }
+  .home-hero { padding: 3.5rem 1.5rem 2.5rem; }
+  .home-hero h1 { font-size: 2.5rem; }
+  .home-section { padding: 3.5rem 1.5rem; }
+  .home-section-alt { padding: 3.5rem 1.5rem; }
+  .home-feature-grid { grid-template-columns: 1fr; }
+  .home-feature-illustration { height: 80px; }
+  .home-cta-band { padding: 3.5rem 1.5rem; }
+  .home-cta-title { font-size: 1.6rem; }
+  .mock-chat { max-width: 100%; }
 }
 
 /* 7. Main Chat Layout */
@@ -1790,51 +2196,19 @@ body {
 
 /* 33. Keyframe Animations */
 @keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes scrollFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes lockPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.85; }
 }
 
-.home-hero h1 {
-  animation: fadeSlideUp 0.7s ease-out both;
-}
-.home-badge {
-  animation: fadeIn 0.5s ease-out both;
-}
-.home-subtitle {
-  animation: fadeSlideUp 0.7s ease-out 0.1s both;
-}
-.home-actions {
-  animation: fadeSlideUp 0.7s ease-out 0.2s both;
-}
-.home-features {
-  animation: scrollFadeUp 0.8s ease-out 0.3s both;
-}
 
 /* 34. Toast Notification */
 .toast {
