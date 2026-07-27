@@ -1,8 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import useChat from '../hooks/useChat.js';
-import { Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel, PendingRequests, ScrollToBottom, SuggestionsBar } from '../components/chat/index.js';
-import MessageList from '../components/MessageList.jsx';
-import MessageInput from '../components/MessageInput.jsx';
+import { Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel, PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput } from '../components/index.js';
 
 export default function Chat() {
   const {

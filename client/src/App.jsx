@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext.jsx';
-import Home from './pages/Home.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import SetUsername from './pages/SetUsername.jsx';
-import Profile from './pages/Profile.jsx';
-import Chat from './pages/Chat.jsx';
+import { useAuth } from './shared/context/AuthContext.jsx';
+import Home from './features/home/pages/Home.jsx';
+import Login from './features/auth/pages/Login.jsx';
+import Register from './features/auth/pages/Register.jsx';
+import SetUsername from './features/auth/pages/SetUsername.jsx';
+import Profile from './features/profile/pages/Profile.jsx';
+import Chat from './features/chat/pages/Chat.jsx';
 
 function Protected({ children }) {
   const { user } = useAuth();
