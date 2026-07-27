@@ -751,7 +751,7 @@ export default function useChat() {
     setMentionAlerts,
     messagesContainerRef,
     isPrivate: currentRoom?.type === 'private',
-    hasKey: currentRoom ? hasRoomKey(currentRoom.id) : false,
+    hasKey: currentRoom ? !!getRoomKey(currentRoom.id) : false,
     selectRoom,
     leaveRoom,
     handleRequestJoin,

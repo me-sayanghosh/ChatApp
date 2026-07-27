@@ -43,7 +43,33 @@ export function AuthProvider({ children }) {
     disconnectSocket();
   }
 
-  if (!bootstrapped) return null;
+  if (!bootstrapped) {
+    return (
+      <div style={{
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#0B0F19',
+        color: '#ffffff',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '3.5px solid #1E293B',
+          borderTopColor: '#0052FF',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <p style={{ marginTop: '16px', fontSize: '13px', fontWeight: 600, color: '#94A3B8' }}>
+          Loading DropTalk...
+        </p>
+      </div>
+    );
+  }
   return <AuthCtx.Provider value={{ user, token: accessToken, login, logout, setUser }}>{children}</AuthCtx.Provider>;
 }
 

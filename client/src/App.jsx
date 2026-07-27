@@ -8,6 +8,7 @@ import Profile from './features/profile/pages/Profile.jsx';
 import Chat from './features/chat/pages/Chat.jsx';
 
 import SettingsPage from './features/profile/pages/SettingsPage.jsx';
+import { ErrorBoundary } from './shared/components/ErrorBoundary.jsx';
 
 function Protected({ children }) {
   const { user } = useAuth();
@@ -18,16 +19,18 @@ function Protected({ children }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/set-username" element={<SetUsername />} />
-      <Route path="/profile" element={<Navigate to="/settings/profile" replace />} />
-      <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
-      <Route path="/settings/:section" element={<Protected><SettingsPage /></Protected>} />
-      <Route path="/chat" element={<Protected><Chat /></Protected>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/set-username" element={<SetUsername />} />
+        <Route path="/profile" element={<Navigate to="/settings/profile" replace />} />
+        <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
+        <Route path="/settings/:section" element={<Protected><SettingsPage /></Protected>} />
+        <Route path="/chat" element={<Protected><Chat /></Protected>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }

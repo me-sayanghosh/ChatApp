@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useChat from '../hooks/useChat.js';
 import useDM from '../hooks/useDM.js';
