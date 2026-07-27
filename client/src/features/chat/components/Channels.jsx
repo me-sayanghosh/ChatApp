@@ -1,63 +1,54 @@
-import { useState } from 'react';
 import AnimatedList from '../../../shared/components/ui/AnimatedList.jsx';
 
 const ROOM_TYPES = [
-  { 
-    id: 'public', label: 'Public', 
-    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-    color: '#0052FF' 
+  {
+    id: 'public',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M2 12h20" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+    color: '#0052FF',
   },
-  { 
-    id: 'private', label: 'Private (E2EE)', 
-    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-    color: '#F59E0B' 
+  {
+    id: 'private',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+    color: '#F59E0B',
   },
-  { 
-    id: 'ephemeral', label: 'Ephemeral', 
-    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    color: '#8B5CF6' 
+  {
+    id: 'ephemeral',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    color: '#8B5CF6',
   },
 ];
 
-export default function Channels({ rooms, current, onSelect, onCreate, onLeave, onRequestJoin, memberRooms, pendingRooms, showCreate, setShowCreate }) {
-  const [internalShowCreate, setInternalShowCreate] = useState(false);
-  const isCreateVisible = showCreate !== undefined ? showCreate : internalShowCreate;
-  const toggleCreate = () => {
-    if (setShowCreate) setShowCreate(!isCreateVisible);
-    else setInternalShowCreate(!isCreateVisible);
-  };
-
-  const [name, setName] = useState('');
-  const [type, setType] = useState('public');
-  const [err, setErr] = useState('');
-
-  async function submit(e) {
-    e.preventDefault();
-    setErr('');
-    if (!name.trim()) {
-      setErr('Please enter a room name');
-      return;
-    }
-    try {
-      await onCreate(name.trim(), type);
-      setName('');
-      setType('public');
-      if (setShowCreate) setShowCreate(false);
-      else setInternalShowCreate(false);
-    } catch (e) {
-      setErr(e.response?.data?.error || e.message);
-    }
-  }
-
+export default function Channels({
+  rooms, current, onSelect, onLeave, onRequestJoin,
+  memberRooms, pendingRooms, onOpenCreate, unreadCounts, mentionAlerts,
+}) {
   function renderRoom(room) {
     const typeObj = ROOM_TYPES.find((t) => t.id === (room.type || 'public')) || ROOM_TYPES[0];
     const isMember = memberRooms?.has(room.id);
     const isPending = pendingRooms?.has(room.id);
     const isPrivateNotMember = room.type === 'private' && !isMember;
     const isActive = current?.id === room.id;
+    const unread = unreadCounts?.[room.id] || 0;
+    const hasMention = mentionAlerts?.some((a) => a.roomId === room.id);
 
     return (
-      <div className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''}`}>
+      <div className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''} ${unread > 0 && !isActive ? 'has-unread' : ''}`}>
         <div className="conv-card-left">
           <div className="conv-icon-box" style={{ color: typeObj.color }}>
             {typeObj.icon}
@@ -65,7 +56,10 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
         </div>
         <div className="conv-card-body">
           <div className="conv-card-header">
-            <span className="conv-title">{room.name}</span>
+            <span className={`conv-title ${unread > 0 && !isActive ? 'conv-title-unread' : ''}`}>
+              {hasMention && !isActive && <span className="conv-mention-dot">@</span>}
+              {room.name}
+            </span>
             <span className="conv-time">3m ago</span>
           </div>
           <div className="conv-card-footer">
@@ -87,6 +81,8 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
                   Join
                 </button>
               )
+            ) : unread > 0 && !isActive ? (
+              <span className="conv-badge count unread-badge">{unread > 99 ? '99+' : unread}</span>
             ) : (
               <span className="conv-badge count">
                 {room.membersCount || 1}
@@ -103,38 +99,13 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
       <div className="room-list-header">
         <h2>Conversations</h2>
         <button
-          className={`create-room-btn ${isCreateVisible ? 'active' : ''}`}
-          onClick={toggleCreate}
-          title="New Conversation"
+          className="create-room-btn"
+          onClick={onOpenCreate}
+          title="New Channel"
         >
           +
         </button>
       </div>
-
-      {isCreateVisible && (
-        <form className="new-room-form" onSubmit={submit}>
-          <input
-            placeholder="Channel name..."
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-          />
-          <div className="room-type-pills">
-            {ROOM_TYPES.map((t) => (
-              <button
-                type="button"
-                key={t.id}
-                className={`type-pill ${type === t.id ? 'selected' : ''}`}
-                onClick={() => setType(t.id)}
-              >
-                <span>{t.icon}</span> {t.label}
-              </button>
-            ))}
-          </div>
-          {err && <div className="error">{err}</div>}
-          <button type="submit" className="submit-room-btn">Create Channel</button>
-        </form>
-      )}
 
       <AnimatedList
         items={rooms}

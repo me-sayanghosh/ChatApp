@@ -12,3 +12,5 @@ export { default as MessageList } from './MessageList.jsx';
 export { default as MessageInput } from './MessageInput.jsx';
 export { default as DMPanel } from './DMPanel.jsx';
 export { default as DMChat } from './DMChat.jsx';
+export { default as CreateChannelModal } from './CreateChannelModal.jsx';
+

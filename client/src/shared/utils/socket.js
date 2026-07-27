@@ -104,15 +104,15 @@ export function connectSocket(accessToken) {
 
   socket.on('connect_error', async (err) => {
     if (err.message === 'unauthorized' || err.message === 'user not found') {
-      socket.disconnect();
       const refreshToken = getRefreshToken();
       if (!refreshToken) return;
       try {
         const { data } = await api.post('/auth/refresh', { refreshToken });
         if (data.error && data.error.includes('reuse detected')) return;
         setTokens(data.accessToken, data.refreshToken);
+        // Force a full disconnect+reconnect with the fresh token
         socket.auth.token = data.accessToken;
-        socket.connect();
+        socket.disconnect().connect();
       } catch {
         socket.disconnect();
       }
@@ -120,6 +120,15 @@ export function connectSocket(accessToken) {
   });
 
   return socket;
+}
+
+/** Call this after any in-app token refresh to keep the socket auth current */
+export function updateSocketToken(newToken) {
+  if (!socket) return;
+  socket.auth.token = newToken;
+  if (!socket.connected) {
+    socket.connect();
+  }
 }
 
 export function getSocket() {

@@ -9,7 +9,8 @@ router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   try {
-    let rooms = await Room.find().sort({ createdAt: 1 });
+    // Exclude DM rooms from the main channel list — they belong in the DM panel
+    let rooms = await Room.find({ isDM: { $ne: true } }).sort({ createdAt: 1 });
     if (rooms.length === 0 && req.user?.id) {
       for (const d of DEFAULT_ROOMS) {
         await Room.create({
@@ -19,11 +20,13 @@ router.get('/', async (req, res) => {
           members: [{ user: req.user.id, role: 'owner', joinedAt: new Date(), muted: false }],
         });
       }
-      rooms = await Room.find().sort({ createdAt: 1 });
+      rooms = await Room.find({ isDM: { $ne: true } }).sort({ createdAt: 1 });
     }
 
     const membershipIds = new Set();
     const pendingIds = new Set();
+    const memberCounts = {};
+
     for (const r of rooms) {
       if (r.members.some((m) => m.user.toString() === req.user.id)) {
         membershipIds.add(r._id.toString());
@@ -31,10 +34,14 @@ router.get('/', async (req, res) => {
       if (r.pendingRequests.some((pr) => pr.user.toString() === req.user.id)) {
         pendingIds.add(r._id.toString());
       }
+      memberCounts[r._id.toString()] = r.members.length;
     }
 
     res.json({
-      rooms: rooms.map((r) => r.toSummary()),
+      rooms: rooms.map((r) => ({
+        ...r.toSummary(),
+        membersCount: memberCounts[r._id.toString()] || 0,
+      })),
       memberships: [...membershipIds],
       pending: [...pendingIds],
     });

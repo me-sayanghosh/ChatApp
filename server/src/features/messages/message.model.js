@@ -12,6 +12,7 @@ const messageSchema = new mongoose.Schema(
     replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
     deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     reported: { type: Boolean, default: false },
+    mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     reactions: [
       {
         emoji: { type: String, required: true },
@@ -37,6 +38,7 @@ messageSchema.methods.toClient = function () {
     deleted: this.deleted,
     deletedFor: this.deletedFor.map((u) => u.toString()),
     reported: this.reported,
+    mentions: (this.mentions || []).map((u) => u.toString()),
     reactions: this.reactions.map((r) => ({
       emoji: r.emoji,
       users: r.users.map((u) => u.toString()),

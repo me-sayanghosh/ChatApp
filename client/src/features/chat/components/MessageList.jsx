@@ -1,5 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Parse message text and highlight @username mentions.
+ * @param {string} text - raw message text
+ * @param {string} myUsername - the current user's username (for self-highlight)
+ * @param {Object} membersMap - { id: username } lookup
+ */
+function renderMentions(text, myUsername, membersMap) {
+  if (!text) return null;
+  // Build a reverse map: username -> id
+  const byUsername = {};
+  for (const [id, uname] of Object.entries(membersMap || {})) {
+    byUsername[uname.toLowerCase()] = id;
+  }
+
+  const parts = text.split(/(@\w+)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('@')) {
+      const uname = part.slice(1).toLowerCase();
+      if (byUsername[uname] !== undefined || uname === myUsername?.toLowerCase()) {
+        const isSelf = uname === myUsername?.toLowerCase();
+        return (
+          <span key={i} className={`mention-chip ${isSelf ? 'self' : ''}`}>
+            {part}
+          </span>
+        );
+      }
+    }
+    return part;
+  });
+}
+
 export default function MessageList({
   messages, meId, onDelete, onDeleteForMe, members, onRead, readReceipts,
   onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap, onDMUser
@@ -190,7 +221,9 @@ export default function MessageList({
             {m.deleted ? (
               <div className="msg-text deleted-text">This message was deleted.</div>
             ) : (
-              <div className="msg-text">{m.text}</div>
+              <div className="msg-text">
+                {renderMentions(m.text, members?.find?.(mb => mb.user === meId)?.username, membersMap)}
+              </div>
             )}
 
             {m.reactions && m.reactions.length > 0 && (

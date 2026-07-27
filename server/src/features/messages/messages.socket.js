@@ -1,7 +1,26 @@
 import { Message } from './message.model.js';
 import { Room } from '../rooms/room.model.js';
+import { User } from '../auth/user.model.js';
 import { checkSocketRateLimit } from '../../shared/middleware/rateLimit.js';
 import { removeTyping } from '../presence/presence.service.js';
+
+/**
+ * Parse @username mentions from raw text.
+ * Returns an array of unique usernames found.
+ */
+function parseMentions(text) {
+  const matches = text.match(/@(\w+)/g) || [];
+  return [...new Set(matches.map((m) => m.slice(1).toLowerCase()))];
+}
+
+/**
+ * Resolve usernames to user IDs and filter out the sender.
+ */
+async function resolveMentionIds(usernames, senderId) {
+  if (usernames.length === 0) return [];
+  const users = await User.find({ username: { $in: usernames } }).select('_id').lean();
+  return users.map((u) => u._id).filter((id) => id.toString() !== senderId);
+}
 
 export function registerMessageHandlers(socket, io, { joined }) {
   socket.on('message:send', async ({ roomId, text, clientMsgId, replyTo }, ack) => {
@@ -54,15 +73,36 @@ export function registerMessageHandlers(socket, io, { joined }) {
 
       await removeTyping(roomId, socket.user.id);
 
+      // Resolve @mentions
+      const mentionedUsernames = parseMentions(text.trim());
+      const mentionIds = await resolveMentionIds(mentionedUsernames, socket.user.id);
+
       const msg = await Message.create({
         room: roomId,
         sender: socket.user.id,
         text: text.trim(),
         clientMsgId: clientMsgId || null,
         replyTo: replyTo || null,
+        mentions: mentionIds,
       });
-      const payload = { ...msg.toClient(), sender: { id: socket.user.id, username: socket.user.username }, replyTo: msg.replyTo ? msg.replyTo.toString() : null };
+      const payload = {
+        ...msg.toClient(),
+        sender: { id: socket.user.id, username: socket.user.username },
+        replyTo: msg.replyTo ? msg.replyTo.toString() : null,
+      };
       io.to(roomId).emit('message:new', { roomId, message: payload });
+
+      // Notify each mentioned user via their personal socket room
+      for (const mentionedId of mentionIds) {
+        io.to(`user:${mentionedId.toString()}`).emit('message:mention', {
+          roomId,
+          messageId: msg._id.toString(),
+          fromUsername: socket.user.username,
+          text: text.trim().substring(0, 120),
+          roomName: room.name,
+        });
+      }
+
       ack?.({ ok: true, message: payload });
     } catch (err) {
       if (err.code === 11000) {

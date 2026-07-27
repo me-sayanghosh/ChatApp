@@ -59,6 +59,9 @@ export function attachSocket(httpServer) {
   io.on('connection', (socket) => {
     const joined = new Set();
 
+    // Join personal socket room so targeted events (mentions, DMs, notifications) work
+    socket.join(`user:${socket.user.id}`);
+
     setPresence(socket.user.id, { status: 'online', currentRoom: null }).catch(() => {});
     incrementPresence(socket.user.id, socket.id).catch(() => {});
     const heartbeatInterval = startHeartbeat(socket.user.id, socket.id);

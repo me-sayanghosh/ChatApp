@@ -1,18 +1,55 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function MessageInput({ onSend, onTyping, onTextChange, helperText = true, replyTo, onClearReply, membersMap }) {
+export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, onClearReply, membersMap }) {
   const [text, setText] = useState('');
+  const [mentionQuery, setMentionQuery] = useState(null); // string after @ or null
+  const [mentionIndex, setMentionIndex] = useState(0);
   const inputRef = useRef(null);
+
+  // Build members list from membersMap: { id: username }
+  const membersList = Object.entries(membersMap || {}).map(([id, username]) => ({ id, username }));
+
+  // Filtered members matching the current @query
+  const mentionMatches = mentionQuery !== null
+    ? membersList.filter((m) => m.username.toLowerCase().startsWith(mentionQuery.toLowerCase())).slice(0, 8)
+    : [];
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (replyTo) {
-      inputRef.current?.focus();
-    }
+    if (replyTo) inputRef.current?.focus();
   }, [replyTo]);
+
+  function detectMention(value) {
+    const cursor = inputRef.current?.selectionStart ?? value.length;
+    const before = value.slice(0, cursor);
+    const match = before.match(/@(\w*)$/);
+    if (match) {
+      setMentionQuery(match[1]);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+  }
+
+  function insertMention(username) {
+    const cursor = inputRef.current?.selectionStart ?? text.length;
+    const before = text.slice(0, cursor);
+    const after = text.slice(cursor);
+    const replaced = before.replace(/@(\w*)$/, `@${username} `);
+    const newText = replaced + after;
+    setText(newText);
+    setMentionQuery(null);
+    onTextChange?.(newText);
+    // Restore focus
+    setTimeout(() => {
+      inputRef.current?.focus();
+      const pos = replaced.length;
+      inputRef.current?.setSelectionRange(pos, pos);
+    }, 0);
+  }
 
   function submit(e) {
     e.preventDefault();
@@ -21,15 +58,41 @@ export default function MessageInput({ onSend, onTyping, onTextChange, helperTex
     onSend(t);
     setText('');
     onTextChange?.('');
+    setMentionQuery(null);
   }
 
   function handleChange(e) {
-    setText(e.target.value);
+    const val = e.target.value;
+    setText(val);
+    detectMention(val);
     onTyping?.();
-    onTextChange?.(e.target.value);
+    onTextChange?.(val);
   }
 
   function handleKeyDown(e) {
+    // Navigate mention dropdown
+    if (mentionQuery !== null && mentionMatches.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setMentionIndex((i) => (i + 1) % mentionMatches.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setMentionIndex((i) => (i - 1 + mentionMatches.length) % mentionMatches.length);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        insertMention(mentionMatches[mentionIndex].username);
+        return;
+      }
+      if (e.key === 'Escape') {
+        setMentionQuery(null);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       submit(e);
@@ -38,6 +101,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, helperTex
 
   return (
     <div className="composer-wrapper">
+      {/* Reply quote bar */}
       {replyTo && (
         <div className="composer-reply-quote">
           <div className="composer-reply-info">
@@ -52,6 +116,27 @@ export default function MessageInput({ onSend, onTyping, onTextChange, helperTex
           </button>
         </div>
       )}
+
+      {/* @Mention autocomplete dropdown */}
+      {mentionQuery !== null && mentionMatches.length > 0 && (
+        <div className="mention-dropdown">
+          <div className="mention-dropdown-header">
+            <span>@Mentions</span>
+          </div>
+          {mentionMatches.map((m, i) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`mention-dropdown-item ${i === mentionIndex ? 'active' : ''}`}
+              onMouseDown={(e) => { e.preventDefault(); insertMention(m.username); }}
+            >
+              <span className="mention-avatar">{m.username[0]?.toUpperCase()}</span>
+              <span className="mention-username">@{m.username}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <form className="composer-card" onSubmit={submit}>
         <div className="composer-top-row">
           <span className="mic-icon">
@@ -64,7 +149,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, helperTex
           </span>
           <input
             ref={inputRef}
-            placeholder="Send your message..."
+            placeholder="Send a message... (@ to mention)"
             value={text}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -100,11 +185,9 @@ export default function MessageInput({ onSend, onTyping, onTextChange, helperTex
               </svg>
             </button>
           </div>
-          {helperText && (
-            <div className="composer-helper-inline">
-              Press <kbd>Enter</kbd> to send
-            </div>
-          )}
+          <div className="at-hint">
+            <span>@ mention</span>
+          </div>
         </div>
       </form>
     </div>

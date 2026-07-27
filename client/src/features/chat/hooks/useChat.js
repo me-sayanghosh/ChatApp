@@ -43,6 +43,10 @@ export default function useChat() {
   const [replyToData, setReplyToData] = useState({});
   const [membersMap, setMembersMap] = useState({});
   const [toast, setToast] = useState(null);
+  // unreadCounts: { [roomId]: number } — resets to 0 when room is opened
+  const [unreadCounts, setUnreadCounts] = useState({});
+  // mentionAlerts: [{ roomId, roomName, fromUsername, text, messageId }]
+  const [mentionAlerts, setMentionAlerts] = useState([]);
 
   const socketRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -225,6 +229,18 @@ export default function useChat() {
           }
         }
         setLastSeenMessage(roomId, message.id);
+      } else {
+        // Increment unread count for rooms not currently open
+        setUnreadCounts((prev) => ({ ...prev, [roomId]: (prev[roomId] || 0) + 1 }));
+      }
+    });
+
+    // @mention notifications
+    socket.on('message:mention', (alert) => {
+      setMentionAlerts((prev) => [alert, ...prev].slice(0, 50));
+      // Also bump unread count for the mentioned room if not active
+      if (alert.roomId !== currentRoomRef.current) {
+        setUnreadCounts((prev) => ({ ...prev, [alert.roomId]: (prev[alert.roomId] || 0) + 1 }));
       }
     });
 
@@ -363,6 +379,7 @@ export default function useChat() {
       socket.off('room:request-granted');
       socket.off('room:request-denied');
       socket.off('room:auto-join');
+      socket.off('message:mention');
     };
   }, [user]);
 
@@ -432,6 +449,8 @@ export default function useChat() {
     setDecryptedMessages({});
     setKeyStatus(null);
     setReplyTo(null);
+    // Clear unread count for this room
+    setUnreadCounts((prev) => { const n = { ...prev }; delete n[room.id]; return n; });
 
     const isMember = memberRooms.has(room.id);
     if (room.type === 'private' && !isMember) return;
@@ -493,8 +512,10 @@ export default function useChat() {
     });
   }
 
-  async function createRoom(name, type) {
-    const res = await api.post('/rooms', { name, type });
+  async function createRoom(name, type, inactivityMinutes) {
+    const body = { name, type };
+    if (type === 'ephemeral' && inactivityMinutes) body.inactivityMinutes = inactivityMinutes;
+    const res = await api.post('/rooms', body);
     const data = res.data;
     setRooms((prev) => (prev.find((r) => r.id === data.room.id) ? prev : [...prev, data.room]));
 
@@ -638,6 +659,9 @@ export default function useChat() {
     membersMap,
     toast,
     setToast,
+    unreadCounts,
+    mentionAlerts,
+    setMentionAlerts,
     messagesContainerRef,
     isPrivate,
     hasKey,

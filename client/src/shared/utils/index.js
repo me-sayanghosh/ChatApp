@@ -1,5 +1,5 @@
 export { api, getAccessToken, getRefreshToken, setTokens, clearTokens } from './api.js';
-export { connectSocket, getSocket, disconnectSocket, sendOffline, setLastSeenMessage, getLastSeenMessages, onReconnect } from './socket.js';
+export { connectSocket, getSocket, disconnectSocket, sendOffline, setLastSeenMessage, getLastSeenMessages, onReconnect, updateSocketToken } from './socket.js';
 export {
   getPublicKeyJwk,
   encryptRoomKey,

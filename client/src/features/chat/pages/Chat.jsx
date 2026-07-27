@@ -5,7 +5,7 @@ import useDM from '../hooks/useDM.js';
 import {
   Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel,
   PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
-  DMPanel, DMChat,
+  DMPanel, DMChat, CreateChannelModal,
 } from '../components/index.js';
 
 export default function Chat() {
@@ -15,7 +15,7 @@ export default function Chat() {
     typingUsers, presenceMap, readReceipts, threadMessage, setThreadMessage,
     threadCounts, keyStatus, currentInput, setCurrentInput,
     memberRooms, pendingRooms, replyTo, setReplyTo, replyToData, membersMap,
-    messagesContainerRef, isPrivate, hasKey,
+    messagesContainerRef, isPrivate, hasKey, unreadCounts, mentionAlerts,
     selectRoom, leaveRoom, handleRequestJoin, createRoom,
     send, handleTyping, deleteMessage, deleteForMe, handleReadReceipt, handleReact, refreshMembers,
   } = useChat();
@@ -26,7 +26,7 @@ export default function Chat() {
   } = useDM();
 
   const nav = useNavigate();
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeModel, setActiveModel] = useState('GPT-6');
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
@@ -49,6 +49,14 @@ export default function Chat() {
 
   return (
     <div className="chat-app-shell">
+      {/* Create Channel Modal */}
+      {showCreateModal && (
+        <CreateChannelModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={createRoom}
+        />
+      )}
+
       {/* Toast */}
       {dmRequestToast && (
         <div className="dm-toast">{dmRequestToast}</div>
@@ -58,8 +66,8 @@ export default function Chat() {
       <nav className="nav-rail">
         <div className="rail-top">
           <button
-            className={`rail-btn action-plus ${showCreate ? 'active' : ''}`}
-            onClick={() => { setShowCreate(!showCreate); setNavRailTab('chat'); }}
+            className="rail-btn action-plus"
+            onClick={() => { setShowCreateModal(true); setNavRailTab('chat'); }}
             title="Create New Channel"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -134,13 +142,13 @@ export default function Chat() {
             rooms={rooms}
             current={currentRoom}
             onSelect={selectRoom}
-            onCreate={createRoom}
             onLeave={leaveRoom}
             onRequestJoin={handleRequestJoin}
             memberRooms={memberRooms}
             pendingRooms={pendingRooms}
-            showCreate={showCreate}
-            setShowCreate={setShowCreate}
+            onOpenCreate={() => setShowCreateModal(true)}
+            unreadCounts={unreadCounts}
+            mentionAlerts={mentionAlerts}
           />
         )}
       </aside>
