@@ -1,4 +1,4 @@
-import AnimatedList from '../../../shared/components/ui/AnimatedList.jsx';
+import { useState } from 'react';
 
 const ROOM_TYPES = [
   {
@@ -38,6 +38,22 @@ export default function Channels({
   rooms, current, onSelect, onLeave, onRequestJoin,
   memberRooms, pendingRooms, onOpenCreate, unreadCounts, mentionAlerts,
 }) {
+  const [collapsedCategories, setCollapsedCategories] = useState({});
+
+  function toggleCategory(cat) {
+    setCollapsedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
+  }
+
+  // Group rooms by category
+  const categoriesMap = {};
+  rooms.forEach((r) => {
+    const cat = r.category || 'General';
+    if (!categoriesMap[cat]) categoriesMap[cat] = [];
+    categoriesMap[cat].push(r);
+  });
+
+  const categories = Object.keys(categoriesMap);
+
   function renderRoom(room) {
     const typeObj = ROOM_TYPES.find((t) => t.id === (room.type || 'public')) || ROOM_TYPES[0];
     const isMember = memberRooms?.has(room.id);
@@ -48,7 +64,11 @@ export default function Channels({
     const hasMention = mentionAlerts?.some((a) => a.roomId === room.id);
 
     return (
-      <div className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''} ${unread > 0 && !isActive ? 'has-unread' : ''}`}>
+      <div
+        key={room.id}
+        className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''} ${unread > 0 && !isActive ? 'has-unread' : ''}`}
+        onClick={() => onSelect?.(room)}
+      >
         <div className="conv-card-left">
           <div className="conv-icon-box" style={{ color: typeObj.color }}>
             {typeObj.icon}
@@ -60,11 +80,10 @@ export default function Channels({
               {hasMention && !isActive && <span className="conv-mention-dot">@</span>}
               {room.name}
             </span>
-            <span className="conv-time">3m ago</span>
           </div>
           <div className="conv-card-footer">
             <span className="conv-snippet">
-              {room.type === 'private' ? 'Encrypted channel...' : 'Real-time discussion'}
+              {room.topic || (room.type === 'private' ? 'Encrypted channel' : 'General discussion')}
             </span>
             {isPrivateNotMember ? (
               isPending ? (
@@ -97,7 +116,7 @@ export default function Channels({
   return (
     <div className="room-list-container">
       <div className="room-list-header">
-        <h2>Conversations</h2>
+        <h2>Channels</h2>
         <button
           className="create-room-btn"
           onClick={onOpenCreate}
@@ -107,14 +126,27 @@ export default function Channels({
         </button>
       </div>
 
-      <AnimatedList
-        items={rooms}
-        renderItem={renderRoom}
-        onItemSelect={(room) => onSelect?.(room)}
-        showGradients={false}
-        enableArrowNavigation
-        displayScrollbar
-      />
+      <div className="category-accordion-list">
+        {categories.map((cat) => {
+          const isCollapsed = collapsedCategories[cat];
+          const catRooms = categoriesMap[cat];
+
+          return (
+            <div key={cat} className="category-group">
+              <div className="category-header" onClick={() => toggleCategory(cat)}>
+                <span className="category-arrow">{isCollapsed ? '►' : '▼'}</span>
+                <span className="category-title">{cat}</span>
+                <span className="category-count">{catRooms.length}</span>
+              </div>
+              {!isCollapsed && (
+                <div className="category-rooms-list">
+                  {catRooms.map(renderRoom)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

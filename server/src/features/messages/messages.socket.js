@@ -5,6 +5,8 @@ import { checkSocketRateLimit } from '../../shared/middleware/rateLimit.js';
 import { removeTyping } from '../presence/presence.service.js';
 import { createNotification } from '../notifications/notifications.service.js';
 
+const slowModeMap = new Map();
+
 /**
  * Parse @username mentions from raw text.
  * Returns an array of unique usernames found.
@@ -53,6 +55,18 @@ export function registerMessageHandlers(socket, io, { joined }) {
 
       const member = room.members.find((m) => m.user.toString() === socket.user.id);
       if (member && member.muted) throw new Error('you are muted in this room');
+
+      // Enforce Room Slow Mode (seconds delay) for non-owners/mods
+      if (room.slowMode > 0 && (!member || (member.role !== 'owner' && member.role !== 'moderator'))) {
+        const slowKey = `${roomId}:${socket.user.id}`;
+        const lastSent = slowModeMap.get(slowKey);
+        const now = Date.now();
+        if (lastSent && now - lastSent < room.slowMode * 1000) {
+          const remainingSec = Math.ceil((room.slowMode * 1000 - (now - lastSent)) / 1000);
+          throw new Error(`Slow mode active. Please wait ${remainingSec} seconds before sending another message.`);
+        }
+        slowModeMap.set(slowKey, now);
+      }
 
       if (room.isDM && room.dmStatus === 'pending') {
         if (room.dmInitiator?.toString() !== socket.user.id) {

@@ -37,6 +37,9 @@ const roomSchema = new mongoose.Schema(
       },
     ],
     pinnedMessages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
+    topic: { type: String, default: '', maxlength: 250 },
+    category: { type: String, default: 'General', maxlength: 50 },
+    slowMode: { type: Number, default: 0 },
     expiresAt: { type: Date, default: null },
   },
   { timestamps: true }
@@ -53,6 +56,9 @@ roomSchema.methods.toClient = function () {
     isDM: !!this.isDM,
     dmStatus: this.dmStatus || 'accepted',
     dmInitiator: this.dmInitiator ? this.dmInitiator.toString() : null,
+    topic: this.topic || '',
+    category: this.category || 'General',
+    slowMode: this.slowMode || 0,
     members: this.members.map((m) => ({
       user: m.user.toString(),
       role: m.role,
@@ -82,6 +88,9 @@ roomSchema.methods.toSummary = function () {
     isDM: !!this.isDM,
     dmStatus: this.dmStatus || 'accepted',
     dmInitiator: this.dmInitiator ? this.dmInitiator.toString() : null,
+    topic: this.topic || '',
+    category: this.category || 'General',
+    slowMode: this.slowMode || 0,
     pinnedMessages: (this.pinnedMessages || []).map((p) => p.toString()),
     expiresAt: this.expiresAt,
   };

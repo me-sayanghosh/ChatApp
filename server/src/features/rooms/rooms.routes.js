@@ -224,4 +224,33 @@ router.post('/:roomId/pending-requests/:requestId/deny', async (req, res) => {
   }
 });
 
+// PUT /api/rooms/:roomId/settings - Update channel settings (topic, category, slowMode, name)
+router.put('/:roomId/settings', async (req, res) => {
+  try {
+    const { name, topic, category, slowMode } = req.body || {};
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'room not found' });
+
+    const member = room.members.find((m) => m.user.toString() === req.user.id);
+    if (!member || (member.role !== 'owner' && member.role !== 'moderator')) {
+      return res.status(403).json({ error: 'only owners and moderators can update channel settings' });
+    }
+
+    if (name && name.trim()) {
+      const existing = await Room.findOne({ name: name.trim(), _id: { $ne: room._id } });
+      if (existing) return res.status(400).json({ error: 'room name already taken' });
+      room.name = name.trim();
+    }
+
+    if (topic !== undefined) room.topic = typeof topic === 'string' ? topic.trim().substring(0, 250) : '';
+    if (category !== undefined) room.category = typeof category === 'string' ? category.trim().substring(0, 50) : 'General';
+    if (slowMode !== undefined) room.slowMode = Math.max(0, parseInt(slowMode, 10) || 0);
+
+    await room.save();
+    res.json({ room: room.toClient() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

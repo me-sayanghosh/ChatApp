@@ -5,7 +5,7 @@ import useDM from '../hooks/useDM.js';
 import {
   Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel,
   PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
-  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal, PinnedMessagesModal,
+  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal, PinnedMessagesModal, ChannelSettingsModal,
 } from '../components/index.js';
 import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
@@ -36,6 +36,7 @@ export default function Chat() {
   const [selectedProfileUser, setSelectedProfileUser] = useState(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showPinnedModal, setShowPinnedModal] = useState(false);
+  const [showChannelSettingsModal, setShowChannelSettingsModal] = useState(false);
   const [forwardMsg, setForwardMsg] = useState(null);
   const [activeModel, setActiveModel] = useState('GPT-6');
   const [navRailTab, setNavRailTab] = useState('chat');
@@ -194,19 +195,33 @@ export default function Chat() {
                         {currentRoom.name} <span className="verified-badge">✓</span>
                       </h2>
                       <div className="header-room-meta">
-                        <span className="meta-pill">DropTalk</span>
+                        {currentRoom.topic && (
+                          <span className="header-topic-tag" title={currentRoom.topic}>
+                            📌 {currentRoom.topic}
+                          </span>
+                        )}
+                        <span className="meta-pill">{currentRoom.category || 'General'}</span>
                         <span className="header-sep">&middot;</span>
                         <span className="dot online"></span>
                         <span>{online.length} online</span>
                         <span className="header-sep">&middot;</span>
                         <span>{members.length} members</span>
-                        {currentRoom.type === 'private' && keyStatus === 'waiting' && (
-                          <span className="key-status waiting"> &middot; key exchange...</span>
+                        {currentRoom.slowMode > 0 && (
+                          <span className="slowmode-tag"> &middot; ⏳ {currentRoom.slowMode}s slow mode</span>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="header-right">
+                    {members.some((m) => m.user === user?.id && (m.role === 'owner' || m.role === 'moderator')) && (
+                      <button
+                        className="header-icon-btn"
+                        onClick={() => setShowChannelSettingsModal(true)}
+                        title="Channel settings"
+                      >
+                        ⚙️
+                      </button>
+                    )}
                     <button
                       className={`header-icon-btn notif-bell-btn ${unreadCount > 0 ? 'has-unread' : ''}`}
                       onClick={() => setShowNotifDrawer(true)}
@@ -316,6 +331,7 @@ export default function Chat() {
                       replyTo={replyTo}
                       onClearReply={() => setReplyTo(null)}
                       membersMap={membersMap}
+                      slowMode={currentRoom.slowMode || 0}
                     />
                   </div>
                   {showMembers && (
@@ -447,6 +463,17 @@ export default function Chat() {
           conversations={conversations}
           onClose={() => setForwardMsg(null)}
           onForward={forwardMessage}
+        />
+      )}
+
+      {/* Channel Settings Modal */}
+      {showChannelSettingsModal && currentRoom && (
+        <ChannelSettingsModal
+          room={currentRoom}
+          onClose={() => setShowChannelSettingsModal(false)}
+          onUpdated={(updatedRoom) => {
+            selectRoom(updatedRoom);
+          }}
         />
       )}
     </div>

@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { api } from '../../../shared/utils/api.js';
 
-export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, onClearReply, membersMap }) {
+export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, onClearReply, membersMap, slowMode = 0 }) {
   const [text, setText] = useState('');
   const [mentionQuery, setMentionQuery] = useState(null); // string after @ or null
   const [mentionIndex, setMentionIndex] = useState(0);
   const [attachments, setAttachments] = useState([]); // [{ url, filename, fileType, mimeType, size }]
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState('');
+  const [coolDown, setCoolDown] = useState(0);
 
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
+  const timerRef = useRef(null);
 
   // Build members list from membersMap: { id: username }
   const membersList = Object.entries(membersMap || {}).map(([id, username]) => ({ id, username }));
@@ -174,6 +176,13 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
         multiple
         style={{ display: 'none' }}
       />
+
+      {/* Slow Mode Indicator */}
+      {coolDown > 0 && (
+        <div className="slowmode-active-bar">
+          ⏳ Slow mode active: please wait <strong>{coolDown}s</strong> before sending another message.
+        </div>
+      )}
 
       {/* Reply quote bar */}
       {replyTo && (
