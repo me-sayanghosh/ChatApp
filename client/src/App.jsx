@@ -7,6 +7,8 @@ import SetUsername from './features/auth/pages/SetUsername.jsx';
 import Profile from './features/profile/pages/Profile.jsx';
 import Chat from './features/chat/pages/Chat.jsx';
 
+import SettingsPage from './features/profile/pages/SettingsPage.jsx';
+
 function Protected({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -21,7 +23,9 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/set-username" element={<SetUsername />} />
-      <Route path="/profile" element={<Protected><Profile /></Protected>} />
+      <Route path="/profile" element={<Navigate to="/settings/profile" replace />} />
+      <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
+      <Route path="/settings/:section" element={<Protected><SettingsPage /></Protected>} />
       <Route path="/chat" element={<Protected><Chat /></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
