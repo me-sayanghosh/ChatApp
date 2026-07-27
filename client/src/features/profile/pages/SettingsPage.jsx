@@ -404,106 +404,135 @@ export default function SettingsPage() {
 
             {/* SECTION 1: PROFILE */}
             {activeSection === 'profile' && (
-              <div>
-                <h2 className="settings-section-title">Account Identity</h2>
-                <p className="settings-section-desc">
-                  Update your display picture, username handle, and workspace details.
-                </p>
-
-                <div className="profile-avatar-section">
-                  <div
-                    className="profile-avatar-large"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Click to change picture"
-                  >
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Profile" />
-                    ) : (
-                      <span>{avatarInitial}</span>
-                    )}
-                    <div className="avatar-overlay">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
+              <div className="profile-enhanced-wrapper">
+                {/* Hero Profile Banner Header */}
+                <div className="profile-hero-card">
+                  <div className="profile-banner-bg" />
+                  <div className="profile-hero-content">
+                    <div
+                      className="profile-avatar-large"
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Click to change profile picture"
+                    >
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Profile" />
+                      ) : (
+                        <span>{avatarInitial}</span>
+                      )}
+                      <div className="avatar-overlay">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                          <circle cx="12" cy="13" r="4" />
+                        </svg>
+                      </div>
+                      <span className="avatar-online-dot" />
                     </div>
-                  </div>
 
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    style={{ display: 'none' }}
-                  />
+                    <div className="profile-hero-info">
+                      <div className="profile-hero-names">
+                        <h2>{name || user?.username || 'User Name'}</h2>
+                        <span className="profile-handle">@{username || 'username'}</span>
+                      </div>
+                      <div className="profile-badges-row">
+                        <span className="badge-pill active">
+                          <span className="dot online" /> Active Now
+                        </span>
+                        <span className="badge-pill verified">Verified Account ✓</span>
+                        <span className="badge-pill e2ee">E2EE Protected 🔒</span>
+                      </div>
+                    </div>
 
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button type="button" className="button-secondary-pill" onClick={() => fileInputRef.current?.click()} style={{ padding: '8px 18px', fontSize: '13px' }}>
-                      Change Photo
-                    </button>
-                    {imagePreview && (
-                      <button type="button" onClick={removeImage} className="button-danger-pill">
-                        Remove
+                    <div className="profile-hero-actions">
+                      <button type="button" className="button-secondary-pill" onClick={() => fileInputRef.current?.click()}>
+                        Change Photo
                       </button>
-                    )}
+                      {imagePreview && (
+                        <button type="button" onClick={removeImage} className="button-danger-pill">
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <form onSubmit={handleSaveProfile} className="settings-form">
-                  <div className="settings-field">
-                    <label>DISPLAY NAME</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your display name"
-                      maxLength={50}
-                    />
-                    <span className="field-hint">This name will appear on your channel messages.</span>
-                  </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
 
-                  <div className="settings-field">
-                    <label>USERNAME HANDLE</label>
-                    <div className="input-prefix-wrapper">
-                      <span className="prefix">@</span>
+                <form onSubmit={handleSaveProfile} className="settings-form">
+                  {/* Card 1: Public Identity */}
+                  <div className="profile-card">
+                    <h3 className="profile-card-title">Public Identity</h3>
+                    <p className="profile-card-desc">How your profile appears to teammates across DropTalk channels.</p>
+
+                    <div className="settings-field">
+                      <label>DISPLAY NAME</label>
                       <input
                         type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="username"
-                        minLength={3}
-                        maxLength={24}
-                        pattern="[a-zA-Z0-9_-]+"
-                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Sayan Ghosh"
+                        maxLength={50}
                       />
-                      {usernameStatus === 'checking' && <span className="status-badge">checking...</span>}
-                      {usernameStatus === 'available' && <span className="status-badge available">&check;</span>}
-                      {usernameStatus === 'taken' && <span className="status-badge taken">&times;</span>}
+                      <span className="field-hint">Your full name or display alias.</span>
                     </div>
-                    {usernameMsg && (
-                      <span className={`status-msg ${usernameStatus === 'available' ? 'available' : 'taken'}`}>
-                        {usernameMsg}
-                      </span>
-                    )}
+
+                    <div className="settings-field">
+                      <label>USERNAME HANDLE</label>
+                      <div className="input-prefix-wrapper">
+                        <span className="prefix">@</span>
+                        <input
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="username"
+                          minLength={3}
+                          maxLength={24}
+                          pattern="[a-zA-Z0-9_-]+"
+                          required
+                        />
+                        {usernameStatus === 'checking' && <span className="status-badge">checking...</span>}
+                        {usernameStatus === 'available' && <span className="status-badge available">&check;</span>}
+                        {usernameStatus === 'taken' && <span className="status-badge taken">&times;</span>}
+                      </div>
+                      {usernameMsg && (
+                        <span className={`status-msg ${usernameStatus === 'available' ? 'available' : 'taken'}`}>
+                          {usernameMsg}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="settings-field">
-                    <label>WORK EMAIL</label>
-                    <input
-                      type="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="disabled-input"
-                    />
-                    <span className="field-hint">Email is tied to your DropTalk workspace account.</span>
+                  {/* Card 2: Account Details & Verification */}
+                  <div className="profile-card">
+                    <h3 className="profile-card-title">Account Credentials</h3>
+                    <p className="profile-card-desc">Your authentication details tied to the workspace.</p>
+
+                    <div className="settings-field">
+                      <label>WORK EMAIL</label>
+                      <div className="email-verified-wrapper">
+                        <input
+                          type="email"
+                          value={user?.email || ''}
+                          disabled
+                          className="disabled-input"
+                        />
+                        <span className="verified-tag">&check; Verified</span>
+                      </div>
+                      <span className="field-hint">Tied to your DropTalk workspace organization account.</span>
+                    </div>
                   </div>
 
                   {profileErr && <div className="settings-alert error">{profileErr}</div>}
 
-                  <div>
+                  <div className="profile-submit-row">
                     <button
                       type="submit"
-                      className="button-primary-pill"
+                      className="button-primary-pill profile-save-btn"
                       disabled={profileBusy || usernameStatus === 'taken'}
                     >
                       {profileBusy ? 'Saving Changes...' : 'Save Profile Changes'}
