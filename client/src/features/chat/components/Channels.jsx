@@ -5,17 +5,17 @@ const ROOM_TYPES = [
   { 
     id: 'public', label: 'Public', 
     icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-    color: '#E8720C' 
+    color: '#0052FF' 
   },
   { 
     id: 'private', label: 'Private (E2EE)', 
     icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-    color: '#F5C518' 
+    color: '#F59E0B' 
   },
   { 
     id: 'ephemeral', label: 'Ephemeral', 
     icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    color: '#A855F7' 
+    color: '#8B5CF6' 
   },
 ];
 
@@ -50,40 +50,43 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
     const isActive = current?.id === room.id;
 
     return (
-      <div className={`channel-row ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''}`}>
-        <span className="room-type-icon" style={{ color: typeObj.color }}>
-          {typeObj.icon}
-        </span>
-        <span className="room-name">{room.name}</span>
-        {isPrivateNotMember ? (
-          isPending ? (
-            <span className="room-request-status pending">Requested</span>
-          ) : (
-            <button
-              type="button"
-              className="room-request-join"
-              title={`Request to join #${room.name}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRequestJoin?.(room);
-              }}
-            >
-              Join
-            </button>
-          )
-        ) : (
-          <button
-            type="button"
-            className="room-leave"
-            title={`Leave #${room.name}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onLeave?.(room);
-            }}
-          >
-            &times;
-          </button>
-        )}
+      <div className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''}`}>
+        <div className="conv-card-left">
+          <div className="conv-icon-box" style={{ color: typeObj.color }}>
+            {typeObj.icon}
+          </div>
+        </div>
+        <div className="conv-card-body">
+          <div className="conv-card-header">
+            <span className="conv-title">{room.name}</span>
+            <span className="conv-time">3m ago</span>
+          </div>
+          <div className="conv-card-footer">
+            <span className="conv-snippet">
+              {room.type === 'private' ? 'Encrypted channel...' : 'Real-time discussion'}
+            </span>
+            {isPrivateNotMember ? (
+              isPending ? (
+                <span className="conv-badge pending">Pending</span>
+              ) : (
+                <button
+                  type="button"
+                  className="conv-join-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRequestJoin?.(room);
+                  }}
+                >
+                  Join
+                </button>
+              )
+            ) : (
+              <span className="conv-badge count">
+                {room.membersCount || 1}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -91,13 +94,13 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
   return (
     <div className="room-list-container">
       <div className="room-list-header">
-        <span className="section-title">CHANNELS</span>
+        <h2>All Conversations</h2>
         <button
           className={`create-room-btn ${showCreate ? 'active' : ''}`}
           onClick={() => setShowCreate(!showCreate)}
-          title="Create Channel"
+          title="New Conversation"
         >
-          {showCreate ? '✕' : '+'}
+          💬
         </button>
       </div>
 
@@ -134,6 +137,10 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
         enableArrowNavigation
         displayScrollbar
       />
+
+      <button className="new-conv-bottom-btn" onClick={() => setShowCreate(true)}>
+        New Conversation +
+      </button>
     </div>
   );
 }
