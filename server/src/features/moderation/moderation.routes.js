@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
-import { requireRole, requireAtLeastRole } from '../middleware/roles.js';
-import { Message } from '../models/Message.js';
-import { Room } from '../models/Room.js';
-import { getIO } from '../socket/index.js';
+import { requireAuth } from '../../shared/middleware/auth.js';
+import { requireRole, requireAtLeastRole } from '../../shared/middleware/roles.js';
+import { Message } from '../messages/message.model.js';
+import { Room } from '../rooms/room.model.js';
+import { getIO } from '../../shared/socket/index.js';
 
 const router = Router();
 
@@ -148,7 +148,7 @@ router.get('/:roomId/members', async (req, res) => {
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).json({ error: 'room not found' });
 
-    const { User } = await import('../models/User.js');
+    const { User } = await import('../auth/user.model.js');
     const userIds = room.members.map((m) => m.user);
     const users = await User.find({ _id: { $in: userIds } }).select('username').lean();
     const usernameMap = new Map(users.map((u) => [u._id.toString(), u.username]));
@@ -226,7 +226,7 @@ router.get('/:roomId/banned', requireAtLeastRole('moderator'), async (req, res) 
     const room = req.room;
     const banned = [];
     for (const b of (room.bannedUsers || [])) {
-      const { User } = await import('../models/User.js');
+      const { User } = await import('../auth/user.model.js');
       const user = await User.findById(b.user).select('username').lean();
       banned.push({
         user: b.user.toString(),

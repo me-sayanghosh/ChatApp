@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { Message } from '../models/Message.js';
-import { Room } from '../models/Room.js';
-import { requireAuth } from '../middleware/auth.js';
+import { Message } from './message.model.js';
+import { Room } from '../rooms/room.model.js';
+import { requireAuth } from '../../shared/middleware/auth.js';
 
 const router = Router();
 

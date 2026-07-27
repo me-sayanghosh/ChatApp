@@ -1,4 +1,4 @@
-import { Room } from '../models/Room.js';
+import { Room } from '../../features/rooms/room.model.js';
 import { ROLE_HIERARCHY } from '../utils/constants.js';
 
 export function requireRole(...allowedRoles) {

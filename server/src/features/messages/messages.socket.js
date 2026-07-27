@@ -1,7 +1,7 @@
-import { Message } from '../../models/Message.js';
-import { Room } from '../../models/Room.js';
-import { checkSocketRateLimit } from '../../middleware/rateLimit.js';
-import { removeTyping } from '../../services/presence.js';
+import { Message } from './message.model.js';
+import { Room } from '../rooms/room.model.js';
+import { checkSocketRateLimit } from '../../shared/middleware/rateLimit.js';
+import { removeTyping } from '../presence/presence.service.js';
 
 export function registerMessageHandlers(socket, io, { joined }) {
   socket.on('message:send', async ({ roomId, text, clientMsgId, replyTo }, ack) => {

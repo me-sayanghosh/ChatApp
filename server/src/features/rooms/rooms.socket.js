@@ -1,6 +1,6 @@
-import { Room } from '../../models/Room.js';
-import { User } from '../../models/User.js';
-import { setUserCurrentRoom, clearUserCurrentRoom } from '../../services/presence.js';
+import { Room } from './room.model.js';
+import { User } from '../auth/user.model.js';
+import { setUserCurrentRoom, clearUserCurrentRoom } from '../presence/presence.service.js';
 
 export function registerRoomHandlers(socket, io, { joined }) {
   socket.on('room:join', async ({ roomId }, ack) => {

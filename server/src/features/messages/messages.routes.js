@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { Message } from '../models/Message.js';
-import { Room } from '../models/Room.js';
-import { requireAuth } from '../middleware/auth.js';
+import { Message } from './message.model.js';
+import { Room } from '../rooms/room.model.js';
+import { requireAuth } from '../../shared/middleware/auth.js';
 
 const router = Router();
 
@@ -38,7 +38,6 @@ router.get('/:roomId/messages', async (req, res) => {
       return true;
     });
 
-    // Collect replyTo IDs
     const replyToIds = filtered.filter(m => m.replyTo).map(m => m.replyTo);
     let replyToMap = {};
     if (replyToIds.length > 0) {
@@ -99,7 +98,6 @@ export async function backfillMessages(userId, rooms) {
   }).filter(Boolean);
 
   const roomDocs = await Room.find({ _id: { $in: roomIds } }).lean();
-  const roomDocMap = new Map(roomDocs.map((d) => [d._id.toString(), d]));
 
   const accessibleIds = new Set();
   for (const doc of roomDocs) {

@@ -1,5 +1,5 @@
-import redis from '../config/redis.js';
-import { PRESENCE, TYPING_TTL_MS } from '../utils/constants.js';
+import redis from '../../shared/config/redis.js';
+import { PRESENCE } from '../../shared/utils/constants.js';
 
 const PRESENCE_KEY = 'presence';
 const ONLINE_SET = 'presence:online';

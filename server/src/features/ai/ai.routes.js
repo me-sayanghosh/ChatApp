@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
-import { Message } from '../models/Message.js';
-import { Room } from '../models/Room.js';
+import { requireAuth } from '../../shared/middleware/auth.js';
+import { Message } from '../messages/message.model.js';
+import { Room } from '../rooms/room.model.js';
 
 const router = Router();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;

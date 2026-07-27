@@ -1,5 +1,5 @@
-import { Room } from '../../models/Room.js';
-import { generateKeyId } from '../../utils/errors.js';
+import { Room } from '../rooms/room.model.js';
+import { generateKeyId } from '../../shared/utils/errors.js';
 
 export function registerKeyHandlers(socket, io, { joined }) {
   socket.on('room:key-request', async ({ roomId, publicKeyJwk }, ack) => {

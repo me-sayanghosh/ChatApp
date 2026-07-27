@@ -2,10 +2,10 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../models/User.js';
-import { requireAuth } from '../middleware/auth.js';
-import { TOKEN_EXPIRY, USERNAME_REGEX, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } from '../utils/constants.js';
-import { parseExpiry, escapeRegex, generateAutoUsername } from '../utils/errors.js';
+import { User } from './user.model.js';
+import { requireAuth } from '../../shared/middleware/auth.js';
+import { TOKEN_EXPIRY, USERNAME_REGEX, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } from '../../shared/utils/constants.js';
+import { parseExpiry, escapeRegex, generateAutoUsername } from '../../shared/utils/errors.js';
 
 const router = Router();
 

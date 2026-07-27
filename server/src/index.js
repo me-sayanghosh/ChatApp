@@ -4,7 +4,7 @@ import dns from 'node:dns/promises';
 import express from 'express';
 import cors from 'cors';
 
-import { CORS_ORIGINS } from './utils/constants.js';
+import { CORS_ORIGINS } from './shared/utils/constants.js';
 
 dns.setServers(['1.1.1.1', '8.8.8.8']);
 
@@ -15,16 +15,16 @@ process.on('unhandledRejection', (reason) => {
   console.error('[fatal] unhandled rejection:', reason);
 });
 
-import { connectDB } from './config/db.js';
-import authRoutes from './routes/auth.js';
-import roomRoutes from './routes/rooms.js';
-import messageRoutes from './routes/messages.js';
-import moderationRoutes from './routes/moderation.js';
-import threadRoutes from './routes/threads.js';
-import keyRoutes from './routes/keys.js';
-import aiRoutes from './routes/ai.js';
-import { attachSocket } from './socket/index.js';
-import { reconcilePresence } from './services/presence.js';
+import { connectDB } from './shared/config/db.js';
+import authRoutes from './features/auth/auth.routes.js';
+import roomRoutes from './features/rooms/rooms.routes.js';
+import messageRoutes from './features/messages/messages.routes.js';
+import moderationRoutes from './features/moderation/moderation.routes.js';
+import threadRoutes from './features/messages/threads.routes.js';
+import keyRoutes from './features/keys/keys.routes.js';
+import aiRoutes from './features/ai/ai.routes.js';
+import { attachSocket } from './shared/socket/index.js';
+import { reconcilePresence } from './features/presence/presence.service.js';
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
@@ -83,4 +83,3 @@ const gracefulShutdown = (signal) => {
 process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.once('SIGUSR2', () => gracefulShutdown('SIGUSR2'));
-

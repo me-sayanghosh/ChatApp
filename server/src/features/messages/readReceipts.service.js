@@ -1,4 +1,4 @@
-import redis from '../config/redis.js';
+import redis from '../../shared/config/redis.js';
 
 export async function setLastRead(roomId, userId, messageId) {
   const key = `readreceipt:${roomId}:${userId}`;

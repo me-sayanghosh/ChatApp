@@ -6,12 +6,11 @@ import express from 'express';
 process.env.JWT_SECRET = 'test-secret-for-jest';
 
 import { setupMongo, teardownMongo } from './setup.js';
-import { User } from '../src/models/User.js';
-import { Room } from '../src/models/Room.js';
-import { Message } from '../src/models/Message.js';
-import authRoutes from '../src/routes/auth.js';
-import messageRoutes from '../src/routes/messages.js';
-import { backfillMessages } from '../src/routes/messages.js';
+import { User } from '../src/features/auth/user.model.js';
+import { Room } from '../src/features/rooms/room.model.js';
+import { Message } from '../src/features/messages/message.model.js';
+import authRoutes from '../src/features/auth/auth.routes.js';
+import messageRoutes, { backfillMessages } from '../src/features/messages/messages.routes.js';
 
 let app;
 let server;

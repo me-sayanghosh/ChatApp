@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
-import { Room } from '../models/Room.js';
+import { requireAuth } from '../../shared/middleware/auth.js';
+import { Room } from '../rooms/room.model.js';
 
 const router = Router();
 

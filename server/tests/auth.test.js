@@ -7,8 +7,8 @@ import express from 'express';
 process.env.JWT_SECRET = 'test-secret-for-jest';
 
 import { setupMongo, teardownMongo } from './setup.js';
-import { User } from '../src/models/User.js';
-import authRoutes from '../src/routes/auth.js';
+import { User } from '../src/features/auth/user.model.js';
+import authRoutes from '../src/features/auth/auth.routes.js';
 
 let app;
 let server;

@@ -2,8 +2,8 @@ import { describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/g
 import mongoose from 'mongoose';
 
 import { setupMongo, teardownMongo } from './setup.js';
-import { User } from '../src/models/User.js';
-import { Room } from '../src/models/Room.js';
+import { User } from '../src/features/auth/user.model.js';
+import { Room } from '../src/features/rooms/room.model.js';
 
 let owner, moderator, victim, bystander;
 

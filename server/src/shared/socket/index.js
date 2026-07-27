@@ -1,20 +1,18 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { User } from '../models/User.js';
+import { User } from '../../features/auth/user.model.js';
 import redis from '../config/redis.js';
 import {
   setPresence,
   incrementPresence,
   decrementPresence,
   startHeartbeat,
-} from '../services/presence.js';
-import {
-  registerRoomHandlers,
-  registerMessageHandlers,
-  registerPresenceHandlers,
-  registerKeyHandlers,
-} from './handlers/index.js';
+} from '../../features/presence/presence.service.js';
+import { registerRoomHandlers } from '../../features/rooms/rooms.socket.js';
+import { registerMessageHandlers } from '../../features/messages/messages.socket.js';
+import { registerPresenceHandlers } from '../../features/presence/presence.socket.js';
+import { registerKeyHandlers } from '../../features/keys/keys.socket.js';
 
 let ioInstance = null;
 
@@ -81,7 +79,7 @@ export function attachSocket(httpServer) {
         if (remaining === 0) {
           io.emit('presence:update', { userId: socket.user.id, status: 'offline', currentRoom: null });
         } else {
-          const { clearUserCurrentRoom } = await import('../services/presence.js');
+          const { clearUserCurrentRoom } = await import('../../features/presence/presence.service.js');
           clearUserCurrentRoom(socket.user.id).catch(() => {});
         }
       } catch (err) {
