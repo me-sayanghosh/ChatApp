@@ -36,6 +36,7 @@ const roomSchema = new mongoose.Schema(
         bannedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
       },
     ],
+    pinnedMessages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     expiresAt: { type: Date, default: null },
   },
   { timestamps: true }
@@ -67,6 +68,7 @@ roomSchema.methods.toClient = function () {
       bannedAt: b.bannedAt,
       bannedBy: b.bannedBy ? b.bannedBy.toString() : null,
     })),
+    pinnedMessages: (this.pinnedMessages || []).map((p) => p.toString()),
     expiresAt: this.expiresAt,
   };
 };
@@ -80,6 +82,7 @@ roomSchema.methods.toSummary = function () {
     isDM: !!this.isDM,
     dmStatus: this.dmStatus || 'accepted',
     dmInitiator: this.dmInitiator ? this.dmInitiator.toString() : null,
+    pinnedMessages: (this.pinnedMessages || []).map((p) => p.toString()),
     expiresAt: this.expiresAt,
   };
 };

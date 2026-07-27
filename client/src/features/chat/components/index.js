@@ -13,4 +13,8 @@ export { default as MessageInput } from './MessageInput.jsx';
 export { default as DMPanel } from './DMPanel.jsx';
 export { default as DMChat } from './DMChat.jsx';
 export { default as CreateChannelModal } from './CreateChannelModal.jsx';
+export { default as UserProfileCard } from './UserProfileCard.jsx';
+export { default as ForwardModal } from './ForwardModal.jsx';
+export { default as MessageSearchModal } from './MessageSearchModal.jsx';
+export { default as PinnedMessagesModal } from './PinnedMessagesModal.jsx';
 

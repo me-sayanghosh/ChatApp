@@ -24,7 +24,7 @@ async function resolveMentionIds(usernames, senderId) {
 }
 
 export function registerMessageHandlers(socket, io, { joined }) {
-  socket.on('message:send', async ({ roomId, text = '', attachments = [], clientMsgId, replyTo }, ack) => {
+  socket.on('message:send', async ({ roomId, text = '', attachments = [], clientMsgId, replyTo, forwardedFrom }, ack) => {
     try {
       const trimmedText = typeof text === 'string' ? text.trim() : '';
       if (!roomId || (!trimmedText && (!attachments || attachments.length === 0))) {
@@ -86,6 +86,7 @@ export function registerMessageHandlers(socket, io, { joined }) {
         attachments: Array.isArray(attachments) ? attachments : [],
         clientMsgId: clientMsgId || null,
         replyTo: replyTo || null,
+        forwardedFrom: forwardedFrom || null,
         mentions: mentionIds,
       });
       const payload = {
@@ -292,6 +293,85 @@ export function registerMessageHandlers(socket, io, { joined }) {
     } catch (err) {
       ack?.({ ok: false, error: err.message });
       socket.emit('error', { message: err.message });
+    }
+  });
+
+  // Message Edit Event
+  socket.on('message:edit', async ({ roomId, messageId, text }, ack) => {
+    try {
+      if (!roomId || !messageId || !text?.trim()) throw new Error('roomId, messageId, and text required');
+      if (!joined.has(roomId)) throw new Error('join the room first');
+
+      const msg = await Message.findOne({ _id: messageId, room: roomId });
+      if (!msg) throw new Error('message not found');
+      if (msg.sender.toString() !== socket.user.id) throw new Error('only the author can edit this message');
+      if (msg.deleted) throw new Error('cannot edit deleted message');
+
+      msg.text = text.trim();
+      msg.edited = true;
+      msg.editedAt = new Date();
+      await msg.save();
+
+      const payload = {
+        messageId: msg._id.toString(),
+        roomId,
+        text: msg.text,
+        edited: true,
+        editedAt: msg.editedAt,
+      };
+
+      io.to(roomId).emit('message:edited', payload);
+      ack?.({ ok: true, message: payload });
+    } catch (err) {
+      ack?.({ ok: false, error: err.message });
+    }
+  });
+
+  // Message Pin Event
+  socket.on('message:pin', async ({ roomId, messageId }, ack) => {
+    try {
+      if (!roomId || !messageId) throw new Error('roomId and messageId required');
+      if (!joined.has(roomId)) throw new Error('join the room first');
+
+      const room = await Room.findById(roomId);
+      if (!room) throw new Error('room not found');
+
+      const msg = await Message.findOne({ _id: messageId, room: roomId });
+      if (!msg) throw new Error('message not found');
+
+      if (!room.pinnedMessages) room.pinnedMessages = [];
+      if (!room.pinnedMessages.some((p) => p.toString() === messageId)) {
+        room.pinnedMessages.push(messageId);
+        await room.save();
+      }
+
+      const pinnedIds = room.pinnedMessages.map((p) => p.toString());
+      io.to(roomId).emit('message:pinned', { roomId, messageId, pinnedMessages: pinnedIds });
+      ack?.({ ok: true, pinnedMessages: pinnedIds });
+    } catch (err) {
+      ack?.({ ok: false, error: err.message });
+    }
+  });
+
+  // Message Unpin Event
+  socket.on('message:unpin', async ({ roomId, messageId }, ack) => {
+    try {
+      if (!roomId || !messageId) throw new Error('roomId and messageId required');
+      if (!joined.has(roomId)) throw new Error('join the room first');
+
+      const room = await Room.findById(roomId);
+      if (!room) throw new Error('room not found');
+
+      if (room.pinnedMessages) {
+        room.pinnedMessages = room.pinnedMessages.filter((p) => p.toString() !== messageId);
+        await room.save();
+      }
+
+      const pinnedIds = (room.pinnedMessages || []).map((p) => p.toString());
+      io.to(roomId).emit('message:unpinned', { roomId, messageId, pinnedMessages: pinnedIds });
+      ack?.({ ok: true, pinnedMessages: pinnedIds });
+    } catch (err) {
+      ack?.({ ok: false, error: err.message });
     }
   });
 }

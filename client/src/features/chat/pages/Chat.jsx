@@ -5,7 +5,7 @@ import useDM from '../hooks/useDM.js';
 import {
   Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel,
   PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
-  DMPanel, DMChat, CreateChannelModal,
+  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal, PinnedMessagesModal,
 } from '../components/index.js';
 import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
@@ -20,6 +20,7 @@ export default function Chat() {
     messagesContainerRef, isPrivate, hasKey, unreadCounts, mentionAlerts,
     selectRoom, leaveRoom, handleRequestJoin, createRoom,
     send, handleTyping, deleteMessage, deleteForMe, handleReadReceipt, handleReact, refreshMembers,
+    editMessage, pinMessage, unpinMessage, forwardMessage, loadOlderMessages,
   } = useChat();
 
   const {
@@ -32,6 +33,10 @@ export default function Chat() {
   const nav = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
+  const [selectedProfileUser, setSelectedProfileUser] = useState(null);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showPinnedModal, setShowPinnedModal] = useState(false);
+  const [forwardMsg, setForwardMsg] = useState(null);
   const [activeModel, setActiveModel] = useState('GPT-6');
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
@@ -140,6 +145,7 @@ export default function Chat() {
             conversations={conversations}
             currentDM={currentDM}
             onOpen={openDM}
+            onSendRequest={(toUserId) => handleDMUser(toUserId)}
             userId={user?.id}
           />
         ) : (
@@ -214,7 +220,21 @@ export default function Chat() {
                         <span className="notif-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                       )}
                     </button>
-                    <button className="header-icon-btn" title="Search messages">
+                    <button
+                      className="header-icon-btn"
+                      onClick={() => setShowPinnedModal(true)}
+                      title="Pinned messages"
+                    >
+                      📌
+                      {(currentRoom.pinnedMessages?.length || 0) > 0 && (
+                        <span className="notif-badge">{currentRoom.pinnedMessages.length}</span>
+                      )}
+                    </button>
+                    <button
+                      className="header-icon-btn"
+                      onClick={() => setShowSearchModal(true)}
+                      title="Search messages"
+                    >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                       </svg>
@@ -254,7 +274,15 @@ export default function Chat() {
                         {keyStatus === 'waiting' ? 'Exchanging E2EE keys...' : 'Encryption key error'}
                       </div>
                     )}
-                    <div className="messages-container" ref={messagesContainerRef}>
+                    <div
+                      className="messages-container"
+                      ref={messagesContainerRef}
+                      onScroll={(e) => {
+                        if (e.target.scrollTop < 40) {
+                          loadOlderMessages();
+                        }
+                      }}
+                    >
                       <div className="date-separator"><span>Today</span></div>
                       <MessageList
                         messages={displayMessages}
@@ -272,6 +300,11 @@ export default function Chat() {
                         replyToData={replyToData}
                         membersMap={membersMap}
                         onDMUser={handleDMUser}
+                        onEdit={editMessage}
+                        onPin={pinMessage}
+                        onUnpin={unpinMessage}
+                        onOpenForward={setForwardMsg}
+                        pinnedMessages={currentRoom.pinnedMessages || []}
                       />
                       <ScrollToBottom containerRef={messagesContainerRef} />
                     </div>
@@ -293,6 +326,7 @@ export default function Chat() {
                         roomId={currentRoom.id}
                         currentUserId={user?.id}
                         onMemberUpdate={refreshMembers}
+                        onOpenProfile={setSelectedProfileUser}
                       />
                       <PendingRequests
                         roomId={currentRoom.id}
@@ -361,6 +395,58 @@ export default function Chat() {
         <CreateChannelModal
           onClose={() => setShowCreateModal(false)}
           onCreate={createRoom}
+        />
+      )}
+
+      {/* User Profile Card Popover */}
+      {selectedProfileUser && (
+        <UserProfileCard
+          user={selectedProfileUser}
+          isOnline={online.some((o) => o.id === selectedProfileUser.id || o.id === selectedProfileUser._id)}
+          onClose={() => setSelectedProfileUser(null)}
+          onStartDM={(toUserId) => handleDMUser(toUserId)}
+          onMention={(username) => {
+            setCurrentInput((prev) => (prev ? `${prev} @${username} ` : `@${username} `));
+          }}
+        />
+      )}
+
+      {/* Message Search Modal */}
+      {showSearchModal && currentRoom && (
+        <MessageSearchModal
+          roomId={currentRoom.id}
+          isOpen={showSearchModal}
+          onClose={() => setShowSearchModal(false)}
+          onJumpToMessage={(msgId) => {
+            const el = document.getElementById(`msg-${msgId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}
+        />
+      )}
+
+      {/* Pinned Messages Modal */}
+      {showPinnedModal && currentRoom && (
+        <PinnedMessagesModal
+          isOpen={showPinnedModal}
+          onClose={() => setShowPinnedModal(false)}
+          pinnedMessages={currentRoom.pinnedMessages || []}
+          allMessages={displayMessages}
+          onUnpin={unpinMessage}
+          onJumpToMessage={(msgId) => {
+            const el = document.getElementById(`msg-${msgId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}
+        />
+      )}
+
+      {/* Forward Message Modal */}
+      {forwardMsg && (
+        <ForwardModal
+          message={forwardMsg}
+          rooms={rooms}
+          conversations={conversations}
+          onClose={() => setForwardMsg(null)}
+          onForward={forwardMessage}
         />
       )}
     </div>

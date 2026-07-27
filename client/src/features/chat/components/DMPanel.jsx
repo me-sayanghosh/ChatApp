@@ -1,11 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { api } from '../../../shared/utils/api.js';
 
 export default function DMPanel({ conversations, currentDM, onOpen, onSendRequest, userId }) {
   const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
 
-  const filtered = conversations.filter((c) => {
+  useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    const query = search.trim().replace(/^@/, '');
+
+    if (!query) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await api.get(`/auth/users/search?q=${encodeURIComponent(query)}`);
+        setSearchResults(res.data.users || []);
+      } catch (err) {
+        console.error('User search error:', err);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, [search]);
+
+  const filteredConversations = conversations.filter((c) => {
     if (!search.trim()) return true;
-    return c.partner?.username?.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase().replace(/^@/, '');
+    return c.partner?.username?.toLowerCase().includes(q) || c.partner?.name?.toLowerCase().includes(q);
   });
 
   function formatTime(dateStr) {
@@ -19,14 +51,14 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
-  const pending = filtered.filter(
+  const pending = filteredConversations.filter(
     (c) => c.dmStatus === 'pending' && c.dmInitiator !== userId
   );
-  const accepted = filtered.filter(
+  const accepted = filteredConversations.filter(
     (c) => c.dmStatus === 'accepted' || c.dmInitiator === userId
   );
 
-  function renderItem(convo) {
+  function renderConvoItem(convo) {
     const isActive = currentDM?.id === convo.id;
     const isPending = convo.dmStatus === 'pending';
     const isRecipient = convo.dmInitiator !== userId;
@@ -82,33 +114,91 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
           <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <input
-          placeholder="Search DMs..."
+          placeholder="Search members or start DM..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {search && (
+          <button className="dm-search-clear" onClick={() => setSearch('')}>&times;</button>
+        )}
       </div>
 
+      {/* Global User Discovery Section when searching */}
+      {search.trim().length > 0 && (
+        <div className="dm-section dm-discovery-section">
+          <div className="dm-section-label">
+            User Discovery {searching && '🔍 Searching...'}
+          </div>
+          {searchResults.length > 0 ? (
+            searchResults.map((user) => {
+              const existingConvo = conversations.find(
+                (c) => c.partner?.id === user.id
+              );
+
+              return (
+                <div key={user.id} className="dm-discovery-item">
+                  <div className="dm-avatar">
+                    {user.profileImage ? (
+                      <img src={user.profileImage} alt={user.username} />
+                    ) : (
+                      <span>{(user.username || 'U')[0].toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="dm-item-body">
+                    <div className="dm-item-name">
+                      {user.name ? `${user.name} (@${user.username})` : `@${user.username}`}
+                    </div>
+                    {user.customStatus?.text && (
+                      <span className="dm-custom-status">
+                        {user.customStatus.emoji} {user.customStatus.text}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    className="dm-start-btn"
+                    onClick={() => {
+                      if (existingConvo) {
+                        onOpen(existingConvo);
+                      } else {
+                        onSendRequest?.(user.id);
+                      }
+                      setSearch('');
+                    }}
+                  >
+                    {existingConvo ? 'Chat' : 'Message'}
+                  </button>
+                </div>
+              );
+            })
+          ) : !searching ? (
+            <div className="dm-discovery-none">No user matching "{search}"</div>
+          ) : null}
+        </div>
+      )}
+
+      {/* Pending DM requests */}
       {pending.length > 0 && (
         <div className="dm-section">
           <div className="dm-section-label">Requests ({pending.length})</div>
-          {pending.map(renderItem)}
+          {pending.map(renderConvoItem)}
         </div>
       )}
 
+      {/* Active DM conversations */}
       {accepted.length > 0 && (
         <div className="dm-section">
-          <div className="dm-section-label">Messages</div>
-          {accepted.map(renderItem)}
+          <div className="dm-section-label">Conversations</div>
+          {accepted.map(renderConvoItem)}
         </div>
       )}
 
-      {filtered.length === 0 && (
+      {filteredConversations.length === 0 && searchResults.length === 0 && (
         <div className="dm-empty">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
           <p>No direct messages yet.</p>
-          <span>Click "Message Privately" on any message to start one.</span>
+          <span>Search a username above to start a private conversation.</span>
         </div>
       )}
     </div>

@@ -90,12 +90,15 @@ function renderAttachments(attachments, setLightboxUrl) {
 
 export default function MessageList({
   messages, meId, onDelete, onDeleteForMe, members, onRead, readReceipts,
-  onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap, onDMUser
+  onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap, onDMUser,
+  onEdit, onPin, onUnpin, onOpenForward, pinnedMessages = []
 }) {
   const lastReadRef = useRef(null);
   const [contextMenuFor, setContextMenuFor] = useState(null);
   const [toast, setToast] = useState(null);
   const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
   const ctxMenuRef = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -268,6 +271,12 @@ export default function MessageList({
               </div>
             )}
 
+            {m.forwardedFrom && (
+              <div className="msg-forwarded-header">
+                <span>↩ Forwarded from @{m.forwardedFrom.senderUsername}</span>
+              </div>
+            )}
+
             {!mine && !m.deleted && (
               <div className="msg-sender">
                 <span className="msg-sender-name">{who}</span>
@@ -278,11 +287,43 @@ export default function MessageList({
 
             {m.deleted ? (
               <div className="msg-text deleted-text">This message was deleted.</div>
+            ) : editingId === m.id ? (
+              <div className="msg-inline-edit-box">
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onEdit?.(m.id, editText);
+                      setEditingId(null);
+                    } else if (e.key === 'Escape') {
+                      setEditingId(null);
+                    }
+                  }}
+                  autoFocus
+                />
+                <div className="edit-box-actions">
+                  <button
+                    className="edit-save-btn"
+                    onClick={() => {
+                      onEdit?.(m.id, editText);
+                      setEditingId(null);
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button className="edit-cancel-btn" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
             ) : (
               <>
                 {m.text && (
                   <div className="msg-text">
                     {renderMentions(m.text, members?.find?.(mb => mb.user === meId)?.username, membersMap)}
+                    {m.edited && <span className="edited-tag">(edited)</span>}
                   </div>
                 )}
                 {renderAttachments(m.attachments, setLightboxUrl)}
@@ -395,13 +436,34 @@ export default function MessageList({
                   </svg>
                   Reply
                 </button>
-                <button className="ctx-menu-item" onClick={handleForward}>
+                <button className="ctx-menu-item" onClick={() => { onOpenForward?.(m); setContextMenuFor(null); }}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M13 8H6c-2.2 0-3 1.5-3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Forward
                 </button>
+                {pinnedMessages.includes(m.id) ? (
+                  <button className="ctx-menu-item" onClick={() => { onUnpin?.(m.id); setContextMenuFor(null); }}>
+                    📌 Unpin message
+                  </button>
+                ) : (
+                  <button className="ctx-menu-item" onClick={() => { onPin?.(m.id); setContextMenuFor(null); }}>
+                    📌 Pin message
+                  </button>
+                )}
+                {mine && !m.deleted && (
+                  <button
+                    className="ctx-menu-item"
+                    onClick={() => {
+                      setEditingId(m.id);
+                      setEditText(m.text || '');
+                      setContextMenuFor(null);
+                    }}
+                  >
+                    ✏️ Edit message
+                  </button>
+                )}
                 <button className="ctx-menu-item" onClick={handleCopy}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <rect x="5" y="5" width="8" height="9" rx="1" stroke="currentColor" strokeWidth="1.3"/>

@@ -21,6 +21,12 @@ const messageSchema = new mongoose.Schema(
     replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
     deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     reported: { type: Boolean, default: false },
+    edited: { type: Boolean, default: false },
+    editedAt: { type: Date, default: null },
+    forwardedFrom: {
+      senderUsername: { type: String, default: null },
+      roomName: { type: String, default: null },
+    },
     mentions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     reactions: [
       {
@@ -48,6 +54,9 @@ messageSchema.methods.toClient = function () {
     deleted: this.deleted,
     deletedFor: this.deletedFor ? this.deletedFor.map((u) => u.toString()) : [],
     reported: this.reported,
+    edited: !!this.edited,
+    editedAt: this.editedAt || null,
+    forwardedFrom: this.forwardedFrom || null,
     mentions: (this.mentions || []).map((u) => u.toString()),
     reactions: (this.reactions || []).map((r) => ({
       emoji: r.emoji,

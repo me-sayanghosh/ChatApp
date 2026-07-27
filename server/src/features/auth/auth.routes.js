@@ -307,4 +307,50 @@ router.put('/username', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/auth/users/search?q=query - Discover & search users
+router.get('/users/search', requireAuth, async (req, res) => {
+  try {
+    const q = req.query.q?.trim();
+    if (!q) {
+      return res.json({ users: [] });
+    }
+
+    const reg = new RegExp(escapeRegex(q), 'i');
+    const users = await User.find({
+      _id: { $ne: req.user.id },
+      $or: [{ username: reg }, { name: reg }, { email: reg }],
+    })
+      .select('username name profileImage customStatus createdAt')
+      .limit(20);
+
+    return res.json({
+      users: users.map((u) => u.toClient()),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/auth/custom-status - Update custom status emoji and text
+router.put('/custom-status', requireAuth, async (req, res) => {
+  try {
+    const { emoji = '', text = '' } = req.body || {};
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        customStatus: {
+          emoji: String(emoji).trim().substring(0, 10),
+          text: String(text).trim().substring(0, 80),
+        },
+      },
+      { new: true }
+    );
+
+    return res.json({ ok: true, user: user.toClient() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

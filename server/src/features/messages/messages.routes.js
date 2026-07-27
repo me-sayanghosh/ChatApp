@@ -11,7 +11,7 @@ router.use(requireAuth);
 router.get('/:roomId/messages', async (req, res) => {
   try {
     const { roomId } = req.params;
-    const { after, limit } = req.query;
+    const { after, before, limit } = req.query;
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).json({ error: 'room not found' });
 
@@ -26,10 +26,20 @@ router.get('/:roomId/messages', async (req, res) => {
         return res.status(400).json({ error: 'invalid after parameter' });
       }
       query._id = { $gt: new mongoose.Types.ObjectId(after) };
+    } else if (before) {
+      if (!mongoose.Types.ObjectId.isValid(before)) {
+        return res.status(400).json({ error: 'invalid before parameter' });
+      }
+      query._id = { $lt: new mongoose.Types.ObjectId(before) };
     }
 
-    const cap = Math.min(parseInt(limit, 10) || 100, 500);
-    const messages = await Message.find(query).sort({ _id: 1 }).limit(cap);
+    const cap = Math.min(parseInt(limit, 10) || 50, 500);
+    // If before parameter is passed (loading older history), sort descending then reverse
+    const sortDir = before ? -1 : 1;
+    let messages = await Message.find(query).sort({ _id: sortDir }).limit(cap);
+    if (before) {
+      messages = messages.reverse();
+    }
 
     const filtered = messages.filter((m) => {
       if (m.deletedFor && m.deletedFor.some((id) => id.toString() === req.user.id)) {
@@ -55,6 +65,51 @@ router.get('/:roomId/messages', async (req, res) => {
       messages: filtered.map((m) => ({
         ...m.toClient(),
         replyToData: replyToMap[m._id.toString()] || null,
+      })),
+      hasMore: filtered.length === cap,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/rooms/:roomId/messages/search?q=query - Search messages within a room
+router.get('/:roomId/messages/search', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const q = req.query.q?.trim();
+    if (!q) return res.json({ messages: [] });
+
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(404).json({ error: 'room not found' });
+
+    if (room.type === 'private') {
+      const isMember = room.members.some((m) => m.user.toString() === req.user.id);
+      if (!isMember) return res.status(403).json({ error: 'not a member of this private room' });
+    }
+
+    const reg = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const messages = await Message.find({
+      room: roomId,
+      text: reg,
+      deleted: false,
+    })
+      .populate('sender', 'username profileImage')
+      .sort({ createdAt: -1 })
+      .limit(30);
+
+    const filtered = messages.filter(
+      (m) => !(m.deletedFor || []).some((id) => id.toString() === req.user.id)
+    );
+
+    res.json({
+      messages: filtered.map((m) => ({
+        ...m.toClient(),
+        sender: {
+          id: m.sender?._id?.toString() || m.sender?.toString(),
+          username: m.sender?.username || 'User',
+          profileImage: m.sender?.profileImage || '',
+        },
       })),
     });
   } catch (err) {

@@ -251,6 +251,26 @@ export default function useChat() {
       }
     });
 
+    socket.on('message:edited', ({ roomId, messageId, text, edited, editedAt }) => {
+      if (roomId === currentRoomRef.current) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, text, edited, editedAt } : m))
+        );
+      }
+    });
+
+    socket.on('message:pinned', ({ roomId, pinnedMessages }) => {
+      setRooms((prev) =>
+        prev.map((r) => (r.id === roomId ? { ...r, pinnedMessages } : r))
+      );
+    });
+
+    socket.on('message:unpinned', ({ roomId, pinnedMessages }) => {
+      setRooms((prev) =>
+        prev.map((r) => (r.id === roomId ? { ...r, pinnedMessages } : r))
+      );
+    });
+
     socket.on('message:deleted', ({ roomId, messageId }) => {
       if (roomId === currentRoomRef.current) {
         setMessages((prev) =>
@@ -620,6 +640,68 @@ export default function useChat() {
     socket.emit('message:react', { roomId: currentRoom.id, messageId, emoji });
   }
 
+  function editMessage(messageId, newText) {
+    if (!currentRoom || !messageId || !newText?.trim()) return;
+    const socket = getSocket();
+    if (socket) {
+      socket.emit('message:edit', { roomId: currentRoom.id, messageId, text: newText.trim() });
+    }
+  }
+
+  function pinMessage(messageId) {
+    if (!currentRoom || !messageId) return;
+    const socket = getSocket();
+    if (socket) {
+      socket.emit('message:pin', { roomId: currentRoom.id, messageId });
+    }
+  }
+
+  function unpinMessage(messageId) {
+    if (!currentRoom || !messageId) return;
+    const socket = getSocket();
+    if (socket) {
+      socket.emit('message:unpin', { roomId: currentRoom.id, messageId });
+    }
+  }
+
+  async function forwardMessage(target, message) {
+    const socket = getSocket();
+    if (!socket || !target || !message) return;
+
+    const forwardedFrom = {
+      senderUsername: message.sender?.username || membersMap?.[message.senderId] || 'User',
+      roomName: currentRoom?.name || 'chat',
+    };
+
+    if (target.type === 'channel') {
+      socket.emit('message:send', {
+        roomId: target.id,
+        text: message.text || '',
+        attachments: message.attachments || [],
+        forwardedFrom,
+      });
+    } else {
+      await api.post('/dm/send', {
+        toUserId: target.id,
+        text: message.text ? `[Forwarded from @${forwardedFrom.senderUsername}]: ${message.text}` : `[Forwarded attachment from @${forwardedFrom.senderUsername}]`,
+      });
+    }
+  }
+
+  async function loadOlderMessages() {
+    if (!currentRoom || messages.length === 0) return;
+    const oldestId = messages[0].id;
+    try {
+      const res = await api.get(`/rooms/${currentRoom.id}/messages?before=${oldestId}&limit=50`);
+      const older = res.data.messages || [];
+      if (older.length > 0) {
+        setMessages((prev) => [...older, ...prev]);
+      }
+    } catch (err) {
+      console.error('Failed to load older messages:', err);
+    }
+  }
+
   function refreshMembers() {
     if (!currentRoom) return;
     api.get(`/rooms/${currentRoom.id}/members`)
@@ -668,8 +750,8 @@ export default function useChat() {
     mentionAlerts,
     setMentionAlerts,
     messagesContainerRef,
-    isPrivate,
-    hasKey,
+    isPrivate: currentRoom?.type === 'private',
+    hasKey: currentRoom ? hasRoomKey(currentRoom.id) : false,
     selectRoom,
     leaveRoom,
     handleRequestJoin,
@@ -681,5 +763,10 @@ export default function useChat() {
     handleReadReceipt,
     handleReact,
     refreshMembers,
+    editMessage,
+    pinMessage,
+    unpinMessage,
+    forwardMessage,
+    loadOlderMessages,
   };
 }

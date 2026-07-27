@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
       directNotifications: { type: Boolean, default: true },
       backgroundSync: { type: Boolean, default: true },
     },
+    customStatus: {
+      emoji: { type: String, default: '' },
+      text: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 );
@@ -47,6 +51,8 @@ userSchema.methods.toClient = function () {
       directNotifications: true,
       backgroundSync: true,
     },
+    customStatus: this.customStatus || { emoji: '', text: '' },
+    createdAt: this.createdAt,
   };
 };
 

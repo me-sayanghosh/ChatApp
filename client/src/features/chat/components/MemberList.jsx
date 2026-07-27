@@ -7,7 +7,7 @@ const ROLE_COLORS = {
   member: '#8A7A5C',
 };
 
-export default function MemberList({ members, online, roomId, currentUserId, onMemberUpdate }) {
+export default function MemberList({ members, online, roomId, currentUserId, onMemberUpdate, onOpenProfile }) {
   const [actionBusy, setActionBusy] = useState(null);
 
   const onlineIds = new Set(online.map((u) => u.id));
@@ -66,7 +66,11 @@ export default function MemberList({ members, online, roomId, currentUserId, onM
           return (
             <li key={m.user} className="member-item">
               <span className="member-status-dot" style={{ background: isOnline ? '#22c55e' : '#64748b' }} />
-              <span className="member-name">
+              <span
+                className="member-name clickable"
+                onClick={() => onOpenProfile?.({ id: m.user, username: m.username })}
+                title="View Profile"
+              >
                 {m.username || m.user.slice(0, 8)}
                 {isSelf && <small> (you)</small>}
               </span>
