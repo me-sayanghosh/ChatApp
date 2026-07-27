@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function MessageList({
   messages, meId, onDelete, onDeleteForMe, members, onRead, readReceipts,
-  onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap
+  onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap, onDMUser
 }) {
   const lastReadRef = useRef(null);
   const [contextMenuFor, setContextMenuFor] = useState(null);
@@ -256,6 +256,18 @@ export default function MessageList({
                     <path d="M3 8h7c2.2 0 3 1.5 3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
+                {!mine && onDMUser && (
+                  <button
+                    className="msg-hover-btn msg-hover-btn--dm"
+                    onClick={() => onDMUser(m.senderId, getSenderName(m))}
+                    title="Message privately"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                      <path d="M19 8l2 2-2 2" /><path d="M21 10h-4" />
+                    </svg>
+                  </button>
+                )}
                 <button
                   className="msg-hover-btn"
                   onClick={(e) => openContextMenu(e, m)}

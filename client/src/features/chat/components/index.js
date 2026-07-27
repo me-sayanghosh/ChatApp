@@ -10,3 +10,5 @@ export { default as TypingIndicator } from './TypingIndicator.jsx';
 export { default as ReactionPicker } from './ReactionPicker.jsx';
 export { default as MessageList } from './MessageList.jsx';
 export { default as MessageInput } from './MessageInput.jsx';
+export { default as DMPanel } from './DMPanel.jsx';
+export { default as DMChat } from './DMChat.jsx';

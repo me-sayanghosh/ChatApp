@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../../shared/context/AuthContext.jsx';
 import PostRegisterStepper from '../../../shared/components/ui/PostRegisterStepper.jsx';
 
@@ -15,6 +16,26 @@ export default function Register() {
   const [registered, setRegistered] = useState(false);
   const { login } = useAuth();
   const nav = useNavigate();
+
+  async function handleGoogleSuccess(credentialResponse) {
+    setErr('');
+    setBusy(true);
+    try {
+      const res = await fetch(`${API}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Google registration failed');
+      login({ accessToken: data.accessToken, refreshToken: data.refreshToken, user: data.user });
+      setRegistered(true);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -33,7 +54,7 @@ export default function Register() {
         body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'registration failed');
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken, user: data.user });
       setRegistered(true);
     } catch (e) {
@@ -50,49 +71,101 @@ export default function Register() {
   return (
     <div className="auth">
       <div className="auth-card">
-        <h1>Create account</h1>
-        <p className="muted">Fill in your details to get started.</p>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Full name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-            required
-            autoComplete="name"
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <span className="pill-cap-shade" style={{ marginBottom: '0.5rem' }}>CREATE YOUR WORKSPACE</span>
+          <h1 style={{ color: '#4a154b', marginTop: '0.5rem' }}>Sign up for DropTalk</h1>
+          <p className="muted">Join your team on DropTalk workspace messaging.</p>
+        </div>
+
+        {/* Google OAuth Button */}
+        <div className="google-btn-wrapper" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setErr('Google Sign-In failed')}
+            shape="pill"
+            theme="outline"
+            size="large"
+            text="signup_with"
+            width="340"
           />
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-          <input
-            type="password"
-            placeholder="Password (6+ chars)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            autoComplete="new-password"
-          />
-          <input
-            type="password"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={6}
-            autoComplete="new-password"
-          />
+        </div>
+
+        <div className="auth-divider" style={{ display: 'flex', alignItems: 'center', margin: '1.25rem 0', color: '#696969', fontSize: '13px' }}>
+          <div style={{ flex: 1, height: '1px', background: '#e6e6e6' }} />
+          <span style={{ padding: '0 12px', fontWeight: 600 }}>OR</span>
+          <div style={{ flex: 1, height: '1px', background: '#e6e6e6' }} />
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="profile-field" style={{ marginBottom: 0 }}>
+            <label style={{ display: 'block', marginBottom: '6px' }}>Full Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Alex Morgan"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+              required
+              autoComplete="name"
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          <div className="profile-field" style={{ marginBottom: 0 }}>
+            <label style={{ display: 'block', marginBottom: '6px' }}>Work Email</label>
+            <input
+              type="email"
+              placeholder="name@work-email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          <div className="profile-field" style={{ marginBottom: 0 }}>
+            <label style={{ display: 'block', marginBottom: '6px' }}>Password</label>
+            <input
+              type="password"
+              placeholder="Password (6+ chars)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          <div className="profile-field" style={{ marginBottom: 0 }}>
+            <label style={{ display: 'block', marginBottom: '6px' }}>Confirm Password</label>
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+              style={{ width: '100%' }}
+            />
+          </div>
+
           {err && <div className="error">{err}</div>}
-          <button type="submit" disabled={busy}>{busy ? 'Creating account…' : 'Create account'}</button>
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="button-primary-pill"
+            style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '12px 24px', backgroundColor: '#4a154b', color: '#ffffff' }}
+          >
+            {busy ? 'Creating account…' : 'Create Account'}
+          </button>
         </form>
-        <p className="muted" style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-          Already have an account? <Link to="/login" className="link">Sign in</Link>
+
+        <p className="muted" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          Already using DropTalk? <Link to="/login" className="link" style={{ color: '#1264a3', fontWeight: 700 }}>Sign in</Link>
         </p>
       </div>
     </div>

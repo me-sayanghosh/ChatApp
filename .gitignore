@@ -1,34 +1,63 @@
+# ============================================================
+#  DropTalk — Root .gitignore
+# ============================================================
+
 # Dependencies
 node_modules/
 
-# Environment files
+# Environment files — NEVER commit secrets
 .env
 .env.local
 .env.*.local
+# .env.example is intentionally NOT ignored (it's a safe template)
 
 # Build output
 dist/
 build/
 .next/
+out/
 
-# IDE
+# Vite cache
+.vite/
+
+# Test coverage
+coverage/
+
+# IDE & editors
 .vscode/
 .idea/
 *.swp
 *.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime
+*.pid
+*.pid.lock
+*.seed
+
+# Optional: lock files (keep package-lock.json for reproducible installs)
+# yarn.lock
 
 # Opencode
 opencode.json
 .opencode/
-
-# Logs
-*.log
-npm-debug.log*
-
-# Runtime
-*.pid
-*.seed

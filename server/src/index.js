@@ -23,6 +23,7 @@ import moderationRoutes from './features/moderation/moderation.routes.js';
 import threadRoutes from './features/messages/threads.routes.js';
 import keyRoutes from './features/keys/keys.routes.js';
 import aiRoutes from './features/ai/ai.routes.js';
+import dmRoutes from './features/dm/dm.routes.js';
 import { attachSocket } from './shared/socket/index.js';
 import { reconcilePresence } from './features/presence/presence.service.js';
 
@@ -38,6 +39,7 @@ app.use('/api/rooms', moderationRoutes);
 app.use('/api/rooms', threadRoutes);
 app.use('/api/rooms', keyRoutes);
 app.use('/api/rooms', aiRoutes);
+app.use('/api/dm', dmRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chatapp';

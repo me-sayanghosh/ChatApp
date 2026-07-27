@@ -19,8 +19,14 @@ const ROOM_TYPES = [
   },
 ];
 
-export default function Channels({ rooms, current, onSelect, onCreate, onLeave, onRequestJoin, memberRooms, pendingRooms }) {
-  const [showCreate, setShowCreate] = useState(false);
+export default function Channels({ rooms, current, onSelect, onCreate, onLeave, onRequestJoin, memberRooms, pendingRooms, showCreate, setShowCreate }) {
+  const [internalShowCreate, setInternalShowCreate] = useState(false);
+  const isCreateVisible = showCreate !== undefined ? showCreate : internalShowCreate;
+  const toggleCreate = () => {
+    if (setShowCreate) setShowCreate(!isCreateVisible);
+    else setInternalShowCreate(!isCreateVisible);
+  };
+
   const [name, setName] = useState('');
   const [type, setType] = useState('public');
   const [err, setErr] = useState('');
@@ -36,7 +42,8 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
       await onCreate(name.trim(), type);
       setName('');
       setType('public');
-      setShowCreate(false);
+      if (setShowCreate) setShowCreate(false);
+      else setInternalShowCreate(false);
     } catch (e) {
       setErr(e.response?.data?.error || e.message);
     }
@@ -94,17 +101,17 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
   return (
     <div className="room-list-container">
       <div className="room-list-header">
-        <h2>All Conversations</h2>
+        <h2>Conversations</h2>
         <button
-          className={`create-room-btn ${showCreate ? 'active' : ''}`}
-          onClick={() => setShowCreate(!showCreate)}
+          className={`create-room-btn ${isCreateVisible ? 'active' : ''}`}
+          onClick={toggleCreate}
           title="New Conversation"
         >
-          💬
+          +
         </button>
       </div>
 
-      {showCreate && (
+      {isCreateVisible && (
         <form className="new-room-form" onSubmit={submit}>
           <input
             placeholder="Channel name..."
@@ -133,14 +140,10 @@ export default function Channels({ rooms, current, onSelect, onCreate, onLeave, 
         items={rooms}
         renderItem={renderRoom}
         onItemSelect={(room) => onSelect?.(room)}
-        showGradients
+        showGradients={false}
         enableArrowNavigation
         displayScrollbar
       />
-
-      <button className="new-conv-bottom-btn" onClick={() => setShowCreate(true)}>
-        New Conversation +
-      </button>
     </div>
   );
 }

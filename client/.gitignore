@@ -1,8 +1,37 @@
-node_modules
-dist
-dist-ssr
-.vite
-.DS_Store
+# ============================================================
+#  DropTalk Client (Vite + React) — .gitignore
+# ============================================================
+
+# Dependencies
+node_modules/
+
+# Environment files — NEVER commit secrets
 .env
 .env.local
+.env.*.local
+# .env.example is intentionally NOT ignored (safe template for new devs)
+
+# Vite build output
+dist/
+dist-ssr/
+
+# Vite cache
+.vite/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
+npm-debug.log*

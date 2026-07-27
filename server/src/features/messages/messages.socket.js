@@ -31,6 +31,18 @@ export function registerMessageHandlers(socket, io, { joined }) {
       }
       if (member.muted) throw new Error('you are muted in this room');
 
+      // DM guard: pending DMs only allow the initiator's initial message via REST (POST /api/dm/send).
+      // Block socket sends until DM is accepted.
+      if (room.isDM && room.dmStatus === 'pending') {
+        if (room.dmInitiator?.toString() !== socket.user.id) {
+          throw new Error('DM request is pending acceptance');
+        }
+        const existingCount = await Message.countDocuments({ room: roomId });
+        if (existingCount > 0) {
+          throw new Error('Wait for the recipient to accept your DM request');
+        }
+      }
+
       if (clientMsgId) {
         const existing = await Message.findOne({ clientMsgId }).lean();
         if (existing) {
@@ -64,6 +76,9 @@ export function registerMessageHandlers(socket, io, { joined }) {
       socket.emit('error', { message: err.message });
     }
   });
+
+
+
 
   socket.on('message:delete', async ({ roomId, messageId }, ack) => {
     try {

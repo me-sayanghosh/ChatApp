@@ -1,5 +1,39 @@
-node_modules
+# ============================================================
+#  DropTalk Server (Node.js / Express) — .gitignore
+# ============================================================
+
+# Dependencies
+node_modules/
+
+# Environment files — NEVER commit secrets
 .env
 .env.local
+.env.*.local
+# .env.example is intentionally NOT ignored (safe template for new devs)
+
+# Build output (if transpiling)
+dist/
+build/
+
+# Test coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+
+# Runtime
+*.pid
+*.pid.lock
+
+# Redis dump (if running Redis locally)
+dump.rdb

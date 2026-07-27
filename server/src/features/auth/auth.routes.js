@@ -2,12 +2,14 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { OAuth2Client } from 'google-auth-library';
 import { User } from './user.model.js';
 import { requireAuth } from '../../shared/middleware/auth.js';
 import { TOKEN_EXPIRY, USERNAME_REGEX, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } from '../../shared/utils/constants.js';
 import { parseExpiry, escapeRegex, generateAutoUsername } from '../../shared/utils/errors.js';
 
 const router = Router();
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
 
 function signAccessToken(user) {
   return jwt.sign({ sub: user._id.toString(), username: user.username }, process.env.JWT_SECRET, {
@@ -99,6 +101,7 @@ router.post('/login', async (req, res) => {
 
     const user = await User.findOne({ $or: [{ email: cleanId.toLowerCase() }, { username: idRegex }] });
     if (!user) return res.status(401).json({ error: 'invalid credentials' });
+    if (!user.passwordHash) return res.status(401).json({ error: 'please sign in using Google Sign-In' });
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ error: 'invalid credentials' });
 
@@ -112,6 +115,61 @@ router.post('/login', async (req, res) => {
     return res.json({ accessToken, refreshToken, user: user.toClient() });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/google', async (req, res) => {
+  try {
+    const { credential, idToken } = req.body || {};
+    const token = credential || idToken;
+    if (!token) return res.status(400).json({ error: 'Google token required' });
+
+    let payload;
+    if (process.env.GOOGLE_CLIENT_ID) {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } else {
+      const decoded = jwt.decode(token);
+      if (!decoded || !decoded.email) throw new Error('Invalid Google Token');
+      payload = decoded;
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+    if (!email) return res.status(400).json({ error: 'Email missing from Google token' });
+
+    const cleanEmail = email.trim().toLowerCase();
+    let user = await User.findOne({ $or: [{ googleId }, { email: cleanEmail }] });
+
+    if (user) {
+      if (!user.googleId) user.googleId = googleId;
+      if (!user.profileImage && picture) user.profileImage = picture;
+      if (name && !user.name) user.name = name;
+      await user.save();
+    } else {
+      const autoUsername = generateAutoUsername();
+      user = await User.create({
+        googleId,
+        email: cleanEmail,
+        name: name || '',
+        profileImage: picture || '',
+        username: autoUsername,
+        needsUsername: true,
+      });
+    }
+
+    await cleanExpiredTokens(user._id);
+
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken();
+    const family = uuidv4();
+    await storeRefreshToken(user._id, refreshToken, family);
+
+    return res.json({ accessToken, refreshToken, user: user.toClient() });
+  } catch (err) {
+    res.status(401).json({ error: err.message || 'Google authentication failed' });
   }
 });
 
