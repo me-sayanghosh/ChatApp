@@ -19,4 +19,6 @@ export { default as MessageSearchModal } from './MessageSearchModal.jsx';
 export { default as PinnedMessagesModal } from './PinnedMessagesModal.jsx';
 export { default as ChannelSettingsModal } from './ChannelSettingsModal.jsx';
 export { default as CallOverlay } from './CallOverlay.jsx';
+export { default as QuickSwitcherModal } from './QuickSwitcherModal.jsx';
+export { default as KeyboardShortcutsModal } from './KeyboardShortcutsModal.jsx';
 

@@ -5,11 +5,13 @@ import useDM from '../hooks/useDM.js';
 import {
   Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel,
   PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
-  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal, PinnedMessagesModal, ChannelSettingsModal, CallOverlay,
+  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal,
+  PinnedMessagesModal, ChannelSettingsModal, CallOverlay, QuickSwitcherModal, KeyboardShortcutsModal,
 } from '../components/index.js';
 import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
 import { useWebRTC } from '../hooks/useWebRTC.js';
+import { useTheme } from '../../../shared/hooks/useTheme.js';
 
 export default function Chat() {
   const {
@@ -35,6 +37,8 @@ export default function Chat() {
     startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, toggleScreenShare,
   } = useWebRTC(user);
 
+  const { theme, toggleTheme } = useTheme();
+
   const nav = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
@@ -42,10 +46,27 @@ export default function Chat() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showPinnedModal, setShowPinnedModal] = useState(false);
   const [showChannelSettingsModal, setShowChannelSettingsModal] = useState(false);
+  const [showQuickSwitcher, setShowQuickSwitcher] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [forwardMsg, setForwardMsg] = useState(null);
   const [activeModel, setActiveModel] = useState('GPT-6');
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
+
+  // Global Keyboard Shortcuts Listener
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowQuickSwitcher((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShowShortcutsModal((prev) => !prev);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Handle "Message Privately" clicked on a group message
   async function handleDMUser(toUserId, toUsername) {
@@ -130,6 +151,30 @@ export default function Chat() {
         </div>
 
         <div className="rail-bottom">
+          <button
+            className="rail-btn"
+            onClick={() => setShowQuickSwitcher(true)}
+            title="Quick Switcher (Ctrl + K)"
+          >
+            🔍
+          </button>
+
+          <button
+            className="rail-btn"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+
+          <button
+            className="rail-btn"
+            onClick={() => setShowShortcutsModal(true)}
+            title="Keyboard Shortcuts (Ctrl + /)"
+          >
+            ❓
+          </button>
+
           <button className="rail-btn settings-btn" onClick={() => nav('/settings/profile')} title="Settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <circle cx="12" cy="12" r="3" />
@@ -512,6 +557,22 @@ export default function Chat() {
         onToggleMute={toggleMute}
         onToggleVideo={toggleVideo}
         onToggleScreenShare={toggleScreenShare}
+      />
+
+      {/* Quick Switcher Modal (Ctrl + K) */}
+      <QuickSwitcherModal
+        isOpen={showQuickSwitcher}
+        onClose={() => setShowQuickSwitcher(false)}
+        rooms={rooms}
+        conversations={conversations}
+        onSelectChannel={(room) => { setNavRailTab('chat'); selectRoom(room); }}
+        onSelectDM={(convo) => { setNavRailTab('dm'); openDM(convo); }}
+      />
+
+      {/* Keyboard Shortcuts Modal (Ctrl + /) */}
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
       />
     </div>
   );
