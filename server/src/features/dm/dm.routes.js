@@ -5,6 +5,7 @@ import { Message } from '../messages/message.model.js';
 import { User } from '../auth/user.model.js';
 import { requireAuth } from '../../shared/middleware/auth.js';
 import { getIO } from '../../shared/socket/index.js';
+import { createNotification } from '../notifications/notifications.service.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -85,6 +86,18 @@ router.post('/send', async (req, res) => {
       fromUsername: req.user.username,
       toUserId,
     });
+
+    // Persist notification for DM recipient
+    createNotification({
+      userId: toUserId,
+      actorId: fromUserId,
+      type: 'dm',
+      title: `New DM from @${req.user.username}`,
+      message: text.trim().substring(0, 100),
+      link: '/chat',
+      roomId: room._id,
+      messageId: msg._id,
+    }).catch((e) => console.error('[dm notification] error:', e.message));
 
     res.status(201).json({ room: room.toClient(), message: payload });
   } catch (err) {

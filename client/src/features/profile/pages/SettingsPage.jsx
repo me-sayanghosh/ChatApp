@@ -219,10 +219,30 @@ export default function SettingsPage() {
   }
 
   // Handlers for Notifications
+  async function updateNotifSettings(payload) {
+    try {
+      const res = await fetch(`${API}/notifications/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.ok && data.user) {
+        setUser(data.user);
+      }
+    } catch (e) {
+      console.error('Failed to update notification settings API:', e);
+    }
+  }
+
   function handleToggleGroupNotif() {
     const next = !groupNotifications;
     setGroupNotifications(next);
     localStorage.setItem('settings_groupNotif', String(next));
+    updateNotifSettings({ groupNotifications: next });
     setNotifSuccess('Notification preferences saved');
     setTimeout(() => setNotifSuccess(''), 3000);
   }
@@ -231,6 +251,7 @@ export default function SettingsPage() {
     const next = !dmNotifications;
     setDmNotifications(next);
     localStorage.setItem('settings_dmNotif', String(next));
+    updateNotifSettings({ directNotifications: next });
     setNotifSuccess('Notification preferences saved');
     setTimeout(() => setNotifSuccess(''), 3000);
   }
@@ -239,6 +260,7 @@ export default function SettingsPage() {
     const next = !backgroundSync;
     setBackgroundSync(next);
     localStorage.setItem('settings_bgSync', String(next));
+    updateNotifSettings({ backgroundSync: next });
     setNotifSuccess('Background sync setting updated');
     setTimeout(() => setNotifSuccess(''), 3000);
   }

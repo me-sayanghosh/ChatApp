@@ -137,7 +137,22 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
                 {m.deleted ? (
                   <span className="dm-msg-deleted">This message was deleted.</span>
                 ) : (
-                  <span className="dm-msg-text">{m.text}</span>
+                  <>
+                    {m.text && <span className="dm-msg-text">{m.text}</span>}
+                    {m.attachments && m.attachments.length > 0 && (
+                      <div className="msg-attachments">
+                        {m.attachments.map((att, idx) => (
+                          att.fileType === 'image' ? (
+                            <img key={idx} src={att.url} alt={att.filename} className="dm-att-img" />
+                          ) : (
+                            <a key={idx} href={att.url} download={att.filename} target="_blank" rel="noopener noreferrer" className="dm-att-doc">
+                              📄 {att.filename}
+                            </a>
+                          )
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <span className="dm-msg-time">{formatTime(m.createdAt)}</span>

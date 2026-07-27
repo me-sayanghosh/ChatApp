@@ -3,6 +3,7 @@ import { Room } from '../rooms/room.model.js';
 import { User } from '../auth/user.model.js';
 import { checkSocketRateLimit } from '../../shared/middleware/rateLimit.js';
 import { removeTyping } from '../presence/presence.service.js';
+import { createNotification } from '../notifications/notifications.service.js';
 
 /**
  * Parse @username mentions from raw text.
@@ -23,9 +24,12 @@ async function resolveMentionIds(usernames, senderId) {
 }
 
 export function registerMessageHandlers(socket, io, { joined }) {
-  socket.on('message:send', async ({ roomId, text, clientMsgId, replyTo }, ack) => {
+  socket.on('message:send', async ({ roomId, text = '', attachments = [], clientMsgId, replyTo }, ack) => {
     try {
-      if (!roomId || !text || !text.trim()) throw new Error('roomId and text required');
+      const trimmedText = typeof text === 'string' ? text.trim() : '';
+      if (!roomId || (!trimmedText && (!attachments || attachments.length === 0))) {
+        throw new Error('roomId and message text or attachment required');
+      }
 
       const allowed = await checkSocketRateLimit(socket.user.id, 'message', { windowMs: 60000, max: 30 });
       if (!allowed) throw new Error('rate limit exceeded, slow down');
@@ -50,8 +54,6 @@ export function registerMessageHandlers(socket, io, { joined }) {
       const member = room.members.find((m) => m.user.toString() === socket.user.id);
       if (member && member.muted) throw new Error('you are muted in this room');
 
-      // DM guard: pending DMs only allow the initiator's initial message via REST (POST /api/dm/send).
-      // Block socket sends until DM is accepted.
       if (room.isDM && room.dmStatus === 'pending') {
         if (room.dmInitiator?.toString() !== socket.user.id) {
           throw new Error('DM request is pending acceptance');
@@ -74,13 +76,14 @@ export function registerMessageHandlers(socket, io, { joined }) {
       await removeTyping(roomId, socket.user.id);
 
       // Resolve @mentions
-      const mentionedUsernames = parseMentions(text.trim());
+      const mentionedUsernames = parseMentions(trimmedText);
       const mentionIds = await resolveMentionIds(mentionedUsernames, socket.user.id);
 
       const msg = await Message.create({
         room: roomId,
         sender: socket.user.id,
-        text: text.trim(),
+        text: trimmedText,
+        attachments: Array.isArray(attachments) ? attachments : [],
         clientMsgId: clientMsgId || null,
         replyTo: replyTo || null,
         mentions: mentionIds,
@@ -92,7 +95,7 @@ export function registerMessageHandlers(socket, io, { joined }) {
       };
       io.to(roomId).emit('message:new', { roomId, message: payload });
 
-      // Notify each mentioned user via their personal socket room
+      // Notify each mentioned user via their personal socket room and persist notification
       for (const mentionedId of mentionIds) {
         io.to(`user:${mentionedId.toString()}`).emit('message:mention', {
           roomId,
@@ -101,6 +104,17 @@ export function registerMessageHandlers(socket, io, { joined }) {
           text: text.trim().substring(0, 120),
           roomName: room.name,
         });
+
+        createNotification({
+          userId: mentionedId,
+          actorId: socket.user.id,
+          type: 'mention',
+          title: `@${socket.user.username} mentioned you in #${room.name}`,
+          message: text.trim().substring(0, 100),
+          link: '/chat',
+          roomId,
+          messageId: msg._id,
+        }).catch((e) => console.error('[mention notification] error:', e.message));
       }
 
       ack?.({ ok: true, message: payload });

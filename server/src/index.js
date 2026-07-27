@@ -24,12 +24,16 @@ import threadRoutes from './features/messages/threads.routes.js';
 import keyRoutes from './features/keys/keys.routes.js';
 import aiRoutes from './features/ai/ai.routes.js';
 import dmRoutes from './features/dm/dm.routes.js';
+import path from 'path';
+import notificationRoutes from './features/notifications/notifications.routes.js';
+import uploadRoutes from './features/upload/upload.routes.js';
 import { attachSocket } from './shared/socket/index.js';
 import { reconcilePresence } from './features/presence/presence.service.js';
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
@@ -40,6 +44,8 @@ app.use('/api/rooms', threadRoutes);
 app.use('/api/rooms', keyRoutes);
 app.use('/api/rooms', aiRoutes);
 app.use('/api/dm', dmRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/upload', uploadRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chatapp';

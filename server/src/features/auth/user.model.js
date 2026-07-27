@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
         family: { type: String, default: null },
       },
     ],
+    notificationSettings: {
+      groupNotifications: { type: Boolean, default: true },
+      directNotifications: { type: Boolean, default: true },
+      backgroundSync: { type: Boolean, default: true },
+    },
   },
   { timestamps: true }
 );
@@ -37,6 +42,11 @@ userSchema.methods.toClient = function () {
     profileImage: this.profileImage || '',
     needsUsername: !!this.needsUsername,
     googleId: this.googleId || null,
+    notificationSettings: this.notificationSettings || {
+      groupNotifications: true,
+      directNotifications: true,
+      backgroundSync: true,
+    },
   };
 };
 

@@ -31,6 +31,63 @@ function renderMentions(text, myUsername, membersMap) {
   });
 }
 
+/**
+ * Render message media attachments (images, video, audio, documents).
+ */
+function renderAttachments(attachments, setLightboxUrl) {
+  if (!attachments || attachments.length === 0) return null;
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  return (
+    <div className="msg-attachments">
+      {attachments.map((att, i) => {
+        if (att.fileType === 'image') {
+          return (
+            <div key={i} className="msg-att-image" onClick={() => setLightboxUrl(att.url)}>
+              <img src={att.url} alt={att.filename} loading="lazy" />
+            </div>
+          );
+        }
+        if (att.fileType === 'video') {
+          return (
+            <div key={i} className="msg-att-video">
+              <video controls src={att.url} preload="metadata" />
+            </div>
+          );
+        }
+        if (att.fileType === 'audio') {
+          return (
+            <div key={i} className="msg-att-audio">
+              <audio controls src={att.url} />
+            </div>
+          );
+        }
+        return (
+          <a key={i} href={att.url} download={att.filename} target="_blank" rel="noopener noreferrer" className="msg-att-doc">
+            <div className="doc-icon">📄</div>
+            <div className="doc-info">
+              <span className="doc-name">{att.filename}</span>
+              <span className="doc-size">{formatSize(att.size)}</span>
+            </div>
+            <div className="doc-download-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function MessageList({
   messages, meId, onDelete, onDeleteForMe, members, onRead, readReceipts,
   onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap, onDMUser
@@ -38,6 +95,7 @@ export default function MessageList({
   const lastReadRef = useRef(null);
   const [contextMenuFor, setContextMenuFor] = useState(null);
   const [toast, setToast] = useState(null);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   const ctxMenuRef = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -221,9 +279,14 @@ export default function MessageList({
             {m.deleted ? (
               <div className="msg-text deleted-text">This message was deleted.</div>
             ) : (
-              <div className="msg-text">
-                {renderMentions(m.text, members?.find?.(mb => mb.user === meId)?.username, membersMap)}
-              </div>
+              <>
+                {m.text && (
+                  <div className="msg-text">
+                    {renderMentions(m.text, members?.find?.(mb => mb.user === meId)?.username, membersMap)}
+                  </div>
+                )}
+                {renderAttachments(m.attachments, setLightboxUrl)}
+              </>
             )}
 
             {m.reactions && m.reactions.length > 0 && (
@@ -370,6 +433,19 @@ export default function MessageList({
           </div>
         );
       })}
+
+      {/* Lightbox Image Preview Modal */}
+      {lightboxUrl && (
+        <div className="lightbox-backdrop" onClick={() => setLightboxUrl(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close-btn" onClick={() => setLightboxUrl(null)} title="Close">&times;</button>
+            <img src={lightboxUrl} alt="Full view" className="lightbox-img" />
+            <a href={lightboxUrl} download target="_blank" rel="noopener noreferrer" className="lightbox-download-btn">
+              Download Full Image
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

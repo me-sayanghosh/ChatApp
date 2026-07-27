@@ -538,11 +538,11 @@ export default function useChat() {
     selectRoom(data.room).catch(() => {});
   }
 
-  async function send(text) {
+  async function send(text, attachments = []) {
     if (!currentRoom) return;
-    let textToSend = text;
+    let textToSend = text || '';
 
-    if (isPrivate && hasKey) {
+    if (isPrivate && hasKey && textToSend) {
       try {
         const aesKey = getRoomKey(currentRoom.id);
         textToSend = await encryptText(aesKey, text);
@@ -553,7 +553,12 @@ export default function useChat() {
     }
 
     const clientMsgId = crypto.randomUUID();
-    const payload = { roomId: currentRoom.id, text: textToSend, clientMsgId };
+    const payload = {
+      roomId: currentRoom.id,
+      text: textToSend,
+      attachments: attachments || [],
+      clientMsgId,
+    };
     if (replyTo) {
       payload.replyTo = replyTo.id;
     }
