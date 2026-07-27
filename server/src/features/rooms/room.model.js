@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const roomSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, unique: true, trim: true, minlength: 1, maxlength: 40 },
+    name: { type: String, required: true, unique: true, trim: true, minlength: 1, maxlength: 100 },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: { type: String, enum: ['public', 'private', 'ephemeral'], default: 'public' },
     isDM: { type: Boolean, default: false },

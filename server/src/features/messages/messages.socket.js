@@ -14,22 +14,22 @@ export function registerMessageHandlers(socket, io, { joined }) {
       const room = await Room.findById(roomId);
       if (!room) throw new Error('room not found');
 
-      if (!joined.has(roomId)) throw new Error('join the room before sending');
-
-      const isBanned = (room.bannedUsers || []).some((b) => b.user.toString() === socket.user.id);
-      if (isBanned) {
-        joined.delete(roomId);
-        socket.leave(roomId);
-        throw new Error('you are banned from this room');
+      if (!joined.has(roomId)) {
+        const existingMember = room.members.find((m) => m.user.toString() === socket.user.id);
+        if (!existingMember) {
+          if (room.type === 'public') {
+            room.members.push({ user: socket.user.id, role: 'member', joinedAt: new Date(), muted: false });
+            await room.save();
+          } else {
+            throw new Error('not a member of this room');
+          }
+        }
+        socket.join(roomId);
+        joined.add(roomId);
       }
 
       const member = room.members.find((m) => m.user.toString() === socket.user.id);
-      if (!member) {
-        joined.delete(roomId);
-        socket.leave(roomId);
-        throw new Error('not a member of this room');
-      }
-      if (member.muted) throw new Error('you are muted in this room');
+      if (member && member.muted) throw new Error('you are muted in this room');
 
       // DM guard: pending DMs only allow the initiator's initial message via REST (POST /api/dm/send).
       // Block socket sends until DM is accepted.

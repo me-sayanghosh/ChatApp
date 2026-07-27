@@ -198,6 +198,16 @@ export default function useChat() {
     if (!socket) return;
     socketRef.current = socket;
 
+    if (currentRoomRef.current) {
+      socket.emit('room:join', { roomId: currentRoomRef.current });
+    }
+
+    onReconnect(() => {
+      if (currentRoomRef.current) {
+        getSocket()?.emit('room:join', { roomId: currentRoomRef.current });
+      }
+    });
+
     socket.on('message:new', ({ roomId, message }) => {
       if (roomId === currentRoomRef.current) {
         if (message.parentMessage) {
@@ -525,6 +535,10 @@ export default function useChat() {
     const payload = { roomId: currentRoom.id, text: textToSend, clientMsgId };
     if (replyTo) {
       payload.replyTo = replyTo.id;
+    }
+    const socket = getSocket();
+    if (socket && socket.connected) {
+      socket.emit('room:join', { roomId: currentRoom.id });
     }
     sendOffline('message:send', payload);
     setReplyTo(null);
