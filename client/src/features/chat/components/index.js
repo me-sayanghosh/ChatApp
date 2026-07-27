@@ -8,3 +8,5 @@ export { default as PresenceMap } from './PresenceMap.jsx';
 export { default as ScrollToBottom } from './ScrollToBottom.jsx';
 export { default as TypingIndicator } from './TypingIndicator.jsx';
 export { default as ReactionPicker } from './ReactionPicker.jsx';
+export { default as MessageList } from './MessageList.jsx';
+export { default as MessageInput } from './MessageInput.jsx';
