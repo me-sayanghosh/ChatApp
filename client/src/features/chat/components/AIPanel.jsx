@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from '../../utils/api.js';
+import { api } from '../../../shared/utils/index.js';
 
 export default function AIPanel({ roomId, currentInput }) {
   const [summary, setSummary] = useState(null);

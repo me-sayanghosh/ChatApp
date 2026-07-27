@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AnimatedList from '../ui/AnimatedList.jsx';
+import AnimatedList from '../../../shared/components/ui/AnimatedList.jsx';
 
 const ROOM_TYPES = [
   { 
