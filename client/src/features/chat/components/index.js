@@ -18,4 +18,5 @@ export { default as ForwardModal } from './ForwardModal.jsx';
 export { default as MessageSearchModal } from './MessageSearchModal.jsx';
 export { default as PinnedMessagesModal } from './PinnedMessagesModal.jsx';
 export { default as ChannelSettingsModal } from './ChannelSettingsModal.jsx';
+export { default as CallOverlay } from './CallOverlay.jsx';
 

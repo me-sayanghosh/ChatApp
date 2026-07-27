@@ -13,6 +13,7 @@ import { registerRoomHandlers } from '../../features/rooms/rooms.socket.js';
 import { registerMessageHandlers } from '../../features/messages/messages.socket.js';
 import { registerPresenceHandlers } from '../../features/presence/presence.socket.js';
 import { registerKeyHandlers } from '../../features/keys/keys.socket.js';
+import { registerWebRTCHandlers } from './webrtc.socket.js';
 
 let ioInstance = null;
 
@@ -71,6 +72,7 @@ export function attachSocket(httpServer) {
     registerMessageHandlers(socket, io, { joined });
     registerPresenceHandlers(socket, io, { joined });
     registerKeyHandlers(socket, io, { joined });
+    registerWebRTCHandlers(socket, io);
 
     socket.on('disconnect', async () => {
       try {

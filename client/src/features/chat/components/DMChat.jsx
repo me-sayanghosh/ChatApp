@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function DMChat({ room, messages, userId, onAccept, onRemove, onSend, loading }) {
+export default function DMChat({ room, messages, userId, onAccept, onRemove, onSend, loading, onStartCall }) {
   const [text, setText] = useState('');
   const inputRef = useRef(null);
   const containerRef = useRef(null);
@@ -79,6 +79,25 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
             </span>
           </div>
         </div>
+
+        {!isPending && (
+          <div className="dm-chat-header-actions">
+            <button
+              className="header-icon-btn"
+              onClick={() => onStartCall?.(room.partner?.id || room.partner?._id, room.id, false)}
+              title="Voice Call"
+            >
+              📞
+            </button>
+            <button
+              className="header-icon-btn"
+              onClick={() => onStartCall?.(room.partner?.id || room.partner?._id, room.id, true)}
+              title="Video Call"
+            >
+              📹
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Pending DM Banner */}

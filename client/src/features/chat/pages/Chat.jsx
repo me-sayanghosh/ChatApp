@@ -5,10 +5,11 @@ import useDM from '../hooks/useDM.js';
 import {
   Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel,
   PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
-  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal, PinnedMessagesModal, ChannelSettingsModal,
+  DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal, PinnedMessagesModal, ChannelSettingsModal, CallOverlay,
 } from '../components/index.js';
 import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
+import { useWebRTC } from '../hooks/useWebRTC.js';
 
 export default function Chat() {
   const {
@@ -29,6 +30,10 @@ export default function Chat() {
   } = useDM();
 
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications(user);
+  const {
+    callState, callerInfo, localStream, remoteStream, isMuted, isVideoOff, isScreenSharing,
+    startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, toggleScreenShare,
+  } = useWebRTC(user);
 
   const nav = useNavigate();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -177,6 +182,7 @@ export default function Chat() {
             onAccept={acceptDM}
             onRemove={removeDM}
             onSend={sendDMMessage}
+            onStartCall={(toUserId, roomId, isVideo) => startCall(toUserId, roomId, isVideo)}
           />
         ) : (
           /* Group Chat View */
@@ -213,6 +219,20 @@ export default function Chat() {
                     </div>
                   </div>
                   <div className="header-right">
+                    <button
+                      className="header-icon-btn"
+                      onClick={() => startCall(null, currentRoom.id, false)}
+                      title="Voice Call Channel"
+                    >
+                      📞
+                    </button>
+                    <button
+                      className="header-icon-btn"
+                      onClick={() => startCall(null, currentRoom.id, true)}
+                      title="Video Call Channel"
+                    >
+                      📹
+                    </button>
                     {members.some((m) => m.user === user?.id && (m.role === 'owner' || m.role === 'moderator')) && (
                       <button
                         className="header-icon-btn"
@@ -476,6 +496,23 @@ export default function Chat() {
           }}
         />
       )}
+
+      {/* WebRTC Call Overlay UI */}
+      <CallOverlay
+        callState={callState}
+        callerInfo={callerInfo}
+        localStream={localStream}
+        remoteStream={remoteStream}
+        isMuted={isMuted}
+        isVideoOff={isVideoOff}
+        isScreenSharing={isScreenSharing}
+        onAccept={acceptCall}
+        onReject={rejectCall}
+        onEndCall={endCall}
+        onToggleMute={toggleMute}
+        onToggleVideo={toggleVideo}
+        onToggleScreenShare={toggleScreenShare}
+      />
     </div>
   );
 }
