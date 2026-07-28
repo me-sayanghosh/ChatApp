@@ -12,6 +12,7 @@ import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
 import { useWebRTC } from '../hooks/useWebRTC.js';
 import { useTheme } from '../../../shared/hooks/useTheme.js';
+import { useToast } from '../../../shared/context/ToastContext.jsx';
 
 export default function Chat() {
   const {
@@ -156,7 +157,10 @@ export default function Chat() {
             onClick={() => setShowQuickSwitcher(true)}
             title="Quick Switcher (Ctrl + K)"
           >
-            🔍
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
           </button>
 
           <button
@@ -164,7 +168,23 @@ export default function Chat() {
             onClick={toggleTheme}
             title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
           >
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === 'light' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            )}
           </button>
 
           <button
@@ -172,7 +192,11 @@ export default function Chat() {
             onClick={() => setShowShortcutsModal(true)}
             title="Keyboard Shortcuts (Ctrl + /)"
           >
-            ❓
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
           </button>
 
           <button className="rail-btn settings-btn" onClick={() => nav('/settings/profile')} title="Settings">
@@ -243,12 +267,20 @@ export default function Chat() {
                     </div>
                     <div className="header-room-info">
                       <h2 className="header-room-name">
-                        {currentRoom.name} <span className="verified-badge">✓</span>
+                        {currentRoom.name}{' '}
+                        <svg className="verified-badge-svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
                       </h2>
                       <div className="header-room-meta">
                         {currentRoom.topic && (
                           <span className="header-topic-tag" title={currentRoom.topic}>
-                            📌 {currentRoom.topic}
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <line x1="12" y1="17" x2="12" y2="22"/>
+                              <path d="M5 17h14l-1.5-6H6.5L5 17z"/>
+                              <path d="M9 11V5a3 3 0 0 1 6 0v6"/>
+                            </svg>{' '}
+                            {currentRoom.topic}
                           </span>
                         )}
                         <span className="meta-pill">{currentRoom.category || 'General'}</span>
@@ -258,7 +290,13 @@ export default function Chat() {
                         <span className="header-sep">&middot;</span>
                         <span>{members.length} members</span>
                         {currentRoom.slowMode > 0 && (
-                          <span className="slowmode-tag"> &middot; ⏳ {currentRoom.slowMode}s slow mode</span>
+                          <span className="slowmode-tag">
+                            &middot;{' '}
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>{' '}
+                            {currentRoom.slowMode}s slow mode
+                          </span>
                         )}
                       </div>
                     </div>
@@ -269,14 +307,19 @@ export default function Chat() {
                       onClick={() => startCall(null, currentRoom.id, false)}
                       title="Voice Call Channel"
                     >
-                      📞
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      </svg>
                     </button>
                     <button
                       className="header-icon-btn"
                       onClick={() => startCall(null, currentRoom.id, true)}
                       title="Video Call Channel"
                     >
-                      📹
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                      </svg>
                     </button>
                     {members.some((m) => m.user === user?.id && (m.role === 'owner' || m.role === 'moderator')) && (
                       <button
@@ -284,7 +327,10 @@ export default function Chat() {
                         onClick={() => setShowChannelSettingsModal(true)}
                         title="Channel settings"
                       >
-                        ⚙️
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
                       </button>
                     )}
                     <button
@@ -305,7 +351,11 @@ export default function Chat() {
                       onClick={() => setShowPinnedModal(true)}
                       title="Pinned messages"
                     >
-                      📌
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="12" y1="17" x2="12" y2="22"/>
+                        <path d="M5 17h14l-1.5-6H6.5L5 17z"/>
+                        <path d="M9 11V5a3 3 0 0 1 6 0v6"/>
+                      </svg>
                       {(currentRoom.pinnedMessages?.length || 0) > 0 && (
                         <span className="notif-badge">{currentRoom.pinnedMessages.length}</span>
                       )}
