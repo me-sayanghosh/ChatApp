@@ -10,6 +10,8 @@ import Chat from './features/chat/pages/Chat.jsx';
 import SettingsPage from './features/profile/pages/SettingsPage.jsx';
 import { ErrorBoundary } from './shared/components/ErrorBoundary.jsx';
 
+import ToastContainer from './shared/components/ui/ToastContainer.jsx';
+
 function Protected({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -20,6 +22,7 @@ function Protected({ children }) {
 export default function App() {
   return (
     <ErrorBoundary>
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
