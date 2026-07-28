@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext.jsx';
+import { useTheme } from '../../../shared/hooks/useTheme.js';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 
 export default function SettingsPage() {
   const { user, setUser, logout } = useAuth();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const nav = useNavigate();
   const { section } = useParams();
 
-  const activeSection = ['profile', 'privacy', 'notifications', 'shortcuts', 'help'].includes(section)
+  const activeSection = ['profile', 'appearance', 'privacy', 'notifications', 'shortcuts', 'help'].includes(section)
     ? section
     : 'profile';
 
@@ -278,6 +280,7 @@ export default function SettingsPage() {
 
   const sectionTitles = {
     profile: 'Profile Settings',
+    appearance: 'Appearance & Theme',
     privacy: 'Privacy & Security',
     notifications: 'Notification Preferences',
     shortcuts: 'Keyboard Shortcuts',
@@ -316,6 +319,40 @@ export default function SettingsPage() {
         </div>
 
         <div className="rail-bottom">
+          <button
+            className="rail-btn"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+          >
+            {theme === 'light' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            )}
+          </button>
+          <button
+            className="rail-btn"
+            onClick={() => nav('/settings/shortcuts')}
+            title="Keyboard Shortcuts (Ctrl + /)"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
           <button className="rail-btn settings-btn active" title="Settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <circle cx="12" cy="12" r="3" />
@@ -346,6 +383,16 @@ export default function SettingsPage() {
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
             </svg>
             <span>Profile</span>
+          </button>
+
+          <button
+            className={`settings-nav-item ${activeSection === 'appearance' ? 'active' : ''}`}
+            onClick={() => nav('/settings/appearance')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <span>Appearance & Theme</span>
           </button>
 
           <button
@@ -564,7 +611,86 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* SECTION 2: PRIVACY */}
+            {/* SECTION 2: APPEARANCE & THEME */}
+            {activeSection === 'appearance' && (
+              <div>
+                <h2 className="settings-section-title">Appearance & Theme</h2>
+                <p className="settings-section-desc">
+                  Customize the visual theme and appearance of your DropTalk workspace.
+                </p>
+
+                <div className="theme-selection-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '20px' }}>
+                  {/* Light Theme Card */}
+                  <div
+                    className={`theme-card ${theme === 'light' ? 'selected' : ''}`}
+                    onClick={() => setTheme('light')}
+                    style={{
+                      border: theme === 'light' ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      background: '#FFFFFF',
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ height: '100px', borderRadius: '10px', background: '#E4E9F2', padding: '10px', display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                      <div style={{ width: '20px', background: '#29410f', borderRadius: '6px' }} />
+                      <div style={{ width: '50px', background: '#FFFFFF', borderRadius: '6px' }} />
+                      <div style={{ flex: 1, background: '#FFFFFF', borderRadius: '6px', padding: '6px' }}>
+                        <div style={{ height: '8px', width: '60%', background: '#29410f', borderRadius: '4px', marginBottom: '6px' }} />
+                        <div style={{ height: '6px', width: '90%', background: '#E2E8F0', borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>☀️ Light Mode</h4>
+                        <span style={{ fontSize: '12px', color: '#64748B' }}>Clean & high contrast</span>
+                      </div>
+                      {theme === 'light' && (
+                        <span style={{ background: 'var(--primary)', color: '#fff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>✓</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Dark Theme Card */}
+                  <div
+                    className={`theme-card ${theme === 'dark' ? 'selected' : ''}`}
+                    onClick={() => setTheme('dark')}
+                    style={{
+                      border: theme === 'dark' ? '2px solid var(--primary-mid)' : '1px solid var(--border-color)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      background: '#0F172A',
+                      color: '#F8FAFC',
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ height: '100px', borderRadius: '10px', background: '#1E293B', padding: '10px', display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                      <div style={{ width: '20px', background: '#29410f', borderRadius: '6px' }} />
+                      <div style={{ width: '50px', background: '#0F172A', borderRadius: '6px' }} />
+                      <div style={{ flex: 1, background: '#0F172A', borderRadius: '6px', padding: '6px' }}>
+                        <div style={{ height: '8px', width: '60%', background: '#4a7c2f', borderRadius: '4px', marginBottom: '6px' }} />
+                        <div style={{ height: '6px', width: '90%', background: '#334155', borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#F8FAFC' }}>🌙 Dark Mode</h4>
+                        <span style={{ fontSize: '12px', color: '#94A3B8' }}>Sleek & easy on eyes</span>
+                      </div>
+                      {theme === 'dark' && (
+                        <span style={{ background: 'var(--primary-mid)', color: '#fff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>✓</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SECTION 3: PRIVACY */}
             {activeSection === 'privacy' && (
               <div>
                 <h2 className="settings-section-title">Privacy & Visibility</h2>
