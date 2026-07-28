@@ -33,10 +33,18 @@ export default function Chat() {
 
   const {
     conversations, currentDM, setCurrentDM, dmMessages, loading: dmLoading,
-    pendingCount, openDM, sendDMRequest, sendDMMessage, acceptDM, removeDM,
+    pendingCount, openDM, sendDMRequest, sendDMMessage, acceptDM, removeDM, fetchConversations,
   } = useDM();
 
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications(user);
+  const {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    removeNotificationsForRoom,
+    deleteNotification,
+    clearAllNotifications,
+  } = useNotifications(user);
   const {
     callState, callerInfo, localStream, remoteStream, isMuted, isVideoOff, isScreenSharing,
     startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, toggleScreenShare,
@@ -75,6 +83,64 @@ export default function Chat() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Auto-remove notifications for active channel room
+  useEffect(() => {
+    if (currentRoom?.id) {
+      removeNotificationsForRoom(currentRoom.id);
+    }
+  }, [currentRoom?.id, removeNotificationsForRoom]);
+
+  // Auto-remove notifications for active DM conversation
+  useEffect(() => {
+    if (currentDM?.id) {
+      removeNotificationsForRoom(currentDM.id);
+    }
+  }, [currentDM?.id, removeNotificationsForRoom]);
+
+  // Handle clicking a notification: mark read, auto-remove, and redirect to target chat
+  async function handleSelectNotification(notif) {
+    if (!notif) return;
+
+    // 1. Mark as read & auto-remove notification from list
+    deleteNotification(notif.id);
+    if (notif.roomId) {
+      removeNotificationsForRoom(notif.roomId);
+    }
+
+    // 2. Redirect to chat where the message came from
+    const notifRoomId = notif.roomId?.toString();
+    const isDM = notif.type === 'dm' || (notifRoomId && notifRoomId.startsWith('dm-'));
+
+    if (isDM) {
+      setNavRailTab('dm');
+      const freshConvos = await fetchConversations();
+      const listToSearch = (freshConvos && freshConvos.length > 0) ? freshConvos : conversations;
+
+      const targetDM = listToSearch.find(
+        (c) =>
+          c.id?.toString() === notifRoomId ||
+          c._id?.toString() === notifRoomId ||
+          c.partner?.id?.toString() === notif.actorId?.toString() ||
+          c.partner?.id?.toString() === notif.actor?.id?.toString()
+      );
+
+      if (targetDM) {
+        await openDM(targetDM);
+      } else if (notifRoomId) {
+        await openDM({ id: notifRoomId, partner: notif.actor || { id: notif.actorId, username: 'User' } });
+      }
+    } else {
+      setNavRailTab('chat');
+      const targetRoom = rooms.find(
+        (r) => r.id?.toString() === notifRoomId || r._id?.toString() === notifRoomId
+      );
+      if (targetRoom) {
+        selectRoom(targetRoom);
+      }
+    }
+    setShowNotifDrawer(false);
+  }
 
   // Handle "Message Privately" clicked on a group message
   async function handleDMUser(toUserId, toUsername) {
@@ -507,15 +573,8 @@ export default function Chat() {
         unreadCount={unreadCount}
         onMarkRead={markRead}
         onMarkAllRead={markAllRead}
-        onSelectNotification={(notif) => {
-          if (notif.roomId) {
-            const targetRoom = rooms.find((r) => r.id === notif.roomId || r.id === notif.roomId.toString());
-            if (targetRoom) {
-              setNavRailTab('chat');
-              selectRoom(targetRoom);
-            }
-          }
-        }}
+        onClearAll={clearAllNotifications}
+        onSelectNotification={handleSelectNotification}
       />
 
       {/* Create Channel Modal */}

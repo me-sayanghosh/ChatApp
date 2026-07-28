@@ -60,6 +60,26 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/notifications/room/:roomId - Auto-remove notifications for seen room messages
+router.delete('/room/:roomId', async (req, res) => {
+  try {
+    await Notification.deleteMany({ user: req.user.id, roomId: req.params.roomId });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/notifications/clear-all - Clear all notifications for user
+router.delete('/clear-all', async (req, res) => {
+  try {
+    await Notification.deleteMany({ user: req.user.id });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PUT /api/notifications/settings - Update notification preferences
 router.put('/settings', async (req, res) => {
   try {

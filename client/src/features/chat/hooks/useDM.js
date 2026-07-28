@@ -25,7 +25,7 @@ export default function useDM() {
       const res = await fetch(`${API}/dm/conversations`, {
         headers: { ...authHeader() },
       });
-      if (!res.ok) return;
+      if (!res.ok) return [];
       const data = await res.json();
       const convos = data.conversations || [];
       setConversations(convos);
@@ -43,39 +43,48 @@ export default function useDM() {
           (c) => c.dmStatus === 'pending' && c.dmInitiator !== user?.id
         ).length
       );
-    } catch (_) {}
+      return convos;
+    } catch (_) {
+      return [];
+    }
   }, [user?.id]);
 
   // Fetch messages for a DM conversation
   const fetchDMMessages = useCallback(async (roomId) => {
+    if (!roomId) return [];
+    const roomIdStr = roomId.toString();
     try {
       setLoading(true);
-      const res = await fetch(`${API}/dm/${roomId}/messages`, {
+      const res = await fetch(`${API}/dm/${roomIdStr}/messages`, {
         headers: { ...authHeader() },
       });
-      if (!res.ok) return;
+      if (!res.ok) return [];
       const data = await res.json();
       const msgs = data.messages || [];
       setDmMessages(msgs);
-      cacheManager.setRoomMessages(roomId, msgs);
-    } catch (_) {
+      cacheManager.setRoomMessages(roomIdStr, msgs);
+      return msgs;
+    } catch (err) {
+      console.warn('Failed to fetch DM messages:', err);
+      return [];
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Open a DM conversation (Stale-While-Revalidate pattern)
+  // Open a DM conversation (Always fetch latest messages and join socket room)
   const openDM = useCallback(
     async (room) => {
+      if (!room) return;
+      const roomIdStr = (room.id || room._id)?.toString();
       setCurrentDM(room);
-      const cached = cacheManager.getRoomMessages(room.id);
-      if (cached && cached.length > 0) {
-        setDmMessages(cached);
-      }
-      await fetchDMMessages(room.id);
-      // Join the socket room so we receive messages
+
+      // Join socket room immediately so real-time events arrive
       const socket = getSocket();
-      socket?.emit('room:join', { roomId: room.id });
+      socket?.emit('room:join', { roomId: roomIdStr });
+
+      // Fetch fresh messages
+      await fetchDMMessages(roomIdStr);
     },
     [fetchDMMessages]
   );
@@ -102,17 +111,26 @@ export default function useDM() {
   const sendDMMessage = useCallback(
     (text) => {
       if (!currentDM || !text.trim()) return;
+      const roomIdStr = (currentDM.id || currentDM._id)?.toString();
       const socket = getSocket();
       const clientMsgId = crypto.randomUUID();
       socket?.emit(
         'message:send',
-        { roomId: currentDM.id, text: text.trim(), clientMsgId },
+        { roomId: roomIdStr, text: text.trim(), clientMsgId },
         (ack) => {
-          if (ack?.ok) {
+          if (ack?.ok && ack.message) {
             setDmMessages((prev) => {
-              if (prev.some((m) => m.id === ack.message.id)) return prev;
+              if (prev.some((m) => m.id === ack.message.id || m._id === ack.message.id)) return prev;
               return [...prev, ack.message];
             });
+            // Update lastMessage in conversations
+            setConversations((prev) =>
+              prev.map((c) =>
+                (c.id?.toString() === roomIdStr || c._id?.toString() === roomIdStr)
+                  ? { ...c, lastMessage: { text: ack.message.text, createdAt: ack.message.createdAt } }
+                  : c
+              )
+            );
           }
         }
       );
@@ -123,7 +141,8 @@ export default function useDM() {
   // Accept a DM request
   const acceptDM = useCallback(
     async (roomId) => {
-      const res = await fetch(`${API}/dm/${roomId}/accept`, {
+      const roomIdStr = roomId.toString();
+      const res = await fetch(`${API}/dm/${roomIdStr}/accept`, {
         method: 'POST',
         headers: { ...authHeader() },
       });
@@ -131,7 +150,7 @@ export default function useDM() {
       if (!res.ok) throw new Error(data.error || 'Failed to accept DM');
       setCurrentDM(data.room);
       setConversations((prev) =>
-        prev.map((c) => (c.id === roomId ? { ...c, dmStatus: 'accepted' } : c))
+        prev.map((c) => (c.id?.toString() === roomIdStr ? { ...c, dmStatus: 'accepted' } : c))
       );
       setPendingCount((n) => Math.max(0, n - 1));
     },
@@ -141,7 +160,8 @@ export default function useDM() {
   // Remove a DM conversation
   const removeDM = useCallback(
     async (roomId) => {
-      const res = await fetch(`${API}/dm/${roomId}`, {
+      const roomIdStr = roomId.toString();
+      const res = await fetch(`${API}/dm/${roomIdStr}`, {
         method: 'DELETE',
         headers: { ...authHeader() },
       });
@@ -149,8 +169,9 @@ export default function useDM() {
         const data = await res.json();
         throw new Error(data.error || 'Failed to remove DM');
       }
-      setConversations((prev) => prev.filter((c) => c.id !== roomId));
-      if (currentDM?.id === roomId) {
+      setConversations((prev) => prev.filter((c) => c.id?.toString() !== roomIdStr));
+      const activeDmId = (currentDM?.id || currentDM?._id)?.toString();
+      if (activeDmId === roomIdStr) {
         setCurrentDM(null);
         setDmMessages([]);
       }
@@ -166,44 +187,51 @@ export default function useDM() {
     socketRef.current = socket;
 
     function onMessageNew({ roomId, message }) {
-      if (!currentDM || roomId !== currentDM.id) {
-        // Update conversation list preview even if not open
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.id === roomId
-              ? { ...c, lastMessage: { text: message.text, createdAt: message.createdAt } }
-              : c
-          )
-        );
-        return;
+      const activeDmId = (currentDM?.id || currentDM?._id)?.toString();
+      const targetRoomId = roomId?.toString();
+
+      // Update conversation list preview
+      setConversations((prev) =>
+        prev.map((c) =>
+          (c.id?.toString() === targetRoomId || c._id?.toString() === targetRoomId)
+            ? { ...c, lastMessage: { text: message.text, createdAt: message.createdAt } }
+            : c
+        )
+      );
+
+      // If viewing this DM, append message dynamically
+      if (activeDmId && targetRoomId === activeDmId) {
+        setDmMessages((prev) => {
+          if (prev.some((m) => m.id === message.id || m._id === message.id)) return prev;
+          return [...prev, message];
+        });
       }
-      setDmMessages((prev) => {
-        if (prev.some((m) => m.id === message.id)) return prev;
-        return [...prev, message];
-      });
     }
 
     function onDMNewRequest({ roomId, fromUserId, fromUsername }) {
-      if (fromUserId === user?.id) return; // ignore self
+      if (fromUserId === user?.id) return;
       fetchConversations();
     }
 
     function onDMAccepted({ roomId, acceptedBy }) {
+      const roomIdStr = roomId?.toString();
       setConversations((prev) =>
-        prev.map((c) => (c.id === roomId ? { ...c, dmStatus: 'accepted' } : c))
+        prev.map((c) => (c.id?.toString() === roomIdStr ? { ...c, dmStatus: 'accepted' } : c))
       );
-      if (currentDM?.id === roomId) {
+      const activeDmId = (currentDM?.id || currentDM?._id)?.toString();
+      if (activeDmId === roomIdStr) {
         setCurrentDM((prev) => (prev ? { ...prev, dmStatus: 'accepted' } : prev));
       }
       if (acceptedBy !== user?.id) {
-        // If the OTHER person accepted, update pending count
         setPendingCount((n) => Math.max(0, n - 1));
       }
     }
 
     function onDMRemoved({ roomId }) {
-      setConversations((prev) => prev.filter((c) => c.id !== roomId));
-      if (currentDM?.id === roomId) {
+      const roomIdStr = roomId?.toString();
+      setConversations((prev) => prev.filter((c) => c.id?.toString() !== roomIdStr));
+      const activeDmId = (currentDM?.id || currentDM?._id)?.toString();
+      if (activeDmId === roomIdStr) {
         setCurrentDM(null);
         setDmMessages([]);
       }

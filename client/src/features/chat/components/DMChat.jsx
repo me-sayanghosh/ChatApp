@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { formatDateSeparator } from '../../../shared/utils/dateUtils.js';
+import { getMediaUrl } from '../../../shared/utils/index.js';
 
 export default function DMChat({ room, messages, userId, onAccept, onRemove, onSend, loading, onStartCall }) {
   const [text, setText] = useState('');
@@ -180,15 +181,16 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
                     {m.text && <span className="dm-msg-text">{m.text}</span>}
                     {m.attachments && m.attachments.length > 0 && (
                       <div className="msg-attachments">
-                        {m.attachments.map((att, idx) => (
-                          att.fileType === 'image' ? (
-                            <img key={idx} src={att.url} alt={att.filename} className="dm-att-img" />
+                        {m.attachments.map((att, idx) => {
+                          const fullUrl = getMediaUrl(att.url);
+                          return att.fileType === 'image' ? (
+                            <img key={idx} src={fullUrl} alt={att.filename || 'attachment'} className="dm-att-img" />
                           ) : (
-                            <a key={idx} href={att.url} download={att.filename} target="_blank" rel="noopener noreferrer" className="dm-att-doc">
+                            <a key={idx} href={fullUrl} download={att.filename} target="_blank" rel="noopener noreferrer" className="dm-att-doc">
                               📄 {att.filename}
                             </a>
-                          )
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </>

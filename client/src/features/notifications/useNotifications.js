@@ -91,11 +91,56 @@ export function useNotifications(user) {
     }
   }
 
+  const removeNotificationsForRoom = useCallback(async (roomId) => {
+    if (!roomId || !user) return;
+    try {
+      setNotifications((prev) => {
+        const remaining = prev.filter((n) => n.roomId !== roomId);
+        const removedUnread = prev.filter((n) => n.roomId === roomId && !n.read).length;
+        setUnreadCount((count) => Math.max(0, count - removedUnread));
+        return remaining;
+      });
+      await api.delete(`/notifications/room/${roomId}`);
+    } catch (err) {
+      console.warn('Failed to remove room notifications:', err);
+    }
+  }, [user]);
+
+  const deleteNotification = useCallback(async (id) => {
+    if (!id || !user) return;
+    try {
+      setNotifications((prev) => {
+        const target = prev.find((n) => n.id === id);
+        if (target && !target.read) {
+          setUnreadCount((count) => Math.max(0, count - 1));
+        }
+        return prev.filter((n) => n.id !== id);
+      });
+      await api.delete(`/notifications/${id}`);
+    } catch (err) {
+      console.warn('Failed to delete notification:', err);
+    }
+  }, [user]);
+
+  const clearAllNotifications = useCallback(async () => {
+    if (!user) return;
+    try {
+      setNotifications([]);
+      setUnreadCount(0);
+      await api.delete('/notifications/clear-all');
+    } catch (err) {
+      console.warn('Failed to clear all notifications:', err);
+    }
+  }, [user]);
+
   return {
     notifications,
     unreadCount,
     markRead,
     markAllRead,
+    removeNotificationsForRoom,
+    deleteNotification,
+    clearAllNotifications,
     refetchNotifications: fetchNotifications,
   };
 }

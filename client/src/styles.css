@@ -2685,6 +2685,25 @@ kbd {
   text-decoration: underline;
 }
 
+.notif-clear-all-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  color: #EF4444;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.notif-clear-all-btn:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
 .notif-close-btn {
   background: #F1F5F9;
   border: none;
