@@ -8,9 +8,11 @@
 :root {
   --app-bg: #E4E9F2;
   --panel-bg: #FFFFFF;
-  --primary: #0052FF;
-  --primary-hover: #0045D8;
-  --primary-light: #EBF2FF;
+  --primary: #29410f;
+  --primary-hover: #1e3009;
+  --primary-light: #edf3e4;
+  --primary-mid: #4a7c2f;
+  --primary-text: #29410f;
   --secondary: #8B5CF6;
   --navy: #1E293B;
   --text-main: #0F172A;
@@ -21,7 +23,7 @@
   --success: #10B981;
   --error: #EF4444;
   --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 14px 40px rgba(0, 82, 255, 0.12);
+  --shadow-hover: 0 14px 40px rgba(41, 65, 15, 0.15);
 }
 
 /* 2. Base Reset */
@@ -59,14 +61,14 @@ body {
    ------------------------------------------------------------ */
 .nav-rail {
   width: 72px;
-  background: linear-gradient(180deg, #1D61FF 0%, #0052FF 100%);
+  background: linear-gradient(180deg, #3b5c17 0%, #29410f 100%);
   border-radius: 24px;
   padding: 1.25rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 82, 255, 0.25);
+  box-shadow: 0 10px 30px rgba(41, 65, 15, 0.35);
   flex-shrink: 0;
 }
 .rail-top, .rail-middle, .rail-bottom {
