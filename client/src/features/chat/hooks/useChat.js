@@ -21,10 +21,11 @@ import {
   getRoomKey,
   clearRoomKey,
 } from '../../../shared/utils/crypto.js';
+import { cacheManager } from '../../../shared/utils/cacheManager.js';
 
 export default function useChat() {
   const { user, logout } = useAuth();
-  const [rooms, setRooms] = useState([]);
+  const [rooms, setRooms] = useState(() => cacheManager.getRoomsCache() || []);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [online, setOnline] = useState([]);
