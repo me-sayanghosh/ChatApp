@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { formatDateSeparator } from '../../../shared/utils/dateUtils.js';
 
 /**
  * Parse message text and highlight @username mentions.
@@ -208,12 +209,20 @@ export default function MessageList({
   }
 
   const topLevel = messages.filter((m) => !m.parentMessage);
+  let lastDateLabel = null;
 
   return (
     <div className="messages">
       {toast && <div className="msg-toast">{toast}</div>}
       {topLevel.length === 0 && <div className="empty">No messages yet. Say hi!</div>}
       {topLevel.map((m) => {
+        const dateLabel = formatDateSeparator(m.createdAt);
+        let showDateSep = false;
+        if (dateLabel !== lastDateLabel) {
+          lastDateLabel = dateLabel;
+          showDateSep = true;
+        }
+
         const mine = m.senderId === meId || m.sender?.id === meId;
         const who = getSenderName(m);
         const senderRole = getMemberRole(m.senderId);
@@ -255,11 +264,16 @@ export default function MessageList({
         }
 
         return (
-          <div
-            key={m.id}
-            className={`msg ${mine ? 'me' : ''} ${m.deleted ? 'deleted' : ''}`}
-            onContextMenu={!m.deleted ? (e) => openContextMenu(e, m) : undefined}
-          >
+          <div key={m.id} style={{ display: 'contents' }}>
+            {showDateSep && (
+              <div className="date-separator">
+                <span>{dateLabel}</span>
+              </div>
+            )}
+            <div
+              className={`msg ${mine ? 'me' : ''} ${m.deleted ? 'deleted' : ''}`}
+              onContextMenu={!m.deleted ? (e) => openContextMenu(e, m) : undefined}
+            >
             {m.replyTo && (
               <div className="reply-quote">
                 <span className="reply-quote-name">
@@ -493,6 +507,7 @@ export default function MessageList({
               </div>
             )}
           </div>
+        </div>
         );
       })}
 

@@ -76,7 +76,7 @@ export default function NotificationDrawer({
         <div className="notif-header">
           <div className="notif-title-row">
             <h3>Notifications</h3>
-            {unreadCount > 0 && <span className="notif-count-badge">{unreadCount} new</span>}
+            {unreadCount > 0 && <span className="notif-count-badge">{unreadCount > 5 ? '5+' : unreadCount} new</span>}
           </div>
           <div className="notif-header-actions">
             {unreadCount > 0 && (

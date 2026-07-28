@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { formatDateSeparator } from '../../../shared/utils/dateUtils.js';
 
 export default function DMChat({ room, messages, userId, onAccept, onRemove, onSend, loading, onStartCall }) {
   const [text, setText] = useState('');
@@ -153,10 +154,24 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
               : 'Start the conversation.'}
           </div>
         )}
-        {messages.map((m) => {
-          const mine = m.senderId === userId;
-          return (
-            <div key={m.id} className={`dm-msg ${mine ? 'mine' : 'theirs'}`}>
+        {(() => {
+          let lastDateLabel = null;
+          return messages.map((m) => {
+            const dateLabel = formatDateSeparator(m.createdAt);
+            let showDateSep = false;
+            if (dateLabel !== lastDateLabel) {
+              lastDateLabel = dateLabel;
+              showDateSep = true;
+            }
+            const mine = m.senderId === userId;
+            return (
+              <div key={m.id} style={{ display: 'contents' }}>
+                {showDateSep && (
+                  <div className="date-separator">
+                    <span>{dateLabel}</span>
+                  </div>
+                )}
+                <div className={`dm-msg ${mine ? 'mine' : 'theirs'}`}>
               <div className="dm-msg-bubble">
                 {m.deleted ? (
                   <span className="dm-msg-deleted">This message was deleted.</span>
@@ -181,8 +196,10 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
               </div>
               <span className="dm-msg-time">{formatTime(m.createdAt)}</span>
             </div>
-          );
-        })}
+          </div>
+            );
+          });
+        })()}
       </div>
 
       {/* Composer — only if accepted */}

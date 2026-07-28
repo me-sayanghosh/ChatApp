@@ -715,10 +715,22 @@ export default function useChat() {
     return m;
   });
 
+  const markRoomAsRead = useCallback((roomId) => {
+    setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }));
+    setMentionAlerts((prev) => prev.filter((a) => a.roomId !== roomId));
+  }, []);
+
+  const clearRoomMessages = useCallback((roomId) => {
+    if (currentRoomRef.current === roomId) {
+      setMessages([]);
+    }
+  }, []);
+
   return {
     user,
     logout,
     rooms,
+    setRooms,
     currentRoom,
     messages,
     displayMessages,
@@ -768,5 +780,7 @@ export default function useChat() {
     unpinMessage,
     forwardMessage,
     loadOlderMessages,
+    markRoomAsRead,
+    clearRoomMessages,
   };
 }
