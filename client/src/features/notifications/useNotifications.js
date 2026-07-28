@@ -3,9 +3,18 @@ import { api } from '../../shared/utils/api.js';
 import { getSocket } from '../../shared/utils/socket.js';
 import { playNotificationSound, showDesktopNotification } from '../../shared/utils/webNotifications.js';
 
+import { useToast } from '../../shared/context/ToastContext.jsx';
+
 export function useNotifications(user) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  let showToast;
+  try {
+    const toastContext = useToast();
+    showToast = toastContext?.showToast;
+  } catch (e) {
+    // Fallback if rendered outside ToastProvider
+  }
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -33,6 +42,11 @@ export function useNotifications(user) {
 
       // Sound chime
       playNotificationSound();
+
+      // In-app Toast
+      if (showToast) {
+        showToast(notif.title || notif.message || 'New notification', notif.type === 'mention' ? 'mention' : 'info');
+      }
 
       // Native desktop push
       showDesktopNotification(notif.title, {
