@@ -43,9 +43,14 @@ export function useNotifications(user) {
       // Sound chime
       playNotificationSound();
 
-      // In-app Toast
+      // In-app Rich Toast
       if (showToast) {
-        showToast(notif.title || notif.message || 'New notification', notif.type === 'mention' ? 'mention' : 'info');
+        showToast({
+          title: notif.title,
+          snippet: notif.message,
+          category: notif.type === 'dm' ? 'dm' : notif.type === 'channel' ? 'channel' : notif.type === 'mention' ? 'mention' : 'info',
+          type: notif.type,
+        });
       }
 
       // Native desktop push

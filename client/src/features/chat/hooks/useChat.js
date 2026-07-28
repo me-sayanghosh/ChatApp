@@ -7,6 +7,8 @@ import {
   getLastSeenMessages,
   onReconnect,
   api,
+  playNotificationSound,
+  showDesktopNotification,
 } from '../../../shared/utils/index.js';
 import {
   getPublicKeyJwk,
@@ -213,6 +215,17 @@ export default function useChat() {
     });
 
     socket.on('message:new', ({ roomId, message }) => {
+      const senderId = message.senderId || message.sender?.id;
+      const isMine = senderId === userRef.current?.id;
+
+      if (!isMine) {
+        playNotificationSound();
+        showDesktopNotification(
+          message.sender?.username ? `@${message.sender.username}` : 'New message',
+          { body: message.text || 'Sent an attachment' }
+        );
+      }
+
       if (roomId === currentRoomRef.current) {
         if (message.parentMessage) {
           setThreadCounts((prev) => ({

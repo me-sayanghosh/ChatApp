@@ -110,7 +110,48 @@ export function registerMessageHandlers(socket, io, { joined }) {
       };
       io.to(roomId).emit('message:new', { roomId, message: payload });
 
-      // Notify each mentioned user via their personal socket room and persist notification
+      // Notify each member of the room via their personal socket room
+      const memberIds = (room.members || [])
+        .map((m) => (m.user ? m.user.toString() : ''))
+        .filter((id) => id && id !== socket.user.id);
+      const mentionIdStrings = new Set(mentionIds.map((id) => id.toString()));
+
+      for (const memberId of memberIds) {
+        // Emit real-time message event to member's personal socket channel
+        io.to(`user:${memberId}`).emit('message:new', { roomId, message: payload });
+
+        if (mentionIdStrings.has(memberId)) {
+          // Mention notification is created below
+          continue;
+        }
+
+        // Persist notification for non-mentioned members
+        if (room.isDM) {
+          createNotification({
+            userId: memberId,
+            actorId: socket.user.id,
+            type: 'dm',
+            title: `New DM from @${socket.user.username}`,
+            message: trimmedText ? trimmedText.substring(0, 100) : 'Sent an attachment',
+            link: '/chat',
+            roomId,
+            messageId: msg._id,
+          }).catch((e) => console.error('[dm notification] error:', e.message));
+        } else {
+          createNotification({
+            userId: memberId,
+            actorId: socket.user.id,
+            type: 'channel',
+            title: `#${room.name}: @${socket.user.username}`,
+            message: trimmedText ? trimmedText.substring(0, 100) : 'Sent an attachment',
+            link: '/chat',
+            roomId,
+            messageId: msg._id,
+          }).catch((e) => console.error('[channel notification] error:', e.message));
+        }
+      }
+
+      // Notify each mentioned user via their personal socket room and persist mention notification
       for (const mentionedId of mentionIds) {
         io.to(`user:${mentionedId.toString()}`).emit('message:mention', {
           roomId,

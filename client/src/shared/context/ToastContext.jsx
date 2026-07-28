@@ -5,9 +5,20 @@ const ToastContext = createContext(null);
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = useCallback((message, type = 'info', duration = 4000) => {
+  const showToast = useCallback((payload, type = 'info', duration = 4500) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+    const toastObj =
+      typeof payload === 'object' && payload !== null
+        ? {
+            id,
+            title: payload.title || 'Notification',
+            snippet: payload.snippet || payload.message || '',
+            category: payload.category || payload.type || type,
+            type: payload.type || type,
+          }
+        : { id, message: payload, type };
+
+    setToasts((prev) => [...prev, toastObj]);
 
     if (duration > 0) {
       setTimeout(() => {

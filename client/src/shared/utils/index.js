@@ -21,3 +21,8 @@ export {
   MESSAGE_LIMITS,
   ROTATING_WORDS,
 } from './constants.js';
+export {
+  playNotificationSound,
+  requestNotificationPermission,
+  showDesktopNotification,
+} from './webNotifications.js';

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './shared/context/AuthContext.jsx';
 import Home from './features/home/pages/Home.jsx';
@@ -11,6 +12,7 @@ import SettingsPage from './features/profile/pages/SettingsPage.jsx';
 import { ErrorBoundary } from './shared/components/ErrorBoundary.jsx';
 
 import ToastContainer from './shared/components/ui/ToastContainer.jsx';
+import { requestNotificationPermission } from './shared/utils/webNotifications.js';
 
 function Protected({ children }) {
   const { user } = useAuth();
@@ -20,6 +22,10 @@ function Protected({ children }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    requestNotificationPermission().catch(() => {});
+  }, []);
+
   return (
     <ErrorBoundary>
       <ToastContainer />

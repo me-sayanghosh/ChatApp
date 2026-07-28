@@ -22,6 +22,21 @@ export default function NotificationDrawer({
 
   const filtered = filter === 'unread' ? notifications.filter((n) => !n.read) : notifications;
 
+  function getTypeBadge(type) {
+    switch (type) {
+      case 'dm':
+        return <span className="notif-type-pill dm">💬 Direct Message</span>;
+      case 'channel':
+        return <span className="notif-type-pill channel">🌐 Channel</span>;
+      case 'mention':
+        return <span className="notif-type-pill mention">🏷️ Mention</span>;
+      case 'reaction':
+        return <span className="notif-type-pill reaction">❤️ Reaction</span>;
+      default:
+        return <span className="notif-type-pill system">⚙️ Notification</span>;
+    }
+  }
+
   function getIcon(type) {
     switch (type) {
       case 'mention':
@@ -149,10 +164,11 @@ export default function NotificationDrawer({
                 </div>
 
                 <div className="notif-item-body">
-                  <div className="notif-item-title-row">
-                    <span className="notif-item-title">{n.title}</span>
+                  <div className="notif-type-row">
+                    {getTypeBadge(n.type)}
                     <span className="notif-item-time">{formatTime(n.createdAt)}</span>
                   </div>
+                  <div className="notif-item-title">{n.title}</div>
                   {n.message && <p className="notif-item-msg">{n.message}</p>}
                 </div>
 
