@@ -10,8 +10,15 @@ export default function PinnedMessagesModal({ isOpen, onClose, pinnedMessages = 
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-card pinned-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>📌 Pinned Messages ({pinnedDocs.length})</h3>
-          <button className="modal-close" onClick={onClose}>&times;</button>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <line x1="12" y1="17" x2="12" y2="22"/>
+              <path d="M5 17h14l-1.5-6H6.5L5 17z"/>
+              <path d="M9 11V5a3 3 0 0 1 6 0v6"/>
+            </svg>
+            Pinned Messages ({pinnedDocs.length})
+          </h3>
+          <button className="modal-close" onClick={onClose} title="Close">&times;</button>
         </div>
 
         <div className="pinned-list">
