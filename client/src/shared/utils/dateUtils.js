@@ -39,3 +39,30 @@ export function formatDateSeparator(dateInput) {
     year: 'numeric',
   });
 }
+
+/**
+ * Format conversation card timestamp:
+ * - HH:mm (e.g. "22:52") if today
+ * - "Yesterday" if yesterday
+ * - Month Day for older (e.g. "Jul 26")
+ */
+export function formatCardTime(dateInput) {
+  if (!dateInput) return '';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '';
+
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+
+  if (isToday) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+  if (isYesterday) {
+    return 'Yesterday';
+  }
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}

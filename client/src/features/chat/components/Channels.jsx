@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { formatBadgeCount } from '../../../shared/utils/dateUtils.js';
+import { formatBadgeCount, formatCardTime } from '../../../shared/utils/dateUtils.js';
 
 const ROOM_TYPES = [
   {
@@ -191,6 +191,7 @@ export default function Channels({
     const isPrivateNotMember = room.type === 'private' && !isMember;
     const isActive = current?.id === room.id;
     const unread = unreadCounts?.[room.id] || 0;
+    const hasUnread = unread > 0 && !isActive;
     const hasMention = mentionAlerts?.some((a) => a.roomId === room.id);
     const isMenuOpen = activeMenuRoomId === room.id;
     const isPinned = pinnedRoomIds.includes(room.id);
@@ -199,21 +200,30 @@ export default function Channels({
     const isArchived = archivedRoomIds.includes(room.id);
     const showAddToList = showAddToListRoomId === room.id;
 
+    // Snippet & Time formatting (WhatsApp style)
+    const lastMsg = room.lastMessage;
+    const previewText = lastMsg?.text
+      ? `${lastMsg.senderUsername ? `${lastMsg.senderUsername}: ` : ''}${lastMsg.text}`
+      : room.topic || (room.type === 'private' ? 'Encrypted channel' : 'General discussion');
+    const timeStr = formatCardTime(lastMsg?.createdAt);
+
     return (
       <div
         key={room.id}
-        className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''} ${unread > 0 && !isActive ? 'has-unread' : ''}`}
+        className={`conv-card ${isActive ? 'active' : ''} ${isPrivateNotMember ? 'private-locked' : ''} ${hasUnread ? 'has-unread' : ''}`}
         onClick={() => onSelect?.(room)}
       >
+        {/* Circular Avatar */}
         <div className="conv-card-left">
-          <div className="conv-icon-box" style={{ color: typeObj.color }}>
+          <div className="conv-avatar" style={{ color: typeObj.color }}>
             {typeObj.icon}
           </div>
         </div>
 
         <div className="conv-card-body">
+          {/* Header Row: Title & Timestamp */}
           <div className="conv-card-header">
-            <span className={`conv-title ${unread > 0 && !isActive ? 'conv-title-unread' : ''}`}>
+            <span className={`conv-title ${hasUnread ? 'conv-title-unread' : ''}`}>
               {hasMention && !isActive && <span className="conv-mention-dot">@</span>}
               {room.name}
               {(isPinned || isFav || isMuted) && (
@@ -225,55 +235,60 @@ export default function Channels({
               )}
             </span>
 
-            {/* 3-Dot Menu Button Trigger */}
-            <button
-              className={`conv-menu-trigger ${isMenuOpen ? 'active' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveMenuRoomId(isMenuOpen ? null : room.id);
-                setShowAddToListRoomId(null);
-              }}
-              title="Channel Options"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="5" r="2.2" />
-                <circle cx="12" cy="12" r="2.2" />
-                <circle cx="12" cy="19" r="2.2" />
-              </svg>
-            </button>
+            {timeStr && (
+              <span className={`conv-time ${hasUnread ? 'conv-time-unread' : ''}`}>
+                {timeStr}
+              </span>
+            )}
           </div>
 
+          {/* Footer Row: Last message preview & Unread badge */}
           <div className="conv-card-footer">
-            <span className="conv-snippet">
-              {room.topic || (room.type === 'private' ? 'Encrypted channel' : 'General discussion')}
+            <span className="conv-snippet" title={previewText}>
+              {previewText.length > 38 ? previewText.substring(0, 38) + '…' : previewText}
             </span>
-            {isPrivateNotMember ? (
-              isPending ? (
-                <span className="conv-badge pending">Pending</span>
-              ) : (
-                <button
-                  type="button"
-                  className="conv-join-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRequestJoin?.(room);
-                  }}
-                >
-                  Join
-                </button>
-              )
-            ) : unread > 0 && !isActive ? (
-              <span className="conv-badge count unread-badge">{formatBadgeCount(unread)}</span>
-            ) : null}
+
+            <div className="conv-card-actions">
+              {isPrivateNotMember ? (
+                isPending ? (
+                  <span className="conv-badge pending">Pending</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="conv-join-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRequestJoin?.(room);
+                    }}
+                  >
+                    Join
+                  </button>
+                )
+              ) : hasUnread ? (
+                <span className="conv-badge count unread-badge">{formatBadgeCount(unread)}</span>
+              ) : null}
+
+              {/* 3-Dot Options Trigger Button */}
+              <button
+                className={`conv-menu-trigger ${isMenuOpen ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMenuRoomId(isMenuOpen ? null : room.id);
+                  setShowAddToListRoomId(null);
+                }}
+                title="Channel Options"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ============================================================
-           8-OPTION CONTEXTUAL MENU DROPDOWN
-           ============================================================ */}
+        {/* 8-Option Contextual Dropdown */}
         {isMenuOpen && (
           <div className="channel-ctx-menu" ref={menuRef} onClick={(e) => e.stopPropagation()}>
-            {/* 1. Archive chat */}
             <button className="channel-ctx-item" onClick={(e) => toggleArchive(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -283,7 +298,6 @@ export default function Channels({
               </span>
             </button>
 
-            {/* 2. Mute notifications */}
             <button className="channel-ctx-item" onClick={(e) => toggleMute(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -294,7 +308,6 @@ export default function Channels({
               <span className="channel-ctx-arrow">▶</span>
             </button>
 
-            {/* 3. Pin chat */}
             <button className="channel-ctx-item" onClick={(e) => togglePin(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -304,7 +317,6 @@ export default function Channels({
               </span>
             </button>
 
-            {/* 4. Mark as read */}
             <button className="channel-ctx-item" onClick={(e) => handleMarkAsRead(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -315,7 +327,6 @@ export default function Channels({
               </span>
             </button>
 
-            {/* 5. Add to favourites */}
             <button className="channel-ctx-item" onClick={(e) => toggleFavourite(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
@@ -325,7 +336,6 @@ export default function Channels({
               </span>
             </button>
 
-            {/* 6. Add to list (with category sub-menu) */}
             <div style={{ position: 'relative' }}>
               <button
                 className="channel-ctx-item"
@@ -361,7 +371,6 @@ export default function Channels({
 
             <div className="channel-ctx-divider" />
 
-            {/* 7. Clear chat */}
             <button className="channel-ctx-item danger" onClick={(e) => handleClearChat(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -371,7 +380,6 @@ export default function Channels({
               </span>
             </button>
 
-            {/* 8. Exit group */}
             <button className="channel-ctx-item danger" onClick={(e) => handleExitGroup(room.id, e)}>
               <span className="channel-ctx-item-left">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

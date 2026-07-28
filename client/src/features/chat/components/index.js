@@ -21,4 +21,6 @@ export { default as ChannelSettingsModal } from './ChannelSettingsModal.jsx';
 export { default as CallOverlay } from './CallOverlay.jsx';
 export { default as QuickSwitcherModal } from './QuickSwitcherModal.jsx';
 export { default as KeyboardShortcutsModal } from './KeyboardShortcutsModal.jsx';
+export { default as CallLogsPanel } from '../../calls/components/CallLogsPanel.jsx';
+export { default as CallLogsMainView } from '../../calls/components/CallLogsMainView.jsx';
 

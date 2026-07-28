@@ -7,10 +7,12 @@ import {
   PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
   DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal,
   PinnedMessagesModal, ChannelSettingsModal, CallOverlay, QuickSwitcherModal, KeyboardShortcutsModal,
+  CallLogsPanel, CallLogsMainView,
 } from '../components/index.js';
 import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
 import { useWebRTC } from '../hooks/useWebRTC.js';
+import { useCalls } from '../../calls/hooks/useCalls.js';
 import { useTheme } from '../../../shared/hooks/useTheme.js';
 import { useToast } from '../../../shared/context/ToastContext.jsx';
 import { formatBadgeCount } from '../../../shared/utils/dateUtils.js';
@@ -39,6 +41,9 @@ export default function Chat() {
     callState, callerInfo, localStream, remoteStream, isMuted, isVideoOff, isScreenSharing,
     startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, toggleScreenShare,
   } = useWebRTC(user);
+
+  const { callLogs, loading: callLogsLoading, addCallLog, clearCallHistory } = useCalls(user);
+  const [selectedCallLog, setSelectedCallLog] = useState(null);
 
   const { theme, toggleTheme } = useTheme();
 
@@ -118,12 +123,12 @@ export default function Chat() {
 
         <div className="rail-middle">
           <button
-            className={`rail-btn ${navRailTab === 'analytics' ? 'active' : ''}`}
-            onClick={() => setNavRailTab('analytics')}
-            title="Analytics"
+            className={`rail-btn ${navRailTab === 'calls' ? 'active' : ''}`}
+            onClick={() => setNavRailTab('calls')}
+            title="Calls & Call Logs"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
           </button>
 
@@ -179,9 +184,20 @@ export default function Chat() {
         </div>
       </nav>
 
-      {/* 2. Sidebar — Channels or DM panel */}
+      {/* 2. Sidebar — Channels, DM panel, or Calls panel */}
       <aside className="sidebar">
-        {navRailTab === 'dm' ? (
+        {navRailTab === 'calls' ? (
+          <CallLogsPanel
+            logs={callLogs}
+            loading={callLogsLoading}
+            onSelectLog={(log) => setSelectedCallLog(log)}
+            onStartCall={(toUserId, roomId, isVideo) => {
+              addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
+              startCall(toUserId, roomId, isVideo);
+            }}
+            onClearHistory={clearCallHistory}
+          />
+        ) : navRailTab === 'dm' ? (
           <DMPanel
             conversations={conversations}
             currentDM={currentDM}
@@ -209,7 +225,18 @@ export default function Chat() {
 
       {/* 3. Main Chat Area */}
       <main className="main">
-        {navRailTab === 'dm' ? (
+        {navRailTab === 'calls' ? (
+          /* Call Logs Main View */
+          <CallLogsMainView
+            logs={callLogs}
+            selectedLog={selectedCallLog}
+            onStartCall={(toUserId, roomId, isVideo) => {
+              addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
+              startCall(toUserId, roomId, isVideo);
+            }}
+            onClearHistory={clearCallHistory}
+          />
+        ) : navRailTab === 'dm' ? (
           /* DM Main View */
           <DMChat
             room={currentDM}
@@ -219,7 +246,10 @@ export default function Chat() {
             onAccept={acceptDM}
             onRemove={removeDM}
             onSend={sendDMMessage}
-            onStartCall={(toUserId, roomId, isVideo) => startCall(toUserId, roomId, isVideo)}
+            onStartCall={(toUserId, roomId, isVideo) => {
+              addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
+              startCall(toUserId, roomId, isVideo);
+            }}
           />
         ) : (
           /* Group Chat View */

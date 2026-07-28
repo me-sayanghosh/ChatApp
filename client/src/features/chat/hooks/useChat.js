@@ -226,6 +226,22 @@ export default function useChat() {
         );
       }
 
+      // Update lastMessage preview for room card
+      setRooms((prev) =>
+        prev.map((r) =>
+          r.id === roomId
+            ? {
+                ...r,
+                lastMessage: {
+                  text: message.text || (message.attachments?.length ? 'Sent an attachment' : ''),
+                  senderUsername: message.sender?.username || 'User',
+                  createdAt: message.createdAt || new Date(),
+                },
+              }
+            : r
+        )
+      );
+
       if (roomId === currentRoomRef.current) {
         if (message.parentMessage) {
           setThreadCounts((prev) => ({

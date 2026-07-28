@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../../../shared/utils/api.js';
+import { formatBadgeCount, formatCardTime } from '../../../shared/utils/dateUtils.js';
 
 export default function DMPanel({ conversations, currentDM, onOpen, onSendRequest, userId }) {
   const [search, setSearch] = useState('');
@@ -40,17 +41,6 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
     return c.partner?.username?.toLowerCase().includes(q) || c.partner?.name?.toLowerCase().includes(q);
   });
 
-  function formatTime(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now - d;
-    if (diff < 60000) return 'just now';
-    if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
-    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  }
-
   const pending = filteredConversations.filter(
     (c) => c.dmStatus === 'pending' && c.dmInitiator !== userId
   );
@@ -64,12 +54,15 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
     const isRecipient = convo.dmInitiator !== userId;
     const avatar = convo.partner?.profileImage;
     const initial = (convo.partner?.username || '?')[0].toUpperCase();
-    const preview = convo.lastMessage?.text || '...';
+    const preview = convo.lastMessage?.text || 'No messages yet';
+    const timeStr = formatCardTime(convo.lastMessage?.createdAt);
+    const unreadCount = convo.unreadCount || (isPending && isRecipient ? 1 : 0);
+    const hasUnread = unreadCount > 0 && !isActive;
 
     return (
       <div
         key={convo.id}
-        className={`dm-item ${isActive ? 'active' : ''} ${isPending && isRecipient ? 'dm-item--pending' : ''}`}
+        className={`dm-item ${isActive ? 'active' : ''} ${hasUnread ? 'has-unread' : ''}`}
         onClick={() => onOpen(convo)}
         role="button"
         tabIndex={0}
@@ -82,19 +75,33 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
           )}
           {isPending && isRecipient && <span className="dm-avatar-badge" />}
         </div>
+
         <div className="dm-item-body">
           <div className="dm-item-header">
-            <span className="dm-item-name">{convo.partner?.username || 'Unknown'}</span>
-            <span className="dm-item-time">{formatTime(convo.lastMessage?.createdAt)}</span>
+            <span className={`dm-item-name ${hasUnread ? 'dm-name-unread' : ''}`}>
+              {convo.partner?.username || 'Unknown'}
+            </span>
+            {timeStr && (
+              <span className={`dm-item-time ${hasUnread ? 'dm-time-unread' : ''}`}>
+                {timeStr}
+              </span>
+            )}
           </div>
-          <div className="dm-item-preview">
-            {isPending && isRecipient ? (
-              <span className="dm-pending-label">📨 DM Request</span>
-            ) : isPending && !isRecipient ? (
-              <span className="dm-waiting-label">⏳ Waiting for acceptance...</span>
-            ) : (
-              <span className="dm-preview-text">
-                {preview.length > 48 ? preview.substring(0, 48) + '…' : preview}
+
+          <div className="dm-item-footer">
+            <span className="dm-preview-text" title={preview}>
+              {isPending && isRecipient
+                ? '📨 DM Request'
+                : isPending && !isRecipient
+                ? '⏳ Waiting for acceptance...'
+                : preview.length > 42
+                ? preview.substring(0, 42) + '…'
+                : preview}
+            </span>
+
+            {hasUnread && (
+              <span className="conv-badge count unread-badge">
+                {formatBadgeCount(unreadCount) || '1'}
               </span>
             )}
           </div>

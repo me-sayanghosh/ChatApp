@@ -3,6 +3,8 @@ import { Room } from './room.model.js';
 import { requireAuth } from '../../shared/middleware/auth.js';
 import { DEFAULT_ROOMS, ROOM_TYPES } from '../../shared/utils/constants.js';
 
+import { Message } from '../messages/message.model.js';
+
 const router = Router();
 
 router.use(requireAuth);
@@ -37,11 +39,29 @@ router.get('/', async (req, res) => {
       memberCounts[r._id.toString()] = r.members.length;
     }
 
+    const enrichedRooms = await Promise.all(
+      rooms.map(async (r) => {
+        const lastMsg = await Message.findOne({ room: r._id, deleted: { $ne: true } })
+          .sort({ createdAt: -1 })
+          .populate('sender', 'username')
+          .lean();
+
+        return {
+          ...r.toSummary(),
+          membersCount: memberCounts[r._id.toString()] || 0,
+          lastMessage: lastMsg
+            ? {
+                text: lastMsg.text || (lastMsg.attachments?.length ? 'Sent an attachment' : ''),
+                senderUsername: lastMsg.sender?.username || 'User',
+                createdAt: lastMsg.createdAt,
+              }
+            : null,
+        };
+      })
+    );
+
     res.json({
-      rooms: rooms.map((r) => ({
-        ...r.toSummary(),
-        membersCount: memberCounts[r._id.toString()] || 0,
-      })),
+      rooms: enrichedRooms,
       memberships: [...membershipIds],
       pending: [...pendingIds],
     });

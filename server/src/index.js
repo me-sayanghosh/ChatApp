@@ -27,6 +27,7 @@ import dmRoutes from './features/dm/dm.routes.js';
 import path from 'path';
 import notificationRoutes from './features/notifications/notifications.routes.js';
 import uploadRoutes from './features/upload/upload.routes.js';
+import callRoutes from './features/calls/calls.routes.js';
 import { attachSocket } from './shared/socket/index.js';
 import { reconcilePresence } from './features/presence/presence.service.js';
 
@@ -46,6 +47,7 @@ app.use('/api/rooms', aiRoutes);
 app.use('/api/dm', dmRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/calls', callRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/chatapp';
