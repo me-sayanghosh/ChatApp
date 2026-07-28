@@ -88,6 +88,7 @@ export default function useChat() {
       .then((r) => {
         const fetchedRooms = r.data.rooms || [];
         setRooms(fetchedRooms);
+        cacheManager.setRoomsCache(fetchedRooms);
         setMemberRooms(new Set(r.data.memberships || []));
         setPendingRooms(new Set(r.data.pending || []));
         if (fetchedRooms.length > 0 && !currentRoomRef.current) {
@@ -489,7 +490,15 @@ export default function useChat() {
     const socket = socketRef.current;
     if (currentRoom && socket) socket.emit('room:leave', { roomId: currentRoom.id });
     setCurrentRoom(room);
-    setMessages([]);
+
+    // Instant Stale-While-Revalidate message rendering
+    const cachedMsgs = cacheManager.getRoomMessages(room.id);
+    if (cachedMsgs && cachedMsgs.length > 0) {
+      setMessages(cachedMsgs);
+    } else {
+      setMessages([]);
+    }
+
     setOnline([]);
     setMembers([]);
     setTypingUsers([]);
@@ -507,6 +516,9 @@ export default function useChat() {
 
     const res = await api.get(`/rooms/${room.id}/messages`);
     let msgs = res.data.messages || [];
+
+    // Persist to cache
+    cacheManager.setRoomMessages(room.id, msgs);
 
     if (room.type === 'private') {
       await setupPrivateRoom(room);

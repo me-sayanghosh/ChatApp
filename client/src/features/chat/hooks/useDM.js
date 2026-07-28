@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../../shared/context/AuthContext.jsx';
 import { getSocket } from '../../../shared/utils/index.js';
+import { cacheManager } from '../../../shared/utils/cacheManager.js';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 
@@ -11,7 +12,7 @@ function authHeader() {
 
 export default function useDM() {
   const { user } = useAuth();
-  const [conversations, setConversations] = useState([]);
+  const [conversations, setConversations] = useState(() => cacheManager.getConversationsCache() || []);
   const [currentDM, setCurrentDM] = useState(null); // the room object
   const [dmMessages, setDmMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,15 @@ export default function useDM() {
       const data = await res.json();
       const convos = data.conversations || [];
       setConversations(convos);
+      cacheManager.setConversationsCache(convos);
+
+      // Preload partner profiles & avatars into cache
+      convos.forEach((c) => {
+        if (c.partner?.id) {
+          cacheManager.setUserProfile(c.partner.id, c.partner);
+        }
+      });
+
       setPendingCount(
         convos.filter(
           (c) => c.dmStatus === 'pending' && c.dmInitiator !== user?.id
@@ -45,17 +55,23 @@ export default function useDM() {
       });
       if (!res.ok) return;
       const data = await res.json();
-      setDmMessages(data.messages || []);
+      const msgs = data.messages || [];
+      setDmMessages(msgs);
+      cacheManager.setRoomMessages(roomId, msgs);
     } catch (_) {
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Open a DM conversation
+  // Open a DM conversation (Stale-While-Revalidate pattern)
   const openDM = useCallback(
     async (room) => {
       setCurrentDM(room);
+      const cached = cacheManager.getRoomMessages(room.id);
+      if (cached && cached.length > 0) {
+        setDmMessages(cached);
+      }
       await fetchDMMessages(room.id);
       // Join the socket room so we receive messages
       const socket = getSocket();

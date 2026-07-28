@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Message } from './message.model.js';
 import { Room } from '../rooms/room.model.js';
 import { requireAuth } from '../../shared/middleware/auth.js';
+import { cacheService } from '../../shared/cache/cache.service.js';
 
 const router = Router();
 
@@ -12,6 +13,14 @@ router.get('/:roomId/messages', async (req, res) => {
   try {
     const { roomId } = req.params;
     const { after, before, limit } = req.query;
+
+    const cacheKey = `msgs:${roomId}:${req.user.id}`;
+    if (!after && !before && (!limit || parseInt(limit, 10) === 50)) {
+      const cached = cacheService.get(cacheKey);
+      if (cached) {
+        return res.json({ messages: cached });
+      }
+    }
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).json({ error: 'room not found' });
 
@@ -61,11 +70,17 @@ router.get('/:roomId/messages', async (req, res) => {
       }
     }
 
+    const clientMsgs = filtered.map((m) => ({
+      ...m.toClient(),
+      replyToData: replyToMap[m._id.toString()] || null,
+    }));
+
+    if (!after && !before && (!limit || parseInt(limit, 10) === 50)) {
+      cacheService.set(cacheKey, clientMsgs, 60);
+    }
+
     res.json({
-      messages: filtered.map((m) => ({
-        ...m.toClient(),
-        replyToData: replyToMap[m._id.toString()] || null,
-      })),
+      messages: clientMsgs,
       hasMore: filtered.length === cap,
     });
   } catch (err) {
