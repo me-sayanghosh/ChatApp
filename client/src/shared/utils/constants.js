@@ -20,3 +20,13 @@ export const MESSAGE_LIMITS = {
 };
 
 export const ROTATING_WORDS = ['boundaries.', 'limits.', 'borders.', 'delays.'];
+
+export function getMediaUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return url;
+  }
+  const cleanServer = SERVER_URL.replace(/\/$/, '');
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+  return `${cleanServer}${cleanPath}`;
+}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { api } from '../../../shared/utils/api.js';
+import { api, getMediaUrl } from '../../../shared/utils/index.js';
 
 export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, onClearReply, membersMap, slowMode = 0 }) {
   const [text, setText] = useState('');
@@ -9,6 +9,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState('');
   const [coolDown, setCoolDown] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -59,8 +60,8 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
     }, 0);
   }
 
-  async function handleFileSelect(e) {
-    const files = Array.from(e.target.files || []);
+  async function uploadFilesList(filesList) {
+    const files = Array.from(filesList || []);
     if (files.length === 0) return;
 
     setUploading(true);
@@ -77,7 +78,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
           setAttachments((prev) => [...prev, res.data.attachment]);
         }
       } else {
-        files.forEach((f) => formData.append('files', f));
+        files.slice(0, 5).forEach((f) => formData.append('files', f));
         const res = await api.post('/upload/multiple', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -91,6 +92,32 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  }
+
+  function handleFileSelect(e) {
+    uploadFilesList(e.target.files);
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  }
+
+  function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDragging(false);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      uploadFilesList(e.dataTransfer.files);
     }
   }
 
@@ -159,7 +186,26 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
   const canSubmit = (text.trim().length > 0 || attachments.length > 0) && !uploading;
 
   return (
-    <div className="composer-wrapper">
+    <div
+      className={`composer-wrapper ${isDragging ? 'drag-over' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag & Drop Visual Overlay */}
+      {isDragging && (
+        <div className="composer-drag-overlay">
+          <div className="composer-drag-box">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span>Drop image or files here to attach</span>
+          </div>
+        </div>
+      )}
+
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -206,7 +252,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
           {attachments.map((att, i) => (
             <div key={i} className="attachment-preview-chip">
               {att.fileType === 'image' ? (
-                <img src={att.url} alt={att.filename} className="att-thumb" />
+                <img src={getMediaUrl(att.url)} alt={att.filename} className="att-thumb" />
               ) : (
                 <div className="att-file-icon">
                   {att.fileType === 'video' ? '🎬' : att.fileType === 'audio' ? '🎵' : '📄'}
@@ -271,7 +317,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
           </span>
           <input
             ref={inputRef}
-            placeholder="Send a message... (@ to mention)"
+            placeholder="Send a message... (@ to mention or drop files here)"
             value={text}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -323,7 +369,7 @@ export default function MessageInput({ onSend, onTyping, onTextChange, replyTo, 
             </button>
           </div>
           <div className="at-hint">
-            <span>@ mention</span>
+            <span>Drag & Drop files supported</span>
           </div>
         </div>
       </form>

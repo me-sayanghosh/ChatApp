@@ -20,6 +20,7 @@ export {
   TYPING_TIMEOUT_MS,
   MESSAGE_LIMITS,
   ROTATING_WORDS,
+  getMediaUrl,
 } from './constants.js';
 export {
   playNotificationSound,

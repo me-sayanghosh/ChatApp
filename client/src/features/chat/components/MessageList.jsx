@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { formatDateSeparator } from '../../../shared/utils/dateUtils.js';
+import { getMediaUrl } from '../../../shared/utils/index.js';
 
 /**
  * Parse message text and highlight @username mentions.
@@ -35,7 +36,7 @@ function renderMentions(text, myUsername, membersMap) {
 /**
  * Render message media attachments (images, video, audio, documents).
  */
-function renderAttachments(attachments, setLightboxUrl) {
+function renderAttachments(attachments, setLightboxData) {
   if (!attachments || attachments.length === 0) return null;
 
   function formatSize(bytes) {
@@ -46,40 +47,75 @@ function renderAttachments(attachments, setLightboxUrl) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
+  function getDocExtension(filename) {
+    if (!filename) return 'FILE';
+    const ext = filename.split('.').pop().toUpperCase();
+    return ext.length <= 4 ? ext : 'FILE';
+  }
+
   return (
     <div className="msg-attachments">
       {attachments.map((att, i) => {
+        const fullUrl = getMediaUrl(att.url);
+        const fileName = att.filename || 'attachment';
+
         if (att.fileType === 'image') {
           return (
-            <div key={i} className="msg-att-image" onClick={() => setLightboxUrl(att.url)}>
-              <img src={att.url} alt={att.filename} loading="lazy" />
+            <div
+              key={i}
+              className="msg-att-image-card"
+              onClick={() => setLightboxData({ url: fullUrl, filename: fileName })}
+            >
+              <img src={fullUrl} alt={fileName} loading="lazy" />
+              <div className="img-hover-overlay">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </div>
             </div>
           );
         }
         if (att.fileType === 'video') {
           return (
-            <div key={i} className="msg-att-video">
-              <video controls src={att.url} preload="metadata" />
+            <div key={i} className="msg-att-video-card">
+              <video controls src={fullUrl} preload="metadata" />
             </div>
           );
         }
         if (att.fileType === 'audio') {
           return (
-            <div key={i} className="msg-att-audio">
-              <audio controls src={att.url} />
+            <div key={i} className="msg-att-audio-card">
+              <div className="audio-card-icon">🎵</div>
+              <div className="audio-card-body">
+                <audio controls src={fullUrl} />
+                <span className="audio-filename">{fileName}</span>
+              </div>
             </div>
           );
         }
+
+        // Document / File Card
+        const extTag = getDocExtension(fileName);
         return (
-          <a key={i} href={att.url} download={att.filename} target="_blank" rel="noopener noreferrer" className="msg-att-doc">
-            <div className="doc-icon">📄</div>
+          <a
+            key={i}
+            href={fullUrl}
+            download={fileName}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="msg-att-doc-card"
+          >
+            <div className={`doc-badge ext-${extTag.toLowerCase()}`}>{extTag}</div>
             <div className="doc-info">
-              <span className="doc-name">{att.filename}</span>
+              <span className="doc-name" title={fileName}>{fileName}</span>
               <span className="doc-size">{formatSize(att.size)}</span>
             </div>
-            <div className="doc-download-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+            <div className="doc-download-icon" title="Download File">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
             </div>
           </a>
@@ -97,7 +133,7 @@ export default function MessageList({
   const lastReadRef = useRef(null);
   const [contextMenuFor, setContextMenuFor] = useState(null);
   const [toast, setToast] = useState(null);
-  const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [lightboxData, setLightboxData] = useState(null); // { url, filename }
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const ctxMenuRef = useRef(null);
@@ -340,7 +376,7 @@ export default function MessageList({
                     {m.edited && <span className="edited-tag">(edited)</span>}
                   </div>
                 )}
-                {renderAttachments(m.attachments, setLightboxUrl)}
+                {renderAttachments(m.attachments, setLightboxData)}
               </>
             )}
 
@@ -432,12 +468,34 @@ export default function MessageList({
                 </button>
               </div>
             )}
+            {/* Thread Reply Badge */}
+            {replyCount > 0 && (
+              <button
+                className="msg-thread-badge"
+                onClick={() => onOpenThread?.(m)}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+              </button>
+            )}
 
+            {/* Context Menu Popup */}
             {contextMenuFor === m.id && (
-              <div className="msg-context-menu" ref={ctxMenuRef} style={menuPosition}>
-                <div className="ctx-emoji-strip">
-                  {['👍', '❤️', '😂', '😮', '😢', '🙏'].map((emoji) => (
-                    <button key={emoji} className="ctx-emoji-btn" onClick={() => handleQuickReact(emoji)}>
+              <div
+                className="msg-context-menu"
+                ref={ctxMenuRef}
+                style={menuPosition}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="ctx-quick-reactions">
+                  {['👍', '❤️', '🔥', '😂', '🎉', '🚀'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      className="ctx-react-btn"
+                      onClick={() => handleQuickReact(emoji)}
+                    >
                       {emoji}
                     </button>
                   ))}
@@ -445,27 +503,28 @@ export default function MessageList({
                 <div className="ctx-divider" />
                 <button className="ctx-menu-item" onClick={handleReply}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M6 5L3 8l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M3 8h7c2.2 0 3 1.5 3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M6 3L2 7l4 4M2 7h9a3 3 0 013 3v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Reply
                 </button>
-                <button className="ctx-menu-item" onClick={() => { onOpenForward?.(m); setContextMenuFor(null); }}>
+                <button
+                  className="ctx-menu-item"
+                  onClick={() => {
+                    onOpenThread?.(m);
+                    setContextMenuFor(null);
+                  }}
+                >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M13 8H6c-2.2 0-3 1.5-3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 10a2 2 0 01-2 2H4l-2 2V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.3"/>
                   </svg>
-                  Forward
+                  Reply in Thread
                 </button>
-                {pinnedMessages.includes(m.id) ? (
-                  <button className="ctx-menu-item" onClick={() => { onUnpin?.(m.id); setContextMenuFor(null); }}>
-                    📌 Unpin message
-                  </button>
-                ) : (
-                  <button className="ctx-menu-item" onClick={() => { onPin?.(m.id); setContextMenuFor(null); }}>
-                    📌 Pin message
-                  </button>
-                )}
+                <button className="ctx-menu-item" onClick={handleForward}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 3l4 4-4 4M14 7H5a3 3 0 00-3 3v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Forward Message
+                </button>
                 {mine && !m.deleted && (
                   <button
                     className="ctx-menu-item"
@@ -511,15 +570,36 @@ export default function MessageList({
         );
       })}
 
-      {/* Lightbox Image Preview Modal */}
-      {lightboxUrl && (
-        <div className="lightbox-backdrop" onClick={() => setLightboxUrl(null)}>
-          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-            <button className="lightbox-close-btn" onClick={() => setLightboxUrl(null)} title="Close">&times;</button>
-            <img src={lightboxUrl} alt="Full view" className="lightbox-img" />
-            <a href={lightboxUrl} download target="_blank" rel="noopener noreferrer" className="lightbox-download-btn">
-              Download Full Image
-            </a>
+      {/* Lightbox Fullscreen Image Preview Modal */}
+      {lightboxData && (
+        <div className="lightbox-backdrop" onClick={() => setLightboxData(null)}>
+          <div className="lightbox-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="lightbox-modal-header">
+              <span className="lightbox-modal-title">{lightboxData.filename}</span>
+              <div className="lightbox-modal-actions">
+                <a
+                  href={lightboxData.url}
+                  download={lightboxData.filename}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="lightbox-download-link"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download
+                </a>
+                <button className="lightbox-modal-close" onClick={() => setLightboxData(null)} title="Close (Esc)">
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            <div className="lightbox-modal-body">
+              <img src={lightboxData.url} alt={lightboxData.filename} className="lightbox-img" />
+            </div>
           </div>
         </div>
       )}
