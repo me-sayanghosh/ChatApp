@@ -132,14 +132,13 @@ export default function MessageList({
 }) {
   const lastReadRef = useRef(null);
   const [contextMenuFor, setContextMenuFor] = useState(null);
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [toast, setToast] = useState(null);
   const [lightboxData, setLightboxData] = useState(null); // { url, filename }
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const ctxMenuRef = useRef(null);
   const toastTimerRef = useRef(null);
-
-  const menuPosition = { position: 'fixed' };
 
   function showToast(text) {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -238,10 +237,9 @@ export default function MessageList({
     e.preventDefault();
     e.stopPropagation();
     const x = Math.min(e.clientX, window.innerWidth - 220);
-    const y = Math.min(e.clientY, window.innerHeight - 320);
+    const y = Math.min(e.clientY, window.innerHeight - 340);
+    setMenuPos({ x, y });
     setContextMenuFor(msg.id);
-    menuPosition.left = x + 'px';
-    menuPosition.top = y + 'px';
   }
 
   const topLevel = messages.filter((m) => !m.parentMessage);
@@ -486,7 +484,7 @@ export default function MessageList({
               <div
                 className="msg-context-menu"
                 ref={ctxMenuRef}
-                style={menuPosition}
+                style={{ left: menuPos.x + 'px', top: menuPos.y + 'px' }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="ctx-quick-reactions">
@@ -502,8 +500,8 @@ export default function MessageList({
                 </div>
                 <div className="ctx-divider" />
                 <button className="ctx-menu-item" onClick={handleReply}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M6 3L2 7l4 4M2 7h9a3 3 0 013 3v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 3L2 7l4 4M2 7h9a3 3 0 013 3v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Reply
                 </button>
@@ -514,14 +512,14 @@ export default function MessageList({
                     setContextMenuFor(null);
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M14 10a2 2 0 01-2 2H4l-2 2V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.3"/>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                    <path d="M14 10a2 2 0 01-2 2H4l-2 2V4a2 2 0 012-2h8a2 2 0 012 2v6z" stroke="currentColor" strokeWidth="1.4"/>
                   </svg>
                   Reply in Thread
                 </button>
                 <button className="ctx-menu-item" onClick={handleForward}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M10 3l4 4-4 4M14 7H5a3 3 0 00-3 3v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 3l4 4-4 4M14 7H5a3 3 0 00-3 3v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Forward Message
                 </button>
@@ -534,31 +532,35 @@ export default function MessageList({
                       setContextMenuFor(null);
                     }}
                   >
-                    ✏️ Edit message
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit message
                   </button>
                 )}
                 <button className="ctx-menu-item" onClick={handleCopy}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <rect x="5" y="5" width="8" height="9" rx="1" stroke="currentColor" strokeWidth="1.3"/>
-                    <path d="M3 11V3a1 1 0 011-1h6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                    <rect x="5" y="5" width="8" height="9" rx="1" stroke="currentColor" strokeWidth="1.4"/>
+                    <path d="M3 11V3a1 1 0 011-1h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                   </svg>
                   Copy
                 </button>
                 {(mine || isMod) && <div className="ctx-divider" />}
                 {mine && (
                   <button className="ctx-menu-item ctx-danger" onClick={handleDeleteForMe}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v8.5a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v8.5a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
                     Delete for me
                   </button>
                 )}
                 {(mine || isMod) && (
                   <button className="ctx-menu-item ctx-danger" onClick={handleDeleteForEveryone}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v8.5a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                      <path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v8.5a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 7v4M9 7v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
                     Delete for everyone
                   </button>
