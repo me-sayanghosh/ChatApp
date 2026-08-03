@@ -13,7 +13,12 @@ export function registerPresenceHandlers(socket, io, { joined }) {
       await setTyping(roomId, socket.user.id, 3000);
       socket.to(roomId).emit('user:typing', {
         roomId,
-        user: { id: socket.user.id, username: socket.user.username },
+        user: {
+          id: socket.user.id,
+          username: socket.user.username,
+          name: socket.user.name || socket.user.username,
+          profileImage: socket.user.profileImage || '',
+        },
       });
     } catch (err) {
       console.error('[socket] user:typing error:', err.message);

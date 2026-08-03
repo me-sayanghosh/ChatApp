@@ -49,6 +49,8 @@ export function attachSocket(httpServer) {
       socket.user = {
         id: user._id.toString(),
         username: user.username,
+        name: user.name || user.username,
+        profileImage: user.profileImage || '',
         publicKeyJwk: socket.handshake.auth?.publicKeyJwk || null,
       };
       next();

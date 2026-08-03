@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { formatCardTime } from '../../../shared/utils/dateUtils.js';
+import StartCallModal from './StartCallModal.jsx';
 
 export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, onClearHistory }) {
+  const [showModal, setShowModal] = useState(false);
+
   const totalCalls = logs.length;
   const missedCount = logs.filter((l) => l.status === 'missed' || l.status === 'rejected').length;
   const voiceCount = logs.filter((l) => l.type === 'voice').length;
@@ -27,17 +31,31 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
 
   return (
     <div className="call-main-container">
+      <StartCallModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onStartCall={onStartCall}
+      />
+
       {/* Top Overview Banner */}
       <div className="call-main-header">
         <div className="call-main-header-info">
           <h1>Calls & Activity</h1>
           <p>View your recent voice and video call logs, missed calls, and start new calls.</p>
         </div>
-        {logs.length > 0 && (
-          <button className="call-main-clear-btn" onClick={onClearHistory}>
-            Clear History
+        <div className="call-main-header-actions">
+          <button className="call-start-new-btn" onClick={() => setShowModal(true)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+            Start a Call
           </button>
-        )}
+          {logs.length > 0 && (
+            <button className="call-main-clear-btn" onClick={onClearHistory}>
+              Clear History
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -66,13 +84,28 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
 
         {logs.length === 0 ? (
           <div className="call-main-empty">
-            <div className="call-empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <div className="call-empty-icon-wrap">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
               </svg>
             </div>
             <h2>No Call History Yet</h2>
-            <p>Calls initiated or received with your contacts will be logged here.</p>
+            <p>Connect instantly with your friends and team members using crystal-clear audio and HD video calls.</p>
+            <div className="call-empty-actions">
+              <button className="call-cta-btn primary" onClick={() => setShowModal(true)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                Start Voice Call
+              </button>
+              <button className="call-cta-btn secondary" onClick={() => setShowModal(true)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <polygon points="23 7 16 12 23 17 23 7" />
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                </svg>
+                Start Video Call
+              </button>
+            </div>
           </div>
         ) : (
           <div className="call-table-wrapper">
