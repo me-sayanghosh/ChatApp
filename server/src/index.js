@@ -33,7 +33,8 @@ import { reconcilePresence } from './features/presence/presence.service.js';
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
