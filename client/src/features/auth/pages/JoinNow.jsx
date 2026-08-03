@@ -15,7 +15,6 @@ export default function JoinNow() {
   const [step, setStep] = useState('email'); // 'email' | 'otp'
   const [err, setErr] = useState('');
   const [info, setInfo] = useState('');
-  const [devOtp, setDevOtp] = useState('');
   const [busy, setBusy] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
@@ -82,9 +81,6 @@ export default function JoinNow() {
       setStep('otp');
       setResendCooldown(30);
       setInfo(`Verification code sent to ${email}`);
-      if (data.devOtp) {
-        setDevOtp(data.devOtp);
-      }
       setTimeout(() => inputRefs[0].current?.focus(), 150);
     } catch (e) {
       setErr(e.message);
@@ -308,29 +304,6 @@ export default function JoinNow() {
           >
             <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
             <span>{info}</span>
-          </motion.div>
-        )}
-
-        {/* Dev OTP Helper Banner */}
-        {devOtp && step === 'otp' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={{
-              padding: '12px 16px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2))',
-              border: '1px dashed rgba(245, 158, 11, 0.5)',
-              color: '#FDE68A',
-              fontSize: '0.88rem',
-              marginBottom: '1.25rem',
-              textAlign: 'center',
-            }}
-          >
-            <strong>Dev Test OTP Code:</strong>{' '}
-            <span style={{ fontSize: '1.2rem', fontFamily: 'monospace', fontWeight: 800, letterSpacing: '3px', marginLeft: '6px' }}>
-              {devOtp}
-            </span>
           </motion.div>
         )}
 

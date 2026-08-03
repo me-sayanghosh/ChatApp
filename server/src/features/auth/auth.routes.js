@@ -83,7 +83,6 @@ router.post('/send-otp', async (req, res) => {
     return res.json({
       ok: true,
       message: `Verification code sent to ${cleanEmail}`,
-      devOtp: otp,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
