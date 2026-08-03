@@ -8,13 +8,9 @@ import { useToast } from '../../shared/context/ToastContext.jsx';
 export function useNotifications(user) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  let showToast;
-  try {
-    const toastContext = useToast();
-    showToast = toastContext?.showToast;
-  } catch (e) {
-    // Fallback if rendered outside ToastProvider
-  }
+  // Call hook unconditionally at top-level (React rules of hooks)
+  const toastContext = useToast();
+  const showToast = toastContext?.showToast;
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;

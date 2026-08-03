@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import useChat from '../hooks/useChat.js';
 import useDM from '../hooks/useDM.js';
 import {
-  Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel, AIPanel,
-  PendingRequests, ScrollToBottom, SuggestionsBar, MessageList, MessageInput,
+  Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel,
+  PendingRequests, ScrollToBottom, MessageList, MessageInput,
   DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal,
   PinnedMessagesModal, ChannelSettingsModal, CallOverlay, QuickSwitcherModal, KeyboardShortcutsModal,
   CallLogsPanel, CallLogsMainView,
@@ -67,7 +67,6 @@ export default function Chat() {
   const [showQuickSwitcher, setShowQuickSwitcher] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [forwardMsg, setForwardMsg] = useState(null);
-  const [activeModel, setActiveModel] = useState('GPT-6');
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
 
@@ -167,14 +166,6 @@ export default function Chat() {
 
   return (
     <div className="chat-app-shell">
-      {/* Create Channel Modal */}
-      {showCreateModal && (
-        <CreateChannelModal
-          onClose={() => setShowCreateModal(false)}
-          onCreate={createRoom}
-        />
-      )}
-
       {/* Toast */}
       {dmRequestToast && (
         <div className="dm-toast">{dmRequestToast}</div>
@@ -298,6 +289,7 @@ export default function Chat() {
             onOpen={openDM}
             onSendRequest={(toUserId) => handleDMUser(toUserId)}
             userId={user?.id}
+            loading={dmLoading}
           />
         ) : (
           <Channels

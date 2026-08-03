@@ -50,10 +50,11 @@ router.put('/:id/read', async (req, res) => {
   }
 });
 
-// DELETE /api/notifications/:id - Delete single notification
-router.delete('/:id', async (req, res) => {
+// DELETE /api/notifications/clear-all - Clear all notifications for user
+// NOTE: This MUST be declared before /:id or Express will match 'clear-all' as an id param
+router.delete('/clear-all', async (req, res) => {
   try {
-    await Notification.deleteOne({ _id: req.params.id, user: req.user.id });
+    await Notification.deleteMany({ user: req.user.id });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -61,6 +62,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // DELETE /api/notifications/room/:roomId - Auto-remove notifications for seen room messages
+// NOTE: This MUST be declared before /:id or Express will match 'room' as an id param
 router.delete('/room/:roomId', async (req, res) => {
   try {
     await Notification.deleteMany({ user: req.user.id, roomId: req.params.roomId });
@@ -70,10 +72,10 @@ router.delete('/room/:roomId', async (req, res) => {
   }
 });
 
-// DELETE /api/notifications/clear-all - Clear all notifications for user
-router.delete('/clear-all', async (req, res) => {
+// DELETE /api/notifications/:id - Delete single notification
+router.delete('/:id', async (req, res) => {
   try {
-    await Notification.deleteMany({ user: req.user.id });
+    await Notification.deleteOne({ _id: req.params.id, user: req.user.id });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

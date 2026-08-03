@@ -279,7 +279,7 @@ export default function MessageList({
         }
 
         function handleForward() {
-          showToast('Coming soon');
+          onOpenForward?.(m);
           setContextMenuFor(null);
         }
 
