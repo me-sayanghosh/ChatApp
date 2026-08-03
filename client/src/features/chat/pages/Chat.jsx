@@ -158,6 +158,11 @@ export default function Chat() {
     }
   }
 
+  const handleStartCall = (toUserId, roomId, isVideo = false) => {
+    addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
+    startCall(toUserId, roomId, isVideo);
+  };
+
   return (
     <div className="chat-app-shell">
       {/* Create Channel Modal */}
@@ -257,10 +262,7 @@ export default function Chat() {
             logs={callLogs}
             loading={callLogsLoading}
             onSelectLog={(log) => setSelectedCallLog(log)}
-            onStartCall={(toUserId, roomId, isVideo) => {
-              addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
-              startCall(toUserId, roomId, isVideo);
-            }}
+            onStartCall={handleStartCall}
             onClearHistory={clearCallHistory}
           />
         ) : navRailTab === 'dm' ? (
@@ -296,10 +298,7 @@ export default function Chat() {
           <CallLogsMainView
             logs={callLogs}
             selectedLog={selectedCallLog}
-            onStartCall={(toUserId, roomId, isVideo) => {
-              addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
-              startCall(toUserId, roomId, isVideo);
-            }}
+            onStartCall={handleStartCall}
             onClearHistory={clearCallHistory}
           />
         ) : navRailTab === 'dm' ? (
@@ -312,10 +311,7 @@ export default function Chat() {
             onAccept={acceptDM}
             onRemove={removeDM}
             onSend={sendDMMessage}
-            onStartCall={(toUserId, roomId, isVideo) => {
-              addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
-              startCall(toUserId, roomId, isVideo);
-            }}
+            onStartCall={handleStartCall}
           />
         ) : (
           /* Group Chat View */
@@ -368,7 +364,7 @@ export default function Chat() {
                   <div className="header-right">
                     <button
                       className="header-icon-btn"
-                      onClick={() => startCall(null, currentRoom.id, false)}
+                      onClick={() => handleStartCall(null, currentRoom.id, false)}
                       title="Voice Call Channel"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -377,7 +373,7 @@ export default function Chat() {
                     </button>
                     <button
                       className="header-icon-btn"
-                      onClick={() => startCall(null, currentRoom.id, true)}
+                      onClick={() => handleStartCall(null, currentRoom.id, true)}
                       title="Video Call Channel"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

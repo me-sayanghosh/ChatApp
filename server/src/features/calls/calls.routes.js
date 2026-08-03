@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { CallLog } from './callLog.model.js';
 import { User } from '../auth/user.model.js';
 import { requireAuth } from '../../shared/middleware/auth.js';
@@ -19,6 +20,7 @@ router.get('/history', async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('caller', 'username name profileImage')
       .populate('receiver', 'username name profileImage')
+      .populate('room', 'name')
       .limit(100);
 
     const clientLogs = logs.map((l) => l.toClient(userId));
@@ -38,18 +40,33 @@ router.post('/log', async (req, res) => {
     const { receiverId, roomId, type = 'voice', status = 'completed', durationSeconds = 0 } = req.body;
     const callerId = req.user.id;
 
+    let validReceiver = null;
+    if (receiverId && receiverId !== 'null' && receiverId !== 'undefined') {
+      if (mongoose.Types.ObjectId.isValid(receiverId)) {
+        validReceiver = receiverId;
+      }
+    }
+
+    let validRoom = null;
+    if (roomId && roomId !== 'null' && roomId !== 'undefined') {
+      if (mongoose.Types.ObjectId.isValid(roomId)) {
+        validRoom = roomId;
+      }
+    }
+
     const log = await CallLog.create({
       caller: callerId,
-      receiver: receiverId || null,
-      room: roomId || null,
-      type,
-      status,
+      receiver: validReceiver,
+      room: validRoom,
+      type: type === 'video' ? 'video' : 'voice',
+      status: status || 'completed',
       durationSeconds: parseInt(durationSeconds, 10) || 0,
     });
 
     const populated = await CallLog.findById(log._id)
       .populate('caller', 'username name profileImage')
-      .populate('receiver', 'username name profileImage');
+      .populate('receiver', 'username name profileImage')
+      .populate('room', 'name');
 
     res.status(201).json({ log: populated.toClient(callerId) });
   } catch (err) {
