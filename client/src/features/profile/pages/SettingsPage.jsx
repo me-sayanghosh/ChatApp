@@ -468,13 +468,6 @@ export default function SettingsPage() {
                         <h2>{name || user?.username || 'User Name'}</h2>
                         <span className="profile-handle">@{username || 'username'}</span>
                       </div>
-                      <div className="profile-badges-row">
-                        <span className="badge-pill active">
-                          <span className="dot online" /> Active Now
-                        </span>
-                        <span className="badge-pill verified">Verified Account ✓</span>
-                        <span className="badge-pill e2ee">E2EE Protected 🔒</span>
-                      </div>
                     </div>
 
                     <div className="profile-hero-actions">

@@ -16,6 +16,7 @@ import { useCalls } from '../../calls/hooks/useCalls.js';
 import { useTheme } from '../../../shared/hooks/useTheme.js';
 import { NotificationsPanel } from '../../notifications/components/NotificationsPanel.jsx';
 import { NotificationsMainView } from '../../notifications/components/NotificationsMainView.jsx';
+import { formatBadgeCount } from '../../../shared/utils/dateUtils.js';
 
 export default function Chat() {
   const [notifFilter, setNotifFilter] = useState('all');
@@ -435,19 +436,6 @@ export default function Chat() {
                         </svg>
                       </button>
                     )}
-                    <button
-                      className={`header-icon-btn notif-bell-btn ${unreadCount > 0 ? 'has-unread' : ''}`}
-                      onClick={() => setShowNotifDrawer(true)}
-                      title="Notifications"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                      </svg>
-                      {unreadCount > 0 && (
-                        <span className="notif-badge">{formatBadgeCount(unreadCount)}</span>
-                      )}
-                    </button>
                     <button
                       className="header-icon-btn"
                       onClick={() => setShowPinnedModal(true)}
