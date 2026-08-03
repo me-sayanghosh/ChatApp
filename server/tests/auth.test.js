@@ -58,9 +58,14 @@ describe('Refresh token reuse detection', () => {
         r.end();
       });
 
-    const reg = await req('/api/auth/register', { username: 'reuser', email: 'reuse@test.com', password: 'pass123' });
-    expect(reg.status).toBe(201);
-    const originalRefresh = reg.body.refreshToken;
+    // Send OTP & Verify OTP to obtain initial tokens
+    const sendRes = await req('/api/auth/send-otp', { email: 'reuse@test.com' });
+    expect(sendRes.status).toBe(200);
+    const otp = sendRes.body.devOtp;
+
+    const verifyRes = await req('/api/auth/verify-otp', { email: 'reuse@test.com', otp });
+    expect(verifyRes.status).toBe(200);
+    const originalRefresh = verifyRes.body.refreshToken;
 
     const rotate = await req('/api/auth/refresh', { refreshToken: originalRefresh });
     expect(rotate.status).toBe(200);
@@ -71,7 +76,7 @@ describe('Refresh token reuse detection', () => {
     expect(reuse.status).toBe(401);
     expect(reuse.body.error).toMatch(/reuse detected/);
 
-    const user = await User.findById(reg.body.user.id);
+    const user = await User.findById(verifyRes.body.user.id);
     expect(user.refreshTokens.length).toBe(0);
   });
 
@@ -93,10 +98,13 @@ describe('Refresh token reuse detection', () => {
         r.end();
       });
 
-    const reg = await req('/api/auth/register', { username: 'rotator', email: 'rotate@test.com', password: 'pass123' });
-    expect(reg.status).toBe(201);
+    const sendRes = await req('/api/auth/send-otp', { email: 'rotate@test.com' });
+    expect(sendRes.status).toBe(200);
 
-    const rotate = await req('/api/auth/refresh', { refreshToken: reg.body.refreshToken });
+    const verifyRes = await req('/api/auth/verify-otp', { email: 'rotate@test.com', otp: sendRes.body.devOtp });
+    expect(verifyRes.status).toBe(200);
+
+    const rotate = await req('/api/auth/refresh', { refreshToken: verifyRes.body.refreshToken });
     expect(rotate.status).toBe(200);
 
     const useNew = await req('/api/auth/refresh', { refreshToken: rotate.body.refreshToken });
@@ -147,15 +155,16 @@ describe('Refresh token reuse detection', () => {
         r.end();
       });
 
-    const reg = await req('/api/auth/register', { username: 'logoutter', email: 'logout@test.com', password: 'pass123' });
-    expect(reg.status).toBe(201);
+    const sendRes = await req('/api/auth/send-otp', { email: 'logout@test.com' });
+    const verifyRes = await req('/api/auth/verify-otp', { email: 'logout@test.com', otp: sendRes.body.devOtp });
+    expect(verifyRes.status).toBe(200);
 
     const refreshA = uuidv4();
     const refreshB = uuidv4();
     const family = uuidv4();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await User.findByIdAndUpdate(reg.body.user.id, {
+    await User.findByIdAndUpdate(verifyRes.body.user.id, {
       $push: {
         refreshTokens: [
           { token: refreshA, family, createdAt: new Date(), expiresAt },
@@ -164,7 +173,7 @@ describe('Refresh token reuse detection', () => {
       },
     });
 
-    const token = makeToken(await User.findById(reg.body.user.id));
+    const token = makeToken(await User.findById(verifyRes.body.user.id));
     const logout = await req('/api/auth/logout', { refreshToken: refreshA }, { Authorization: `Bearer ${token}` });
     expect(logout.status).toBe(200);
 

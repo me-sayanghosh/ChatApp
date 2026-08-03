@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { OAuth2Client } from 'google-auth-library';
 import { User } from './user.model.js';
+import { Otp } from './otp.model.js';
 import { requireAuth } from '../../shared/middleware/auth.js';
 import { TOKEN_EXPIRY, USERNAME_REGEX, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH } from '../../shared/utils/constants.js';
 import { parseExpiry, escapeRegex, generateAutoUsername } from '../../shared/utils/errors.js';
@@ -54,56 +55,80 @@ async function cleanExpiredTokens(userId) {
   });
 }
 
-router.post('/register', async (req, res) => {
+// Send Email OTP
+router.post('/send-otp', async (req, res) => {
   try {
-    const { username, name, email, password } = req.body || {};
-    if (!email || !password) return res.status(400).json({ error: 'email and password required' });
-    if (password.length < 6) return res.status(400).json({ error: 'password too short' });
-
-    const cleanEmail = email.trim().toLowerCase();
-    const emailExists = await User.findOne({ email: cleanEmail });
-    if (emailExists) return res.status(409).json({ error: 'email already in use' });
-
-    const cleanUsername = username?.trim();
-    let finalUsername;
-    let needsUsername = false;
-
-    if (cleanUsername) {
-      const usernameRegex = new RegExp(`^${escapeRegex(cleanUsername)}$`, 'i');
-      const usernameExists = await User.findOne({ username: usernameRegex });
-      if (usernameExists) return res.status(409).json({ error: 'username already in use' });
-      finalUsername = cleanUsername;
-    } else {
-      finalUsername = generateAutoUsername();
-      needsUsername = true;
+    const { email } = req.body || {};
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Valid email address is required' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ username: finalUsername, name: name?.trim() || '', email: cleanEmail, passwordHash, needsUsername });
+    const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ error: 'Invalid email address format' });
+    }
 
-    const accessToken = signAccessToken(user);
-    const refreshToken = signRefreshToken();
-    const family = uuidv4();
-    await storeRefreshToken(user._id, refreshToken, family);
+    // Generate 6-digit OTP code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    return res.status(201).json({ accessToken, refreshToken, user: user.toClient() });
+    // Delete any existing OTP for this email and save new OTP
+    await Otp.deleteMany({ email: cleanEmail });
+    await Otp.create({ email: cleanEmail, otpHash, expiresAt });
+
+    console.log(`\x1b[33m[OTP LOG]\x1b[0m Verification code for \x1b[36m${cleanEmail}\x1b[0m is: \x1b[1m\x1b[32m${otp}\x1b[0m`);
+
+    return res.json({
+      ok: true,
+      message: `Verification code sent to ${cleanEmail}`,
+      devOtp: otp,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post('/login', async (req, res) => {
+// Verify Email OTP and Sign In / Register
+router.post('/verify-otp', async (req, res) => {
   try {
-    const { identifier, password } = req.body || {};
-    if (!identifier || !password) return res.status(400).json({ error: 'identifier and password required' });
-    const cleanId = identifier.trim();
-    const idRegex = new RegExp(`^${escapeRegex(cleanId)}$`, 'i');
+    const { email, otp } = req.body || {};
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and verification code are required' });
+    }
 
-    const user = await User.findOne({ $or: [{ email: cleanId.toLowerCase() }, { username: idRegex }] });
-    if (!user) return res.status(401).json({ error: 'invalid credentials' });
-    if (!user.passwordHash) return res.status(401).json({ error: 'please sign in using Google Sign-In' });
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ error: 'invalid credentials' });
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = String(otp).trim();
+
+    const otpRecord = await Otp.findOne({ email: cleanEmail });
+    if (!otpRecord) {
+      return res.status(400).json({ error: 'No OTP requested or code expired. Please request a new code.' });
+    }
+
+    if (new Date() > otpRecord.expiresAt) {
+      await Otp.deleteMany({ email: cleanEmail });
+      return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+    }
+
+    const isValid = await bcrypt.compare(cleanOtp, otpRecord.otpHash);
+    if (!isValid) {
+      return res.status(400).json({ error: 'Incorrect verification code. Please check and try again.' });
+    }
+
+    // Consume OTP once verified
+    await Otp.deleteMany({ email: cleanEmail });
+
+    // Find existing user or create a new one
+    let user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      const autoUsername = generateAutoUsername();
+      user = await User.create({
+        email: cleanEmail,
+        username: autoUsername,
+        needsUsername: true,
+      });
+    }
 
     await cleanExpiredTokens(user._id);
 

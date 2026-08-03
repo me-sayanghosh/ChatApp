@@ -28,7 +28,7 @@ function hardLogout() {
   localStorage.removeItem(STORAGE_KEYS.RSA_KEYS);
   localStorage.removeItem(STORAGE_KEYS.ROOM_KEYS);
   window.dispatchEvent(new Event('app:hard-logout'));
-  window.location.href = '/login';
+  window.location.href = '/join';
 }
 
 api.interceptors.response.use(

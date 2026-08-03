@@ -200,8 +200,7 @@ export default function Home() {
         <nav className="home-nav">
           <span className="home-brand">DropTalk</span>
           <div className="home-nav-links">
-            <Link to="/login" className="home-btn-ghost">Sign in</Link>
-            <Link to="/register" className="home-btn-primary">Get Started</Link>
+            <Link to="/join" className="home-btn-primary" style={{ padding: '8px 20px', borderRadius: '9999px', fontWeight: 700 }}>Join Now</Link>
           </div>
         </nav>
 
@@ -249,10 +248,7 @@ export default function Home() {
             transition={{ duration: 0.6, ease: 'easeOut', delay: 0.3 }}
           >
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/register" className="home-btn-primary large">Start chatting free</Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/login" className="home-btn-ghost large">I have an account</Link>
+              <Link to="/join" className="home-btn-primary large" style={{ padding: '14px 36px', fontSize: '1.05rem', fontWeight: 700 }}>Join Now</Link>
             </motion.div>
           </motion.div>
         </section>
@@ -346,10 +342,7 @@ export default function Home() {
             <p className="home-cta-sub">Join for free. No credit card required.</p>
             <div className="home-cta-actions">
               <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                <Link to="/register" className="home-btn-primary large">Create your account</Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                <Link to="/login" className="home-btn-ghost large">Sign in instead</Link>
+                <Link to="/join" className="home-btn-primary large" style={{ padding: '14px 36px', fontSize: '1.05rem', fontWeight: 700 }}>Join Now</Link>
               </motion.div>
             </div>
           </motion.div>
