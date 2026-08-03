@@ -8,7 +8,9 @@ process.env.JWT_SECRET = 'test-secret-for-jest';
 
 import { setupMongo, teardownMongo } from './setup.js';
 import { User } from '../src/features/auth/user.model.js';
+import { Otp } from '../src/features/auth/otp.model.js';
 import authRoutes from '../src/features/auth/auth.routes.js';
+import bcrypt from 'bcryptjs';
 
 let app;
 let server;
@@ -33,6 +35,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await User.deleteMany({});
+  await Otp.deleteMany({});
 });
 
 function makeToken(user) {
@@ -58,10 +61,10 @@ describe('Refresh token reuse detection', () => {
         r.end();
       });
 
-    // Send OTP & Verify OTP to obtain initial tokens
-    const sendRes = await req('/api/auth/send-otp', { email: 'reuse@test.com' });
-    expect(sendRes.status).toBe(200);
-    const otp = sendRes.body.devOtp;
+    // Create test OTP record directly
+    const otp = '123456';
+    const otpHash = await bcrypt.hash(otp, 10);
+    await Otp.create({ email: 'reuse@test.com', otpHash, expiresAt: new Date(Date.now() + 600000) });
 
     const verifyRes = await req('/api/auth/verify-otp', { email: 'reuse@test.com', otp });
     expect(verifyRes.status).toBe(200);
@@ -98,10 +101,11 @@ describe('Refresh token reuse detection', () => {
         r.end();
       });
 
-    const sendRes = await req('/api/auth/send-otp', { email: 'rotate@test.com' });
-    expect(sendRes.status).toBe(200);
+    const otp = '654321';
+    const otpHash = await bcrypt.hash(otp, 10);
+    await Otp.create({ email: 'rotate@test.com', otpHash, expiresAt: new Date(Date.now() + 600000) });
 
-    const verifyRes = await req('/api/auth/verify-otp', { email: 'rotate@test.com', otp: sendRes.body.devOtp });
+    const verifyRes = await req('/api/auth/verify-otp', { email: 'rotate@test.com', otp });
     expect(verifyRes.status).toBe(200);
 
     const rotate = await req('/api/auth/refresh', { refreshToken: verifyRes.body.refreshToken });
@@ -155,8 +159,11 @@ describe('Refresh token reuse detection', () => {
         r.end();
       });
 
-    const sendRes = await req('/api/auth/send-otp', { email: 'logout@test.com' });
-    const verifyRes = await req('/api/auth/verify-otp', { email: 'logout@test.com', otp: sendRes.body.devOtp });
+    const otp = '999888';
+    const otpHash = await bcrypt.hash(otp, 10);
+    await Otp.create({ email: 'logout@test.com', otpHash, expiresAt: new Date(Date.now() + 600000) });
+
+    const verifyRes = await req('/api/auth/verify-otp', { email: 'logout@test.com', otp });
     expect(verifyRes.status).toBe(200);
 
     const refreshA = uuidv4();
