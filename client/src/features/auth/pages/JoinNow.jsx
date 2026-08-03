@@ -4,6 +4,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ArrowRight, ShieldCheck, Sparkles, KeyRound, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../../shared/context/AuthContext.jsx';
+import { sendOtpEmail } from '../../../shared/utils/emailjs.js';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 const rawGoogleId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -77,6 +78,13 @@ export default function JoinNow() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+
+      // Dispatch Email via EmailJS
+      if (data.otp) {
+        sendOtpEmail(email, data.otp).catch((err) => {
+          console.warn('EmailJS dispatch note:', err);
+        });
+      }
 
       setStep('otp');
       setResendCooldown(30);

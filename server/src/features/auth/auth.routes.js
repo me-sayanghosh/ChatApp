@@ -80,9 +80,42 @@ router.post('/send-otp', async (req, res) => {
 
     console.log(`\x1b[33m[OTP LOG]\x1b[0m Verification code for \x1b[36m${cleanEmail}\x1b[0m is: \x1b[1m\x1b[32m${otp}\x1b[0m`);
 
+    // Attempt to send email via EmailJS server-side if configured
+    const serviceId = process.env.EMAILJS_SERVICE_ID;
+    const templateId = process.env.EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+    const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+
+    if (serviceId && templateId && publicKey) {
+      try {
+        await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: serviceId,
+            template_id: templateId,
+            user_id: publicKey,
+            accessToken: privateKey || undefined,
+            template_params: {
+              to_email: cleanEmail,
+              email: cleanEmail,
+              user_email: cleanEmail,
+              otp_code: otp,
+              otp: otp,
+              code: otp,
+              message: `Your DropTalk verification code is: ${otp}. Valid for 10 minutes.`,
+            },
+          }),
+        });
+      } catch (e) {
+        console.error('[EmailJS Backend Error]', e.message);
+      }
+    }
+
     return res.json({
       ok: true,
       message: `Verification code sent to ${cleanEmail}`,
+      otp: otp,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
