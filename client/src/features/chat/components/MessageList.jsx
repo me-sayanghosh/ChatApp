@@ -128,7 +128,7 @@ function renderAttachments(attachments, setLightboxData) {
 export default function MessageList({
   messages, meId, onDelete, onDeleteForMe, members, onRead, readReceipts,
   onlineUserIds, onOpenThread, onReact, threadCounts, onReply, replyToData, membersMap, onDMUser,
-  onEdit, onPin, onUnpin, onOpenForward, pinnedMessages = []
+  onEdit, onPin, onUnpin, onOpenForward, pinnedMessages = [], loading = false,
 }) {
   const lastReadRef = useRef(null);
   const [contextMenuFor, setContextMenuFor] = useState(null);
@@ -248,8 +248,12 @@ export default function MessageList({
   return (
     <div className="messages">
       {toast && <div className="msg-toast">{toast}</div>}
-      {topLevel.length === 0 && <div className="empty">No messages yet. Say hi!</div>}
-      {topLevel.map((m) => {
+      {loading ? (
+        <MessageSkeleton count={6} />
+      ) : (
+        <>
+          {topLevel.length === 0 && <div className="empty">No messages yet. Say hi!</div>}
+          {topLevel.map((m) => {
         const dateLabel = formatDateSeparator(m.createdAt);
         let showDateSep = false;
         if (dateLabel !== lastDateLabel) {
@@ -571,6 +575,8 @@ export default function MessageList({
         </div>
         );
       })}
+      </>
+      )}
 
       {/* Lightbox Fullscreen Image Preview Modal */}
       {lightboxData && (

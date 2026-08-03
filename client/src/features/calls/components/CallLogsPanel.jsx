@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { formatCardTime } from '../../../shared/utils/dateUtils.js';
+import { CallLogSkeleton } from '../../../shared/components/ui/SkeletonLoaders.jsx';
 
 export default function CallLogsPanel({ logs = [], loading, onSelectLog, onStartCall, onClearHistory }) {
   const [search, setSearch] = useState('');
@@ -98,7 +99,7 @@ export default function CallLogsPanel({ logs = [], loading, onSelectLog, onStart
 
       {/* Call List */}
       <div className="call-list">
-        {loading && <div className="call-loading">Loading call logs...</div>}
+        {loading && <CallLogSkeleton count={5} />}
 
         {!loading && filteredLogs.length === 0 && (
           <div className="call-empty">

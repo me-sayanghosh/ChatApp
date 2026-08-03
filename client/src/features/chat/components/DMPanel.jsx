@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../../../shared/utils/api.js';
 import { formatBadgeCount, formatCardTime } from '../../../shared/utils/dateUtils.js';
+import { DMSkeleton } from '../../../shared/components/ui/SkeletonLoaders.jsx';
 
-export default function DMPanel({ conversations, currentDM, onOpen, onSendRequest, userId }) {
+export default function DMPanel({ conversations, currentDM, onOpen, onSendRequest, userId, loading = false }) {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -69,7 +70,7 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
       >
         <div className="dm-avatar">
           {avatar ? (
-            <img src={avatar} alt={convo.partner?.username} />
+            <img src={avatar} alt={convo.partner?.username} loading="lazy" />
           ) : (
             <span>{initial}</span>
           )}
@@ -183,30 +184,36 @@ export default function DMPanel({ conversations, currentDM, onOpen, onSendReques
         </div>
       )}
 
-      {/* Pending DM requests */}
-      {pending.length > 0 && (
-        <div className="dm-section">
-          <div className="dm-section-label">Requests ({pending.length})</div>
-          {pending.map(renderConvoItem)}
-        </div>
-      )}
+      {loading ? (
+        <DMSkeleton count={6} />
+      ) : (
+        <>
+          {/* Pending DM requests */}
+          {pending.length > 0 && (
+            <div className="dm-section">
+              <div className="dm-section-label">Requests ({pending.length})</div>
+              {pending.map(renderConvoItem)}
+            </div>
+          )}
 
-      {/* Active DM conversations */}
-      {accepted.length > 0 && (
-        <div className="dm-section">
-          <div className="dm-section-label">Conversations</div>
-          {accepted.map(renderConvoItem)}
-        </div>
-      )}
+          {/* Active DM conversations */}
+          {accepted.length > 0 && (
+            <div className="dm-section">
+              <div className="dm-section-label">Conversations</div>
+              {accepted.map(renderConvoItem)}
+            </div>
+          )}
 
-      {filteredConversations.length === 0 && searchResults.length === 0 && (
-        <div className="dm-empty">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          <p>No direct messages yet.</p>
-          <span>Search a username above to start a private conversation.</span>
-        </div>
+          {filteredConversations.length === 0 && searchResults.length === 0 && (
+            <div className="dm-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <p>No direct messages yet.</p>
+              <span>Search a username above to start a private conversation.</span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
