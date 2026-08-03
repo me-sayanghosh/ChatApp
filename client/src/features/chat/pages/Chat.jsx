@@ -14,10 +14,11 @@ import { useNotifications } from '../../notifications/useNotifications.js';
 import { useWebRTC } from '../hooks/useWebRTC.js';
 import { useCalls } from '../../calls/hooks/useCalls.js';
 import { useTheme } from '../../../shared/hooks/useTheme.js';
-import { useToast } from '../../../shared/context/ToastContext.jsx';
-import { formatBadgeCount } from '../../../shared/utils/dateUtils.js';
+import { NotificationsPanel } from '../../notifications/components/NotificationsPanel.jsx';
+import { NotificationsMainView } from '../../notifications/components/NotificationsMainView.jsx';
 
 export default function Chat() {
+  const [notifFilter, setNotifFilter] = useState('all');
   const {
     user, logout, rooms, currentRoom, displayMessages, online, members,
     showMembers, setShowMembers, showPresence, setShowPresence,
@@ -190,6 +191,21 @@ export default function Chat() {
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
+
+          {/* Notification Icon Below + Icon */}
+          <button
+            className={`rail-btn rail-btn--notif ${navRailTab === 'notifications' ? 'active' : ''}`}
+            onClick={() => setNavRailTab('notifications')}
+            title="Notifications"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="rail-dm-badge rail-notif-badge">{unreadCount}</span>
+            )}
+          </button>
         </div>
 
         <div className="rail-middle">
@@ -255,9 +271,18 @@ export default function Chat() {
         </div>
       </nav>
 
-      {/* 2. Sidebar — Channels, DM panel, or Calls panel */}
+      {/* 2. Sidebar — Channels, DM panel, Notifications, or Calls panel */}
       <aside className="sidebar">
-        {navRailTab === 'calls' ? (
+        {navRailTab === 'notifications' ? (
+          <NotificationsPanel
+            notifications={notifications}
+            unreadCount={unreadCount}
+            activeFilter={notifFilter}
+            onSelectFilter={(f) => setNotifFilter(f)}
+            onMarkAllRead={markAllRead}
+            onClearAll={clearAllNotifications}
+          />
+        ) : navRailTab === 'calls' ? (
           <CallLogsPanel
             logs={callLogs}
             loading={callLogsLoading}
@@ -293,7 +318,24 @@ export default function Chat() {
 
       {/* 3. Main Chat Area */}
       <main className="main">
-        {navRailTab === 'calls' ? (
+        {navRailTab === 'notifications' ? (
+          /* Notifications Main View */
+          <NotificationsMainView
+            notifications={notifications}
+            filter={notifFilter}
+            onMarkRead={markRead}
+            onDeleteNotif={deleteNotification}
+            onMarkAllRead={markAllRead}
+            onClearAll={clearAllNotifications}
+            onNavigateToRoom={(roomId) => {
+              const r = rooms.find((rm) => rm.id === roomId);
+              if (r) {
+                selectRoom(r);
+                setNavRailTab('chat');
+              }
+            }}
+          />
+        ) : navRailTab === 'calls' ? (
           /* Call Logs Main View */
           <CallLogsMainView
             logs={callLogs}
