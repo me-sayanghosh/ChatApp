@@ -2,6 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext.jsx';
 import { useTheme } from '../../../shared/hooks/useTheme.js';
+import { useNotifications } from '../../notifications/useNotifications.js';
+import useDM from '../../chat/hooks/useDM.js';
+import { formatBadgeCount } from '../../../shared/utils/dateUtils.js';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 
@@ -10,6 +13,8 @@ export default function SettingsPage() {
   const { theme, setTheme, toggleTheme } = useTheme();
   const nav = useNavigate();
   const { section } = useParams();
+  const { unreadCount } = useNotifications(user);
+  const { pendingCount } = useDM();
 
   const activeSection = ['profile', 'appearance', 'privacy', 'notifications', 'shortcuts', 'help'].includes(section)
     ? section
@@ -292,34 +297,82 @@ export default function SettingsPage() {
       {/* 1. Left-most Nav Rail */}
       <nav className="nav-rail">
         <div className="rail-top">
-          <button className="rail-btn action-plus" onClick={() => nav('/chat')} title="Return to Chat">
+          <button
+            className="rail-btn action-plus"
+            onClick={() => nav('/chat', { state: { openCreate: true, tab: 'chat' } })}
+            title="Create New Channel"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
+
+          {/* Notification Icon Below + Icon */}
+          <button
+            className="rail-btn rail-btn--notif"
+            onClick={() => nav('/chat', { state: { tab: 'notifications' } })}
+            title="Notifications"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="rail-dm-badge rail-notif-badge">{unreadCount}</span>
+            )}
+          </button>
         </div>
 
         <div className="rail-middle">
-          <button className="rail-btn" onClick={() => nav('/chat')} title="Analytics">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+          <button
+            className="rail-btn"
+            onClick={() => nav('/chat', { state: { tab: 'calls' } })}
+            title="Calls & Call Logs"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
           </button>
-          <button className="rail-btn" onClick={() => nav('/chat')} title="Group Channels">
+
+          <button
+            className="rail-btn"
+            onClick={() => nav('/chat', { state: { tab: 'chat' } })}
+            title="Group Channels"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
               <rect x="14" y="14" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" />
             </svg>
           </button>
-          <button className="rail-btn rail-btn--dm" onClick={() => nav('/chat')} title="Direct Messages">
+
+          {/* DM Icon */}
+          <button
+            className="rail-btn rail-btn--dm"
+            onClick={() => nav('/chat', { state: { tab: 'dm' } })}
+            title="Direct Messages"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
+            {pendingCount > 0 && (
+              <span className="rail-dm-badge">{formatBadgeCount(pendingCount)}</span>
+            )}
           </button>
         </div>
 
         <div className="rail-bottom">
-          <button className="rail-btn settings-btn active" title="Settings">
+          <button
+            className="rail-btn"
+            onClick={() => nav('/chat', { state: { openSearch: true } })}
+            title="Quick Switcher (Ctrl + K)"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+
+          <button className="rail-btn settings-btn active" onClick={() => nav('/settings/profile')} title="Settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />

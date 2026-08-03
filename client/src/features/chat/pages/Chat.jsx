@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useChat from '../hooks/useChat.js';
 import useDM from '../hooks/useDM.js';
 import {
@@ -58,6 +58,7 @@ export default function Chat() {
   const { theme, toggleTheme } = useTheme();
 
   const nav = useNavigate();
+  const location = useLocation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [selectedProfileUser, setSelectedProfileUser] = useState(null);
@@ -69,6 +70,19 @@ export default function Chat() {
   const [forwardMsg, setForwardMsg] = useState(null);
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
+
+  // Read navigation state when coming from Settings
+  useEffect(() => {
+    if (location.state?.tab) {
+      setNavRailTab(location.state.tab);
+    }
+    if (location.state?.openCreate) {
+      setShowCreateModal(true);
+    }
+    if (location.state?.openSearch) {
+      setShowQuickSwitcher(true);
+    }
+  }, [location.state]);
 
   // Global Keyboard Shortcuts Listener
   useEffect(() => {
