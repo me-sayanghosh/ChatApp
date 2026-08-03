@@ -2184,6 +2184,46 @@ kbd {
   outline: none;
 }
 
+.cc-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 28px !important;
+}
+
+[data-theme="dark"] .cc-modal {
+  background: #1E293B;
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .cc-modal-title {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .cc-modal-subtitle {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .cc-label {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .cc-input-wrap {
+  background: #0F172A;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .cc-input {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .cc-input option {
+  background: #1E293B;
+  color: #F8FAFC;
+}
+
 .cc-input::placeholder {
   color: #CBD5E1;
   font-weight: 400;
