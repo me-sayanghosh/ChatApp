@@ -7,7 +7,7 @@ import {
   PendingRequests, ScrollToBottom, MessageList, MessageInput,
   DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal,
   PinnedMessagesModal, ChannelSettingsModal, CallOverlay, QuickSwitcherModal, KeyboardShortcutsModal,
-  CallLogsPanel, CallLogsMainView,
+  CallLogsPanel, CallLogsMainView, AIPanel,
 } from '../components/index.js';
 import NotificationDrawer from '../../notifications/NotificationDrawer.jsx';
 import { useNotifications } from '../../notifications/useNotifications.js';
@@ -70,6 +70,7 @@ export default function Chat() {
   const [forwardMsg, setForwardMsg] = useState(null);
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   // Read navigation state when coming from Settings
   useEffect(() => {
@@ -215,6 +216,14 @@ export default function Chat() {
         </div>
 
         <div className="rail-middle">
+          <button
+            className={`rail-btn ${showAIPanel ? 'active' : ''}`}
+            onClick={() => setShowAIPanel(!showAIPanel)}
+            title="AI Copilot"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+          </button>
+
           <button
             className={`rail-btn ${navRailTab === 'calls' ? 'active' : ''}`}
             onClick={() => setNavRailTab('calls')}
@@ -572,6 +581,13 @@ export default function Chat() {
                       meId={user?.id}
                       isPrivate={isPrivate}
                       onClose={() => setThreadMessage(null)}
+                    />
+                  )}
+                  {showAIPanel && (
+                    <AIPanel
+                      roomId={currentRoom.id}
+                      onClose={() => setShowAIPanel(false)}
+                      onUseSuggestion={(text) => setCurrentInput(text)}
                     />
                   )}
                 </>
