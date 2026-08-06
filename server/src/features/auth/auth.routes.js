@@ -205,6 +205,45 @@ router.post('/google', async (req, res) => {
   }
 });
 
+// Direct Google Userinfo Sign In / Registration
+router.post('/google-direct', async (req, res) => {
+  try {
+    const { email, name, picture, googleId } = req.body || {};
+    if (!email) return res.status(400).json({ error: 'Email is required from Google account' });
+
+    const cleanEmail = email.trim().toLowerCase();
+    let user = await User.findOne({ $or: [{ googleId }, { email: cleanEmail }] });
+
+    if (user) {
+      if (googleId && !user.googleId) user.googleId = googleId;
+      if (!user.profileImage && picture) user.profileImage = picture;
+      if (name && !user.name) user.name = name;
+      await user.save();
+    } else {
+      const autoUsername = generateAutoUsername();
+      user = await User.create({
+        googleId: googleId || undefined,
+        email: cleanEmail,
+        name: name || '',
+        profileImage: picture || '',
+        username: autoUsername,
+        needsUsername: true,
+      });
+    }
+
+    await cleanExpiredTokens(user._id);
+
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken();
+    const family = uuidv4();
+    await storeRefreshToken(user._id, refreshToken, family);
+
+    return res.json({ accessToken, refreshToken, user: user.toClient() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/refresh', async (req, res) => {
   try {
     const { refreshToken } = req.body || {};
