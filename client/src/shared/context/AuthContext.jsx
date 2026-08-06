@@ -11,11 +11,16 @@ export function AuthProvider({ children }) {
   const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
+    const token = getAccessToken();
+    if (!token) {
+      setBootstrapped(true);
+      return;
+    }
+
     api.get('/auth/me')
       .then((r) => r.data)
       .then((data) => {
         setUser(data.user);
-        const token = getAccessToken();
         setAccessToken(token);
         connectSocket(token);
       })
