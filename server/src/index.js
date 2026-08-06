@@ -3,6 +3,8 @@ import http from 'http';
 import dns from 'node:dns/promises';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 import { CORS_ORIGINS } from './shared/utils/constants.js';
 
@@ -32,13 +34,22 @@ import { attachSocket } from './shared/socket/index.js';
 import { reconcilePresence } from './features/presence/presence.service.js';
 
 const app = express();
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
-app.use('/api/auth', authRoutes);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'Too many attempts, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/rooms', messageRoutes);
 app.use('/api/rooms', moderationRoutes);
