@@ -197,10 +197,10 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
                             >
                               📹 Video
                             </button>
-                          </div>
                         )}
                       </td>
                     </tr>
+                  );
                 })}
               </tbody>
             </table>
