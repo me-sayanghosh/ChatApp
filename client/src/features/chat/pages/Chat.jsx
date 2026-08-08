@@ -4,7 +4,7 @@ import useChat from '../hooks/useChat.js';
 import useDM from '../hooks/useDM.js';
 import {
   Channels, MemberList, TypingIndicator, PresenceMap, ThreadPanel,
-  PendingRequests, ScrollToBottom, MessageList, MessageInput,
+  PendingRequests, MessageList, MessageInput,
   DMPanel, DMChat, CreateChannelModal, UserProfileCard, ForwardModal, MessageSearchModal,
   PinnedMessagesModal, ChannelSettingsModal, CallOverlay, QuickSwitcherModal, KeyboardShortcutsModal,
   CallLogsPanel, CallLogsMainView, AIPanel,
@@ -562,7 +562,7 @@ export default function Chat() {
                         onOpenForward={setForwardMsg}
                         pinnedMessages={currentRoom.pinnedMessages || []}
                       />
-                      <ScrollToBottom containerRef={messagesContainerRef} />
+
                     </div>
                     <TypingIndicator typingUsers={typingUsers} />
                     <MessageInput
