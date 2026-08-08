@@ -236,8 +236,31 @@ export default function MessageList({
   function openContextMenu(e, msg) {
     e.preventDefault();
     e.stopPropagation();
-    const x = Math.min(e.clientX, window.innerWidth - 220);
-    const y = Math.min(e.clientY, window.innerHeight - 340);
+
+    let rawX = e.clientX;
+    let rawY = e.clientY;
+    if (e.touches && e.touches.length > 0) {
+      rawX = e.touches[0].clientX;
+      rawY = e.touches[0].clientY;
+    }
+    if (!rawX || rawX === 0) {
+      const rect = e.currentTarget?.getBoundingClientRect();
+      if (rect) {
+        rawX = rect.left;
+        rawY = rect.bottom;
+      } else {
+        rawX = window.innerWidth / 2 - 110;
+        rawY = window.innerHeight / 2 - 150;
+      }
+    }
+
+    const isMobile = window.innerWidth <= 768;
+    const menuWidth = isMobile ? Math.min(250, window.innerWidth - 32) : 230;
+    const menuHeight = 360;
+
+    const x = Math.max(12, Math.min(rawX, window.innerWidth - menuWidth - 12));
+    const y = Math.max(12, Math.min(rawY, window.innerHeight - menuHeight - 12));
+
     setMenuPos({ x, y });
     setContextMenuFor(msg.id);
   }
@@ -485,12 +508,18 @@ export default function MessageList({
 
             {/* Context Menu Popup */}
             {contextMenuFor === m.id && (
-              <div
-                className="msg-context-menu"
-                ref={ctxMenuRef}
-                style={{ left: menuPos.x + 'px', top: menuPos.y + 'px' }}
-                onClick={(e) => e.stopPropagation()}
-              >
+              <>
+                <div
+                  className="ctx-backdrop"
+                  onClick={() => setContextMenuFor(null)}
+                  onTouchStart={() => setContextMenuFor(null)}
+                />
+                <div
+                  className="msg-context-menu"
+                  ref={ctxMenuRef}
+                  style={{ left: menuPos.x + 'px', top: menuPos.y + 'px' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                 <div className="ctx-quick-reactions">
                   {['👍', '❤️', '🔥', '😂', '🎉', '🚀'].map((emoji) => (
                     <button
@@ -570,7 +599,8 @@ export default function MessageList({
                   </button>
                 )}
               </div>
-            )}
+            </>
+          )}
           </div>
         </div>
         );
