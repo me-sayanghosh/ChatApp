@@ -7752,7 +7752,7 @@ body.light-theme .notif-filter-item:hover {
     border-radius: 12px !important;
   }
 
-  /* 2. Responsive View Switching (Sidebar vs Main Chat area) */
+  /* 2. Responsive View Switching (Sidebar vs Main Chat / Settings area) */
   .mobile-view-sidebar .sidebar {
     display: flex !important;
     width: 100vw !important;
@@ -7769,11 +7769,13 @@ body.light-theme .notif-filter-item:hover {
     display: none !important;
   }
 
-  .mobile-view-chat .sidebar {
+  .mobile-view-chat .sidebar,
+  .mobile-view-content .sidebar {
     display: none !important;
   }
 
-  .mobile-view-chat .main {
+  .mobile-view-chat .main,
+  .mobile-view-content .main {
     display: flex !important;
     width: 100vw !important;
     height: calc(100vh - 60px) !important;
@@ -7819,7 +7821,33 @@ body.light-theme .notif-filter-item:hover {
     padding: 4px !important;
   }
 
-  /* 4. DM Chat mobile optimizations */
+  /* 4. Settings Page & DM Chat mobile optimizations */
+  .settings-content-panel {
+    padding: 16px 14px 40px !important;
+  }
+
+  .settings-container-inner {
+    max-width: 100% !important;
+  }
+
+  .profile-hero-content {
+    padding: 0 16px 16px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+
+  .profile-hero-actions {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .shortcuts-grid,
+  .help-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   .dm-chat-header {
     padding: 0.75rem 1rem !important;
   }

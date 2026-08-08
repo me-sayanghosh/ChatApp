@@ -283,6 +283,8 @@ export default function SettingsPage() {
 
   const avatarInitial = (username || user?.username || 'U')[0].toUpperCase();
 
+  const [mobileActiveView, setMobileActiveView] = useState('content');
+
   const sectionTitles = {
     profile: 'Profile Settings',
     appearance: 'Appearance & Theme',
@@ -292,8 +294,13 @@ export default function SettingsPage() {
     help: 'Help & Feedback',
   };
 
+  const handleSelectSection = (secPath) => {
+    nav(secPath);
+    setMobileActiveView('content');
+  };
+
   return (
-    <div className="chat-app-shell">
+    <div className={`chat-app-shell mobile-view-${mobileActiveView}`}>
       {/* 1. Left-most Nav Rail */}
       <nav className="nav-rail">
         <div className="rail-top">
@@ -372,7 +379,7 @@ export default function SettingsPage() {
             </svg>
           </button>
 
-          <button className="rail-btn settings-btn active" onClick={() => nav('/settings/profile')} title="Settings">
+          <button className="rail-btn settings-btn active" onClick={() => { setMobileActiveView('sidebar'); nav('/settings/profile'); }} title="Settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -396,7 +403,7 @@ export default function SettingsPage() {
         <nav className="settings-nav-list">
           <button
             className={`settings-nav-item ${activeSection === 'profile' ? 'active' : ''}`}
-            onClick={() => nav('/settings/profile')}
+            onClick={() => handleSelectSection('/settings/profile')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
@@ -406,7 +413,7 @@ export default function SettingsPage() {
 
           <button
             className={`settings-nav-item ${activeSection === 'appearance' ? 'active' : ''}`}
-            onClick={() => nav('/settings/appearance')}
+            onClick={() => handleSelectSection('/settings/appearance')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -416,7 +423,7 @@ export default function SettingsPage() {
 
           <button
             className={`settings-nav-item ${activeSection === 'privacy' ? 'active' : ''}`}
-            onClick={() => nav('/settings/privacy')}
+            onClick={() => handleSelectSection('/settings/privacy')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -426,7 +433,7 @@ export default function SettingsPage() {
 
           <button
             className={`settings-nav-item ${activeSection === 'notifications' ? 'active' : ''}`}
-            onClick={() => nav('/settings/notifications')}
+            onClick={() => handleSelectSection('/settings/notifications')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -436,7 +443,7 @@ export default function SettingsPage() {
 
           <button
             className={`settings-nav-item ${activeSection === 'shortcuts' ? 'active' : ''}`}
-            onClick={() => nav('/settings/shortcuts')}
+            onClick={() => handleSelectSection('/settings/shortcuts')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="4" width="20" height="16" rx="2" /><line x1="6" y1="8" x2="6" y2="8" /><line x1="10" y1="8" x2="10" y2="8" /><line x1="14" y1="8" x2="14" y2="8" /><line x1="18" y1="8" x2="18" y2="8" /><line x1="6" y1="12" x2="6" y2="12" /><line x1="18" y1="12" x2="18" y2="12" /><line x1="8" y1="16" x2="16" y2="16" />
@@ -446,7 +453,7 @@ export default function SettingsPage() {
 
           <button
             className={`settings-nav-item ${activeSection === 'help' ? 'active' : ''}`}
-            onClick={() => nav('/settings/help')}
+            onClick={() => handleSelectSection('/settings/help')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
@@ -460,6 +467,16 @@ export default function SettingsPage() {
       <main className="main" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <header className="chat-header" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)' }}>
           <div className="header-left">
+            <button
+              className="mobile-back-btn"
+              onClick={() => setMobileActiveView('sidebar')}
+              title="Back to Settings Menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
             <div className="header-avatar-badge" style={{ background: '#0052FF', color: '#ffffff' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <circle cx="12" cy="12" r="3" />
