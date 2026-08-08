@@ -7982,23 +7982,34 @@ body.light-theme .notif-filter-item:hover {
     justify-content: space-between !important;
   }
 
-  .call-stats-grid {
+  .call-analytics-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-    margin-bottom: 20px !important;
-  }
-
-  .call-stat-card {
+    gap: 8px !important;
     padding: 12px 14px !important;
-    border-radius: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .call-stat-card .stat-value {
-    font-size: 1.35rem !important;
+  .call-analytics-card {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 
-  .call-stat-card .stat-label {
-    font-size: 0.7rem !important;
+  .analytics-icon-badge {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .analytics-num {
+    font-size: 1.1rem !important;
+  }
+
+  .analytics-label {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
   }
 
   .call-main-empty {
