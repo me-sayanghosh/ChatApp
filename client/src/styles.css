@@ -7646,6 +7646,43 @@ body.light-theme .notif-filter-item:hover {
   to { transform: rotate(360deg); }
 }
 
+/* ============================================================
+   MOBILE RESPONSIVE & SINGLE-PANEL NAVIGATION STYLES
+   ============================================================ */
+
+.mobile-back-btn {
+  display: none;
+  background: #f1f5f9;
+  border: 1px solid var(--border-color, #e2e8f0);
+  color: var(--text-main, #0f172a);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 6px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.mobile-back-btn:active {
+  transform: scale(0.95);
+  background: var(--border-color, #cbd5e1);
+}
+
+.mobile-back-btn--empty {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+[data-theme="dark"] .mobile-back-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
 @media (max-width: 1024px) {
   .ai-panel {
     position: absolute;
@@ -7656,6 +7693,192 @@ body.light-theme .notif-filter-item:hover {
     box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
   }
 }
+
+/* ------------------------------------------------------------
+   Mobile Devices (<= 768px) Responsive System
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+  /* Hide desktop-only static elements */
+  .mobile-back-btn {
+    display: flex !important;
+  }
+
+  /* App Shell container reset */
+  .chat-app-shell {
+    padding: 0 !important;
+    gap: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    width: 100vw !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    position: relative !important;
+    background: var(--app-bg, #0b0f19) !important;
+  }
+
+  /* 1. Mobile Bottom Navigation Bar (replaces vertical Nav Rail) */
+  .nav-rail {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 60px !important;
+    z-index: 999 !important;
+    border-radius: 0 !important;
+    flex-direction: row !important;
+    padding: 0 0.5rem !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    background: #0f172a !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .rail-top, .rail-middle, .rail-bottom {
+    flex-direction: row !important;
+    width: auto !important;
+    gap: 0.35rem !important;
+  }
+
+  .rail-bottom .settings-btn,
+  .rail-bottom .logout-btn {
+    display: flex !important;
+  }
+
+  .rail-btn {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
+  }
+
+  /* 2. Responsive View Switching (Sidebar vs Main Chat area) */
+  .mobile-view-sidebar .sidebar {
+    display: flex !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-view-sidebar .main {
+    display: none !important;
+  }
+
+  .mobile-view-chat .sidebar {
+    display: none !important;
+  }
+
+  .mobile-view-chat .main {
+    display: flex !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* 3. Header formatting on mobile */
+  .chat-header {
+    padding: 0.75rem 1rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .header-room-name {
+    font-size: 1rem !important;
+    max-width: 180px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .header-room-meta {
+    font-size: 0.72rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .header-room-meta .meta-pill,
+  .header-room-meta .slowmode-tag {
+    display: none !important;
+  }
+
+  .header-right {
+    gap: 0.25rem !important;
+  }
+
+  .header-icon-btn {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 4px !important;
+  }
+
+  /* 4. DM Chat mobile optimizations */
+  .dm-chat-header {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .dm-chat-info h2 {
+    font-size: 1rem !important;
+  }
+
+  .dm-messages-container,
+  .messages-container {
+    padding: 0.75rem !important;
+  }
+
+  .dm-composer,
+  .message-input-container {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* 5. Mobile Slide-Over Panels (Members, Threads, AI Copilot) */
+  .members-panel,
+  .thread-panel,
+  .ai-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 60px !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    z-index: 888 !important;
+    border-radius: 0 !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4) !important;
+    background: var(--panel-bg, #ffffff) !important;
+  }
+
+  /* 6. Modals on Mobile */
+  .cc-modal,
+  .quick-switcher-modal,
+  .search-modal,
+  .pinned-modal {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    margin: 12px auto !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important;
+  }
+
+  /* 7. Home & Landing pages mobile tweak */
+  .home-hero h1 {
+    font-size: 2rem !important;
+  }
+
+  .home-security,
+  .home-feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 
 
 
