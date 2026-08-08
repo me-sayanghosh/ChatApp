@@ -1445,6 +1445,64 @@ body {
   color: #065F46;
 }
 
+.button-primary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 90px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(41, 65, 15, 0.2);
+}
+
+.button-primary-pill:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.button-secondary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid var(--border-color, #e2e8f0);
+  color: var(--navy, #1e293b);
+  padding: 8px 18px;
+  border-radius: 90px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.button-secondary-pill:hover {
+  background: var(--border-color, #e2e8f0);
+  color: var(--primary);
+  border-color: var(--border-color, #cbd5e1);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .button-secondary-pill {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .button-secondary-pill:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
 .button-danger-pill {
   background: #FEE2E2;
   border: 1px solid #FCA5A5;
