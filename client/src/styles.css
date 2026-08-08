@@ -2256,12 +2256,30 @@ kbd {
   box-shadow: 0 25px 65px rgba(0, 0, 0, 0.6);
 }
 
+[data-theme="dark"] .cc-modal-header {
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .cc-modal-icon {
+  background: rgba(41, 65, 15, 0.2);
+}
+
 [data-theme="dark"] .cc-modal-title {
   color: #F8FAFC;
 }
 
 [data-theme="dark"] .cc-modal-subtitle {
   color: #94A3B8;
+}
+
+[data-theme="dark"] .cc-close-btn {
+  background: #334155;
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .cc-close-btn:hover {
+  background: #475569;
+  color: #F8FAFC;
 }
 
 [data-theme="dark"] .cc-label {
@@ -2273,12 +2291,104 @@ kbd {
   border-color: #334155;
 }
 
+[data-theme="dark"] .cc-input-wrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(41, 65, 15, 0.25);
+}
+
 [data-theme="dark"] .cc-input {
   color: #F8FAFC;
 }
 
+[data-theme="dark"] .cc-input::placeholder {
+  color: #64748B;
+}
+
 [data-theme="dark"] .cc-input option {
   background: #1E293B;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .cc-char-count {
+  color: #64748B;
+}
+
+[data-theme="dark"] .cc-field-hint {
+  color: #64748B;
+}
+
+/* Type cards dark mode */
+[data-theme="dark"] .cc-type-card {
+  background: #0F172A;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .cc-type-card:hover {
+  background: #1a2744;
+  border-color: #475569;
+}
+
+[data-theme="dark"] .cc-type-card.selected {
+  background: #1a2744;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+[data-theme="dark"] .cc-type-icon {
+  background: rgba(139, 92, 246, 0.12) !important;
+}
+
+[data-theme="dark"] .cc-type-label {
+  color: #F1F5F9;
+}
+
+[data-theme="dark"] .cc-type-desc {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .cc-type-radio {
+  border-color: #475569;
+}
+
+/* Preview strip dark mode */
+[data-theme="dark"] .cc-preview-strip {
+  background: rgba(139, 92, 246, 0.08) !important;
+}
+
+/* Error dark mode */
+[data-theme="dark"] .cc-error {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.25);
+  color: #FCA5A5;
+}
+
+/* Duration pills dark mode */
+[data-theme="dark"] .cc-duration-pill {
+  background: #0F172A;
+  border-color: #334155;
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .cc-duration-pill:hover {
+  border-color: #8B5CF6;
+  color: #C4B5FD;
+}
+
+[data-theme="dark"] .cc-duration-pill.selected {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: #8B5CF6;
+  color: #C4B5FD;
+}
+
+/* Footer buttons dark mode */
+[data-theme="dark"] .cc-btn-cancel {
+  background: #334155;
+  border-color: #475569;
+  color: #CBD5E1;
+}
+
+[data-theme="dark"] .cc-btn-cancel:hover:not(:disabled) {
+  background: #475569;
+  border-color: #64748B;
   color: #F8FAFC;
 }
 
@@ -2326,9 +2436,9 @@ kbd {
 }
 
 .cc-type-card.selected {
-  border-color: var(--primary);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(41, 65, 15, 0.08);
+  border-color: var(--type-accent, var(--primary));
+  background: var(--type-accent-bg, #ffffff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--type-accent, var(--primary)) 12%, transparent);
 }
 
 .cc-type-icon {

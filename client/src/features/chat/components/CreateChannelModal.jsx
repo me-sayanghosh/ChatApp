@@ -155,6 +155,7 @@ export default function CreateChannelModal({ onClose, onCreate }) {
                   key={t.id}
                   type="button"
                   className={`cc-type-card ${type === t.id ? 'selected' : ''}`}
+                  style={type === t.id ? { '--type-accent': t.color, '--type-accent-bg': t.bg, borderColor: t.color } : {}}
                   onClick={() => setType(t.id)}
                 >
                   <div className="cc-type-icon" style={{ background: t.bg, color: t.color }}>
@@ -164,7 +165,10 @@ export default function CreateChannelModal({ onClose, onCreate }) {
                     <span className="cc-type-label">{t.label}</span>
                     <span className="cc-type-desc">{t.desc}</span>
                   </div>
-                  <div className={`cc-type-radio ${type === t.id ? 'checked' : ''}`} />
+                  <div
+                    className={`cc-type-radio ${type === t.id ? 'checked' : ''}`}
+                    style={type === t.id ? { borderColor: t.color, background: t.color } : {}}
+                  />
                 </button>
               ))}
             </div>
