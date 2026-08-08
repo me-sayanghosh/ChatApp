@@ -6413,9 +6413,9 @@ kbd {
   flex-direction: column;
   height: 100%;
   padding: 32px;
-  background: var(--bg-main, #0b0f19);
+  background: var(--panel-bg, #ffffff);
   overflow-y: auto;
-  color: var(--text-main, #f8fafc);
+  color: var(--text-main, #0f172a);
 }
 
 .call-main-header {
@@ -6436,13 +6436,13 @@ kbd {
   font-size: 1.75rem;
   font-weight: 800;
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--text-main, #0f172a);
   letter-spacing: -0.02em;
 }
 
 .call-main-header-info p {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-muted, #64748b);
   margin: 0;
 }
 
@@ -6450,21 +6450,40 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  border-radius: 12px;
-  background: #2563eb;
+  padding: 10px 22px;
+  border-radius: 90px;
+  background: var(--primary, #29410f);
   color: #ffffff;
   font-weight: 700;
   font-size: 0.88rem;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px rgba(41, 65, 15, 0.25);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .call-start-new-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+  background: var(--primary-hover, #1e3009);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(41, 65, 15, 0.35);
+}
+
+.call-main-clear-btn {
+  background: var(--border-light, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  color: var(--text-muted, #64748b);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  border-radius: 90px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.call-main-clear-btn:hover {
+  color: #ef4444;
+  border-color: #fca5a5;
+  background: #fef2f2;
 }
 
 .call-stats-grid {
@@ -6475,41 +6494,54 @@ kbd {
 }
 
 .call-stat-card {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 18px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
 }
 
+[data-theme="dark"] .call-stat-card {
+  background: #0f172a;
+  border-color: #334155;
+}
+
 .call-stat-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--primary, #29410f);
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(41, 65, 15, 0.1);
 }
 
 .stat-value {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-main, #0f172a);
 }
 
 .stat-label {
   font-size: 0.78rem;
-  font-weight: 600;
-  color: #94a3b8;
+  font-weight: 700;
+  color: var(--text-subtle, #94a3b8);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.call-stat-card.voice-stat .stat-value {
+  color: var(--primary, #29410f);
+}
+
+.call-stat-card.missed-stat .stat-value {
+  color: #ef4444;
 }
 
 .call-history-section h3 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--text-main, #0f172a);
   margin: 0 0 16px;
 }
 
@@ -6521,23 +6553,27 @@ kbd {
   justify-content: center;
   text-align: center;
   padding: 64px 32px;
-  background: #0f172a;
-  border: 1.5px dashed rgba(255, 255, 255, 0.12);
+  background: var(--border-light, #f8fafc);
+  border: 1.5px dashed var(--border-color, #cbd5e1);
   border-radius: 24px;
-  box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .call-main-empty {
+  background: #0f172a;
+  border-color: #334155;
 }
 
 .call-empty-icon-wrap {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #1e293b;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: var(--primary-light, #edf3e4);
+  border: 2px solid var(--primary, #29410f);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 24px rgba(41, 65, 15, 0.15);
   animation: float-call-icon 3s ease-in-out infinite;
 }
 
@@ -6547,20 +6583,20 @@ kbd {
 }
 
 .call-empty-icon-wrap svg {
-  color: #60a5fa;
+  color: var(--primary, #29410f);
 }
 
 .call-main-empty h2 {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-main, #0f172a);
   margin: 0 0 8px;
   letter-spacing: -0.01em;
 }
 
 .call-main-empty p {
   font-size: 0.92rem;
-  color: #94a3b8;
+  color: var(--text-muted, #64748b);
   max-width: 440px;
   line-height: 1.55;
   margin: 0 0 24px;
@@ -6588,25 +6624,26 @@ kbd {
 }
 
 .call-cta-btn.primary {
-  background: #2563eb;
+  background: var(--primary, #29410f);
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 16px rgba(41, 65, 15, 0.3);
 }
 
 .call-cta-btn.primary:hover {
+  background: var(--primary-hover, #1e3009);
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
+  box-shadow: 0 6px 24px rgba(41, 65, 15, 0.45);
 }
 
 .call-cta-btn.secondary {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--primary-light, #edf3e4);
+  color: var(--primary, #29410f);
+  border: 1.5px solid var(--primary, #29410f);
 }
 
 .call-cta-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--primary, #29410f);
+  color: #ffffff;
   transform: translateY(-2px);
 }
 
@@ -6672,7 +6709,7 @@ kbd {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: var(--primary, #29410f);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -6695,12 +6732,12 @@ kbd {
 .call-contact-name {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-main, #1e293b);
 }
 
 .call-contact-user {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--text-muted, #64748b);
 }
 
 .call-contact-actions {
@@ -6723,12 +6760,12 @@ kbd {
 }
 
 .call-dial-btn.voice {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--primary-light, #edf3e4);
+  color: var(--primary, #29410f);
 }
 
 .call-dial-btn.voice:hover {
-  background: #2563eb;
+  background: var(--primary, #29410f);
   color: #ffffff;
 }
 
