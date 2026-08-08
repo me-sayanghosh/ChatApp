@@ -37,101 +37,109 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
         onStartCall={onStartCall}
       />
 
-      {/* Top Overview Banner */}
-      <div className="call-main-header">
-        <div className="call-main-header-info">
-          <div className="call-header-title-row">
-            {onBack && (
-              <button
-                className="mobile-back-btn"
-                onClick={onBack}
-                title="Back to Call List"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="19" y1="12" x2="5" y2="12" />
-                  <polyline points="12 19 5 12 12 5" />
-                </svg>
-              </button>
-            )}
-            <h1>Calls & Activity</h1>
-          </div>
-          <p>View your recent voice and video call logs, missed calls, and start new calls.</p>
-        </div>
-        <div className="call-main-header-actions">
-          <button className="call-start-new-btn" onClick={() => setShowModal(true)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Header Bar */}
+      <header className="chat-header">
+        <div className="header-left">
+          {onBack && (
+            <button
+              className="mobile-back-btn"
+              onClick={onBack}
+              title="Back to Call List"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
+          )}
+          <div className="header-avatar-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
-            Start a Call
+          </div>
+          <div className="header-room-info">
+            <h2 className="header-room-name">Calls &amp; Activity</h2>
+            <div className="header-room-meta">
+              <span className="meta-pill">DropTalk</span>
+              <span className="header-sep">&middot;</span>
+              <span className="dot online"></span>
+              <span>Voice &amp; Video Center</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="header-right">
+          <button
+            className="button-primary-pill"
+            onClick={() => setShowModal(true)}
+            title="Start New Call"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>Start a Call</span>
           </button>
           {logs.length > 0 && (
-            <button className="call-main-clear-btn" onClick={onClearHistory}>
+            <button className="button-secondary-pill" onClick={onClearHistory} title="Clear call logs">
               Clear History
             </button>
           )}
         </div>
+      </header>
+
+      {/* Metrics Ribbon */}
+      <div className="call-metrics-ribbon">
+        <div className="call-metric-item">
+          <span className="metric-num">{totalCalls}</span>
+          <span className="metric-lbl">Total Calls</span>
+        </div>
+        <div className="call-metric-divider" />
+        <div className="call-metric-item missed">
+          <span className="metric-num">{missedCount}</span>
+          <span className="metric-lbl">Missed</span>
+        </div>
+        <div className="call-metric-divider" />
+        <div className="call-metric-item voice">
+          <span className="metric-num">{voiceCount}</span>
+          <span className="metric-lbl">Voice</span>
+        </div>
+        <div className="call-metric-divider" />
+        <div className="call-metric-item video">
+          <span className="metric-num">{videoCount}</span>
+          <span className="metric-lbl">Video</span>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="call-stats-grid">
-        <div className="call-stat-card">
-          <span className="stat-value">{totalCalls}</span>
-          <span className="stat-label">Total Calls</span>
-        </div>
-        <div className="call-stat-card missed-stat">
-          <span className="stat-value">{missedCount}</span>
-          <span className="stat-label">Missed Calls</span>
-        </div>
-        <div className="call-stat-card voice-stat">
-          <span className="stat-value">{voiceCount}</span>
-          <span className="stat-label">Voice Calls</span>
-        </div>
-        <div className="call-stat-card video-stat">
-          <span className="stat-value">{videoCount}</span>
-          <span className="stat-label">Video Calls</span>
-        </div>
-      </div>
-
-      {/* Main Call History Table / List */}
-      <div className="call-history-section">
-        <h3>Recent Call Activity</h3>
-
+      {/* Main Call Activity Content Area */}
+      <div className="call-content-canvas">
         {logs.length === 0 ? (
           <div className="call-main-empty">
             <div className="call-empty-icon-wrap">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
               </svg>
             </div>
-            <h2>No Call History Yet</h2>
-            <p>Connect instantly with your friends and team members using crystal-clear audio and HD video calls.</p>
-            <div className="call-empty-actions">
-              <button className="call-cta-btn primary" onClick={() => setShowModal(true)}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-                Start Voice Call
-              </button>
-              <button className="call-cta-btn secondary" onClick={() => setShowModal(true)}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <polygon points="23 7 16 12 23 17 23 7" />
-                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-                </svg>
-                Start Video Call
-              </button>
-            </div>
+            <h3>No Call History Yet</h3>
+            <p>Connect instantly with teammates using high-definition voice and video calls.</p>
+            <button className="button-primary-pill" onClick={() => setShowModal(true)} style={{ marginTop: '12px' }}>
+              Start Your First Call
+            </button>
           </div>
         ) : (
           <div className="call-table-wrapper">
+            <div className="call-table-title-row">
+              <h3>Recent Activity</h3>
+              <span className="call-count-tag">{logs.length} logged</span>
+            </div>
             <table className="call-table">
               <thead>
                 <tr>
                   <th>Contact</th>
                   <th>Type</th>
-                  <th>Direction & Status</th>
+                  <th>Status</th>
                   <th>Duration</th>
-                  <th>Date & Time</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                  <th>Date &amp; Time</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,13 +188,28 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
                               onClick={() => onStartCall?.(log.partner.id, null, false)}
                               title={`Voice Call ${partnerName}`}
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                              </svg>
-                              Voice
+                              📞 Voice
                             </button>
                             <button
                               className="call-btn-video"
+                              onClick={() => onStartCall?.(log.partner.id, null, true)}
+                              title={`Video Call ${partnerName}`}
+                            >
+                              📹 Video
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
                               onClick={() => onStartCall?.(log.partner.id, null, true)}
                               title={`Video Call ${partnerName}`}
                             >
