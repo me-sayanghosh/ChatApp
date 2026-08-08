@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { formatCardTime } from '../../../shared/utils/dateUtils.js';
 import StartCallModal from './StartCallModal.jsx';
 
-export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, onClearHistory }) {
+export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, onClearHistory, onBack }) {
   const [showModal, setShowModal] = useState(false);
 
   const totalCalls = logs.length;
@@ -40,7 +40,21 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
       {/* Top Overview Banner */}
       <div className="call-main-header">
         <div className="call-main-header-info">
-          <h1>Calls & Activity</h1>
+          <div className="call-header-title-row">
+            {onBack && (
+              <button
+                className="mobile-back-btn"
+                onClick={onBack}
+                title="Back to Call List"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+              </button>
+            )}
+            <h1>Calls & Activity</h1>
+          </div>
           <p>View your recent voice and video call logs, missed calls, and start new calls.</p>
         </div>
         <div className="call-main-header-actions">

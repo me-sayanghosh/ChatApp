@@ -7991,7 +7991,94 @@ body.light-theme .notif-filter-item:hover {
     border-radius: 16px !important;
   }
 
-  /* 7. Home & Landing pages mobile tweak */
+  /* 7. Call Logs Mobile Enhancements */
+  .call-main-container {
+    padding: 16px 14px 80px 14px !important;
+  }
+
+  .call-header-title-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .call-main-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .call-main-header-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .call-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .call-stat-card {
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .call-stat-card .stat-value {
+    font-size: 1.35rem !important;
+  }
+
+  .call-stat-card .stat-label {
+    font-size: 0.7rem !important;
+  }
+
+  .call-main-empty {
+    padding: 32px 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .call-empty-icon-wrap {
+    width: 60px !important;
+    height: 60px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .call-empty-icon-wrap svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .call-main-empty h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .call-main-empty p {
+    font-size: 0.85rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  .call-cta-btn {
+    padding: 10px 18px !important;
+    font-size: 0.82rem !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .call-table-wrapper {
+    overflow-x: auto !important;
+    width: 100% !important;
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .call-table th,
+  .call-table td {
+    padding: 10px 8px !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* 8. Home & Landing pages mobile tweak */
   .home-hero h1 {
     font-size: 2rem !important;
   }
