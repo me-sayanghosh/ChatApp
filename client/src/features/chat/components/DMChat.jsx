@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { formatDateSeparator } from '../../../shared/utils/dateUtils.js';
 import { getMediaUrl } from '../../../shared/utils/index.js';
 
-export default function DMChat({ room, messages, userId, onAccept, onRemove, onSend, loading, onStartCall }) {
+export default function DMChat({ room, messages, userId, onAccept, onRemove, onSend, loading, onStartCall, onBack }) {
   const [text, setText] = useState('');
   const inputRef = useRef(null);
   const containerRef = useRef(null);
@@ -49,6 +49,14 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
   if (!room) {
     return (
       <div className="dm-chat-empty">
+        {onBack && (
+          <button className="mobile-back-btn mobile-back-btn--empty" onClick={onBack} title="Back to DMs">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </button>
+        )}
         <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
           <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
@@ -67,6 +75,14 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
       {/* DM Chat Header */}
       <header className="dm-chat-header">
         <div className="dm-chat-header-left">
+          {onBack && (
+            <button className="mobile-back-btn" onClick={onBack} title="Back to DMs">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
+          )}
           <div className="dm-chat-avatar">
             {room.partner?.profileImage ? (
               <img src={room.partner.profileImage} alt={partnerName} />

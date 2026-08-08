@@ -71,6 +71,7 @@ export default function Chat() {
   const [navRailTab, setNavRailTab] = useState('chat');
   const [dmRequestToast, setDmRequestToast] = useState(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
+  const [mobileActiveView, setMobileActiveView] = useState('sidebar'); // 'sidebar' | 'chat'
 
   // Read navigation state when coming from Settings
   useEffect(() => {
@@ -179,8 +180,18 @@ export default function Chat() {
     startCall(toUserId, roomId, isVideo);
   };
 
+  const handleSelectRoom = (room) => {
+    selectRoom(room);
+    setMobileActiveView('chat');
+  };
+
+  const handleOpenDM = async (convo) => {
+    await openDM(convo);
+    setMobileActiveView('chat');
+  };
+
   return (
-    <div className="chat-app-shell">
+    <div className={`chat-app-shell mobile-view-${mobileActiveView}`}>
       {/* Toast */}
       {dmRequestToast && (
         <div className="dm-toast">{dmRequestToast}</div>
@@ -191,7 +202,7 @@ export default function Chat() {
         <div className="rail-top">
           <button
             className="rail-btn action-plus"
-            onClick={() => { setShowCreateModal(true); setNavRailTab('chat'); }}
+            onClick={() => { setShowCreateModal(true); setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
             title="Create New Channel"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -202,7 +213,7 @@ export default function Chat() {
           {/* Notification Icon Below + Icon */}
           <button
             className={`rail-btn rail-btn--notif ${navRailTab === 'notifications' ? 'active' : ''}`}
-            onClick={() => setNavRailTab('notifications')}
+            onClick={() => { setNavRailTab('notifications'); setMobileActiveView('chat'); }}
             title="Notifications"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -226,7 +237,7 @@ export default function Chat() {
 
           <button
             className={`rail-btn ${navRailTab === 'calls' ? 'active' : ''}`}
-            onClick={() => setNavRailTab('calls')}
+            onClick={() => { setNavRailTab('calls'); setMobileActiveView('chat'); }}
             title="Calls & Call Logs"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -236,7 +247,7 @@ export default function Chat() {
 
           <button
             className={`rail-btn ${navRailTab === 'chat' ? 'active' : ''}`}
-            onClick={() => setNavRailTab('chat')}
+            onClick={() => { setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
             title="Group Channels"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -248,7 +259,7 @@ export default function Chat() {
           {/* DM Icon */}
           <button
             className={`rail-btn rail-btn--dm ${navRailTab === 'dm' ? 'active' : ''}`}
-            onClick={() => setNavRailTab('dm')}
+            onClick={() => { setNavRailTab('dm'); setMobileActiveView('sidebar'); }}
             title="Direct Messages"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -309,7 +320,7 @@ export default function Chat() {
           <DMPanel
             conversations={conversations}
             currentDM={currentDM}
-            onOpen={openDM}
+            onOpen={handleOpenDM}
             onSendRequest={(toUserId) => handleDMUser(toUserId)}
             userId={user?.id}
             loading={dmLoading}
@@ -318,7 +329,7 @@ export default function Chat() {
           <Channels
             rooms={rooms}
             current={currentRoom}
-            onSelect={selectRoom}
+            onSelect={handleSelectRoom}
             onLeave={leaveRoom}
             onRequestJoin={handleRequestJoin}
             memberRooms={memberRooms}
@@ -370,6 +381,7 @@ export default function Chat() {
             onRemove={removeDM}
             onSend={sendDMMessage}
             onStartCall={handleStartCall}
+            onBack={() => setMobileActiveView('sidebar')}
           />
         ) : (
           /* Group Chat View */
@@ -378,6 +390,16 @@ export default function Chat() {
               {currentRoom ? (
                 <>
                   <div className="header-left">
+                    <button
+                      className="mobile-back-btn"
+                      onClick={() => setMobileActiveView('sidebar')}
+                      title="Back to Channels"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12" />
+                        <polyline points="12 19 5 12 12 5" />
+                      </svg>
+                    </button>
                     <div className="header-avatar-badge">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
