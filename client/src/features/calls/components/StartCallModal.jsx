@@ -98,7 +98,7 @@ export default function StartCallModal({ isOpen, onClose, onStartCall }) {
                       <button
                         className="call-dial-btn voice"
                         onClick={() => {
-                          onStartCall?.(contact.id, null, false);
+                          onStartCall?.(contact.id, null, false, contact);
                           onClose();
                         }}
                         title="Voice Call"
@@ -111,7 +111,7 @@ export default function StartCallModal({ isOpen, onClose, onStartCall }) {
                       <button
                         className="call-dial-btn video"
                         onClick={() => {
-                          onStartCall?.(contact.id, null, true);
+                          onStartCall?.(contact.id, null, true, contact);
                           onClose();
                         }}
                         title="Video Call"

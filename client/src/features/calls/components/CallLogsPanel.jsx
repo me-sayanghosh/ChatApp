@@ -162,7 +162,7 @@ export default function CallLogsPanel({ logs = [], loading, onSelectLog, onStart
                           className="call-action-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onStartCall?.(log.partner.id, null, false);
+                            onStartCall?.(log.partner.id, null, false, log.partner);
                           }}
                           title={`Voice call ${partnerName}`}
                         >
@@ -174,7 +174,7 @@ export default function CallLogsPanel({ logs = [], loading, onSelectLog, onStart
                           className="call-action-btn video-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onStartCall?.(log.partner.id, null, true);
+                            onStartCall?.(log.partner.id, null, true, log.partner);
                           }}
                           title={`Video call ${partnerName}`}
                         >

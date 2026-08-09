@@ -109,10 +109,16 @@ export function useWebRTC(user) {
   };
 
   // Start Outgoing Call
-  const startCall = async (targetUserId, roomId, isVideo = true) => {
+  const startCall = async (targetUserId, roomId, isVideo = true, targetName = null, targetProfileImage = null) => {
     peerTargetRef.current = { targetUserId, roomId };
     setCallState('calling');
-    setCallerInfo({ fromUserId: targetUserId, isVideo, roomId });
+    setCallerInfo({
+      fromUserId: targetUserId,
+      fromUsername: targetName || 'User',
+      profileImage: targetProfileImage || null,
+      isVideo,
+      roomId,
+    });
 
     const socket = getSocket();
     if (socket) {

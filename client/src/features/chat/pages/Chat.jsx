@@ -202,9 +202,37 @@ export default function Chat() {
     }
   }
 
-  const handleStartCall = (toUserId, roomId, isVideo = false) => {
+  const handleStartCall = (toUserId, roomId, isVideo = false, userObj = null) => {
+    let targetName = userObj?.name || userObj?.username;
+    let targetProfileImage = userObj?.profileImage || userObj?.avatar;
+
+    if (!targetName && membersMap?.[toUserId]) {
+      targetName = membersMap[toUserId].name || membersMap[toUserId].username;
+      targetProfileImage = membersMap[toUserId].profileImage || membersMap[toUserId].avatar;
+    }
+    if (!targetName && conversations) {
+      const c = conversations.find((con) => con.partner?.id === toUserId || con.partner?.userId === toUserId);
+      if (c) {
+        targetName = c.partner?.name || c.partner?.username;
+        targetProfileImage = c.partner?.profileImage || c.partner?.avatar;
+      }
+    }
+    if (!targetName && callLogs) {
+      const l = callLogs.find((log) => log.partner?.id === toUserId || log.receiverId === toUserId);
+      if (l) {
+        targetName = l.partner?.name || l.partner?.username;
+        targetProfileImage = l.partner?.profileImage || l.partner?.avatar;
+      }
+    }
+    if (!targetName && currentDM?.partner) {
+      if (currentDM.partner.id === toUserId || currentDM.partner._id === toUserId) {
+        targetName = currentDM.partner.name || currentDM.partner.username;
+        targetProfileImage = currentDM.partner.profileImage || currentDM.partner.avatar;
+      }
+    }
+
     addCallLog({ receiverId: toUserId, roomId, type: isVideo ? 'video' : 'voice', status: 'completed' });
-    startCall(toUserId, roomId, isVideo);
+    startCall(toUserId, roomId, isVideo, targetName, targetProfileImage);
   };
 
   const handleSelectRoom = (room) => {

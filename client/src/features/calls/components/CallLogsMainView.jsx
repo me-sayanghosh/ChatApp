@@ -238,14 +238,14 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
                             <div className="call-table-actions">
                               <button
                                 className="call-btn-voice"
-                                onClick={() => onStartCall?.(log.partner.id, null, false)}
+                                onClick={() => onStartCall?.(log.partner.id, null, false, log.partner)}
                                 title={`Voice Call ${partnerName}`}
                               >
                                 📞 Voice
                               </button>
                               <button
                                 className="call-btn-video"
-                                onClick={() => onStartCall?.(log.partner.id, null, true)}
+                                onClick={() => onStartCall?.(log.partner.id, null, true, log.partner)}
                                 title={`Video Call ${partnerName}`}
                               >
                                 📹 Video
@@ -303,7 +303,7 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
                               className="call-action-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onStartCall?.(log.partner.id, null, false);
+                                onStartCall?.(log.partner.id, null, false, log.partner);
                               }}
                               title={`Voice call ${partnerName}`}
                             >
@@ -315,7 +315,7 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
                               className="call-action-btn video-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onStartCall?.(log.partner.id, null, true);
+                                onStartCall?.(log.partner.id, null, true, log.partner);
                               }}
                               title={`Video call ${partnerName}`}
                             >

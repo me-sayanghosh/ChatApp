@@ -86,14 +86,22 @@ export default function CallOverlay({
       {callState === 'incoming' && (
         <div className="call-incoming-card">
           <div className="incoming-avatar-wrap">
-            <div className="incoming-avatar-fallback">
-              {callerInfo?.fromUsername?.[0]?.toUpperCase() || 'U'}
-            </div>
+            {callerInfo?.profileImage ? (
+              <img
+                src={callerInfo.profileImage}
+                alt={callerInfo.fromUsername || 'User'}
+                className="incoming-avatar-img"
+              />
+            ) : (
+              <div className="incoming-avatar-fallback">
+                {(callerInfo?.fromUsername || 'U')[0].toUpperCase()}
+              </div>
+            )}
             <div className="incoming-pulse-ring" />
           </div>
           <div className="incoming-info">
             <h4>Incoming {callerInfo?.isVideo ? 'Video' : 'Audio'} Call</h4>
-            <p>@{callerInfo?.fromUsername || 'User'} is calling you...</p>
+            <p>{callerInfo?.fromUsername || 'User'} is calling you...</p>
           </div>
           <div className="incoming-actions">
             <button className="call-btn decline" onClick={onReject} title="Decline Call">
@@ -116,15 +124,27 @@ export default function CallOverlay({
       {/* 2. Outgoing Call Ringing Banner */}
       {callState === 'calling' && (
         <div className="call-outgoing-card">
-          <div className="outgoing-spinner" />
-          <h4>Calling @{callerInfo?.fromUsername || 'User'}...</h4>
-          <p>Connecting WebRTC peer session...</p>
+          <div className="outgoing-avatar-wrap">
+            {callerInfo?.profileImage ? (
+              <img
+                src={callerInfo.profileImage}
+                alt={callerInfo.fromUsername || 'User'}
+                className="outgoing-avatar-img"
+              />
+            ) : (
+              <div className="outgoing-avatar-fallback">
+                {(callerInfo?.fromUsername || 'U')[0].toUpperCase()}
+              </div>
+            )}
+            <div className="outgoing-pulse-ring" />
+          </div>
+          <h4>Calling {callerInfo?.fromUsername || 'User'}...</h4>
           <button className="call-btn decline big-cancel-btn" onClick={onEndCall} title="Cancel Call">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
-            Cancel Call
+            <span>Cancel Call</span>
           </button>
         </div>
       )}
@@ -136,7 +156,7 @@ export default function CallOverlay({
           <div className="call-top-bar">
             <div className="call-top-user">
               <div className="call-status-dot" />
-              <span className="call-username">@{callerInfo?.fromUsername || 'Peer'}</span>
+              <span className="call-username">{callerInfo?.fromUsername || 'Peer'}</span>
               <span className="call-hd-tag">HD 1080p</span>
             </div>
             <div className="call-timer-badge">
@@ -157,33 +177,39 @@ export default function CallOverlay({
             ) : (
               <div className="audio-avatar-card">
                 <div className="audio-avatar-circle">
-                  {callerInfo?.fromUsername?.[0]?.toUpperCase() || 'U'}
+                  {callerInfo?.profileImage ? (
+                    <img src={callerInfo.profileImage} alt={callerInfo.fromUsername} className="audio-avatar-img" />
+                  ) : (
+                    (callerInfo?.fromUsername || 'U')[0].toUpperCase()
+                  )}
                 </div>
-                <p className="audio-call-name">@{callerInfo?.fromUsername || 'User'}</p>
+                <p className="audio-call-name">{callerInfo?.fromUsername || 'User'}</p>
                 <span className="audio-call-status">Connected Audio Call</span>
               </div>
             )}
 
-            {/* PIP Local Camera Preview */}
-            <div className="local-pip-container">
-              <video
-                ref={localVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className={`local-pip-el ${isVideoOff ? 'video-off' : ''}`}
-              />
-              {isVideoOff && (
-                <div className="pip-avatar-fallback">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                    <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9.5" />
-                  </svg>
-                  <span>Camera Off</span>
-                </div>
-              )}
-              <div className="pip-user-label">You</div>
-            </div>
+            {/* PIP Local Camera Preview (Video calls only) */}
+            {callerInfo?.isVideo && (
+              <div className="local-pip-container">
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`local-pip-el ${isVideoOff ? 'video-off' : ''}`}
+                />
+                {isVideoOff && (
+                  <div className="pip-avatar-fallback">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                      <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9.5" />
+                    </svg>
+                    <span>Camera Off</span>
+                  </div>
+                )}
+                <div className="pip-user-label">You</div>
+              </div>
+            )}
           </div>
 
           {/* Bottom Floating Control Dock */}
@@ -202,33 +228,37 @@ export default function CallOverlay({
               <span>{isMuted ? 'Unmute' : 'Mute'}</span>
             </button>
 
-            {/* Camera Toggle */}
-            <button
-              className={`control-btn ${isVideoOff ? 'active-red' : ''}`}
-              onClick={onToggleVideo}
-              title={isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="23 7 16 12 23 17 23 7" />
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-                {isVideoOff && <line x1="1" y1="1" x2="23" y2="23" />}
-              </svg>
-              <span>{isVideoOff ? 'Cam On' : 'Cam Off'}</span>
-            </button>
+            {/* Camera Toggle (Video calls only) */}
+            {callerInfo?.isVideo && (
+              <button
+                className={`control-btn ${isVideoOff ? 'active-red' : ''}`}
+                onClick={onToggleVideo}
+                title={isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="23 7 16 12 23 17 23 7" />
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                  {isVideoOff && <line x1="1" y1="1" x2="23" y2="23" />}
+                </svg>
+                <span>{isVideoOff ? 'Cam On' : 'Cam Off'}</span>
+              </button>
+            )}
 
-            {/* Screen Share Toggle */}
-            <button
-              className={`control-btn ${isScreenSharing ? 'active-blue' : ''}`}
-              onClick={onToggleScreenShare}
-              title={isScreenSharing ? 'Stop Sharing Screen' : 'Share Screen'}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                <line x1="8" y1="21" x2="16" y2="21" />
-                <line x1="12" y1="17" x2="12" y2="21" />
-              </svg>
-              <span>{isScreenSharing ? 'Stop Share' : 'Share'}</span>
-            </button>
+            {/* Screen Share Toggle (Video calls only) */}
+            {callerInfo?.isVideo && (
+              <button
+                className={`control-btn ${isScreenSharing ? 'active-blue' : ''}`}
+                onClick={onToggleScreenShare}
+                title={isScreenSharing ? 'Stop Sharing Screen' : 'Share Screen'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+                <span>{isScreenSharing ? 'Stop Share' : 'Share'}</span>
+              </button>
+            )}
 
             {/* Speaker Mute Toggle */}
             <button
@@ -247,25 +277,23 @@ export default function CallOverlay({
               <span>{isSpeakerMuted ? 'Unmute Audio' : 'Audio'}</span>
             </button>
 
-            {/* Fullscreen Toggle */}
-            <button
-              className={`control-btn ${isFullscreen ? 'active-blue' : ''}`}
-              onClick={toggleFullscreen}
-              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                {isFullscreen ? (
-                  <>
+            {/* Fullscreen Toggle (Video calls only) */}
+            {callerInfo?.isVideo && (
+              <button
+                className={`control-btn ${isFullscreen ? 'active-blue' : ''}`}
+                onClick={toggleFullscreen}
+                title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  {isFullscreen ? (
                     <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3" />
-                  </>
-                ) : (
-                  <>
+                  ) : (
                     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                  </>
-                )}
-              </svg>
-              <span>{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
-            </button>
+                  )}
+                </svg>
+                <span>{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+              </button>
+            )}
 
             {/* Prominent Red END CALL Button */}
             <button

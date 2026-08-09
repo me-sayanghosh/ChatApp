@@ -4305,10 +4305,45 @@ kbd {
   width: 48px;
   height: 48px;
   border: 4px solid #E2E8F0;
-  border-top-color: #0052FF;
+  border-top-color: var(--primary, #29410f);
   border-radius: 50%;
   animation: spin 1s infinite linear;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.call-outgoing-card h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main, #0F172A);
+  margin: 0 0 4px;
+}
+
+.big-cancel-btn {
+  margin-top: 18px;
+  padding: 10px 24px !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  border-radius: 24px !important;
+  background: #EF4444 !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.big-cancel-btn:hover {
+  background: #DC2626 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45) !important;
+}
+
+.big-cancel-btn:active {
+  transform: translateY(0) !important;
 }
 
 @keyframes spin {

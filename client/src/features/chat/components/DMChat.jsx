@@ -102,7 +102,7 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
           <div className="dm-chat-header-actions">
             <button
               className="header-icon-btn"
-              onClick={() => onStartCall?.(room.partner?.id || room.partner?._id, room.id, false)}
+              onClick={() => onStartCall?.(room.partner?.id || room.partner?._id, room.id, false, room.partner)}
               title="Voice Call"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -111,7 +111,7 @@ export default function DMChat({ room, messages, userId, onAccept, onRemove, onS
             </button>
             <button
               className="header-icon-btn"
-              onClick={() => onStartCall?.(room.partner?.id || room.partner?._id, room.id, true)}
+              onClick={() => onStartCall?.(room.partner?.id || room.partner?._id, room.id, true, room.partner)}
               title="Video Call"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
