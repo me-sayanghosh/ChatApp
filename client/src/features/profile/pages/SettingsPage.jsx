@@ -675,7 +675,7 @@ export default function SettingsPage() {
                           required
                         />
                         {usernameStatus === 'checking' && <span className="status-badge">checking...</span>}
-                        {usernameStatus === 'available' && <span className="status-badge available">&check;</span>}
+                        {usernameStatus === 'available' && <span className="status-badge available">✓</span>}
                         {usernameStatus === 'taken' && <span className="status-badge taken">&times;</span>}
                         <button
                           type="button"
@@ -746,7 +746,7 @@ export default function SettingsPage() {
                           disabled
                           className="disabled-input"
                         />
-                        <span className="verified-tag">&check; Verified</span>
+                        <span className="verified-tag">✓ Verified</span>
                       </div>
                       <span className="field-hint">Tied to your DropTalk workspace organization account.</span>
                     </div>
