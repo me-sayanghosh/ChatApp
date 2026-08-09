@@ -369,7 +369,7 @@ export default function Chat() {
             selectedLog={selectedCallLog}
             onStartCall={handleStartCall}
             onClearHistory={clearCallHistory}
-            onBack={() => setMobileActiveView('sidebar')}
+            onBack={() => { setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
           />
         ) : navRailTab === 'dm' ? (
           /* DM Main View */

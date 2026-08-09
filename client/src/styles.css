@@ -5375,6 +5375,21 @@ kbd {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
+.call-controls-wrapper {
+  padding: 16px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.desktop-only-table {
+  display: block;
+}
+
+.mobile-only-list {
+  display: none;
+}
+
 
 .call-table {
   width: 100%;
@@ -7902,6 +7917,35 @@ body.light-theme .notif-filter-item:hover {
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
+  }
+
+  .desktop-only-table {
+    display: none !important;
+  }
+
+  .mobile-only-list {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .call-main-container {
+    padding: 0 !important;
+  }
+
+  .call-controls-wrapper {
+    padding: 12px 14px 0 !important;
+  }
+
+  .call-analytics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding: 12px 14px !important;
+  }
+
+  .call-analytics-card {
+    padding: 10px 12px !important;
   }
 
   /* 3. Header formatting on mobile */
