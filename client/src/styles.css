@@ -1435,20 +1435,10 @@ body {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-[data-theme="dark"] .field-input-action-wrapper {
-  background: #0F172A;
-  border-color: #334155;
-}
-
 .field-input-action-wrapper.disabled,
 .input-prefix-wrapper.disabled {
   background: #F8FAFC;
   opacity: 0.9;
-}
-
-[data-theme="dark"] .field-input-action-wrapper.disabled,
-[data-theme="dark"] .input-prefix-wrapper.disabled {
-  background: #0B1120;
 }
 
 .field-input-action-wrapper input:disabled,
@@ -1599,16 +1589,6 @@ body {
   transform: translateY(-1px);
 }
 
-[data-theme="dark"] .button-secondary-pill {
-  background: #1e293b;
-  border-color: #334155;
-  color: #f8fafc;
-}
-
-[data-theme="dark"] .button-secondary-pill:hover {
-  background: #334155;
-  color: #ffffff;
-}
 
 .button-danger-pill {
   background: #FEE2E2;
@@ -2358,146 +2338,6 @@ kbd {
   padding-right: 28px !important;
 }
 
-[data-theme="dark"] .cc-modal {
-  background: #1E293B;
-  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="dark"] .cc-modal-header {
-  border-bottom-color: #334155;
-}
-
-[data-theme="dark"] .cc-modal-icon {
-  background: rgba(41, 65, 15, 0.2);
-}
-
-[data-theme="dark"] .cc-modal-title {
-  color: #F8FAFC;
-}
-
-[data-theme="dark"] .cc-modal-subtitle {
-  color: #94A3B8;
-}
-
-[data-theme="dark"] .cc-close-btn {
-  background: #334155;
-  color: #94A3B8;
-}
-
-[data-theme="dark"] .cc-close-btn:hover {
-  background: #475569;
-  color: #F8FAFC;
-}
-
-[data-theme="dark"] .cc-label {
-  color: #94A3B8;
-}
-
-[data-theme="dark"] .cc-input-wrap {
-  background: #0F172A;
-  border-color: #334155;
-}
-
-[data-theme="dark"] .cc-input-wrap:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(41, 65, 15, 0.25);
-}
-
-[data-theme="dark"] .cc-input {
-  color: #F8FAFC;
-}
-
-[data-theme="dark"] .cc-input::placeholder {
-  color: #64748B;
-}
-
-[data-theme="dark"] .cc-input option {
-  background: #1E293B;
-  color: #F8FAFC;
-}
-
-[data-theme="dark"] .cc-char-count {
-  color: #64748B;
-}
-
-[data-theme="dark"] .cc-field-hint {
-  color: #64748B;
-}
-
-/* Type cards dark mode */
-[data-theme="dark"] .cc-type-card {
-  background: #0F172A;
-  border-color: #334155;
-}
-
-[data-theme="dark"] .cc-type-card:hover {
-  background: #1a2744;
-  border-color: #475569;
-}
-
-[data-theme="dark"] .cc-type-card.selected {
-  background: #1a2744;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
-}
-
-[data-theme="dark"] .cc-type-icon {
-  background: rgba(139, 92, 246, 0.12) !important;
-}
-
-[data-theme="dark"] .cc-type-label {
-  color: #F1F5F9;
-}
-
-[data-theme="dark"] .cc-type-desc {
-  color: #94A3B8;
-}
-
-[data-theme="dark"] .cc-type-radio {
-  border-color: #475569;
-}
-
-/* Preview strip dark mode */
-[data-theme="dark"] .cc-preview-strip {
-  background: rgba(139, 92, 246, 0.08) !important;
-}
-
-/* Error dark mode */
-[data-theme="dark"] .cc-error {
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.25);
-  color: #FCA5A5;
-}
-
-/* Duration pills dark mode */
-[data-theme="dark"] .cc-duration-pill {
-  background: #0F172A;
-  border-color: #334155;
-  color: #94A3B8;
-}
-
-[data-theme="dark"] .cc-duration-pill:hover {
-  border-color: #8B5CF6;
-  color: #C4B5FD;
-}
-
-[data-theme="dark"] .cc-duration-pill.selected {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: #8B5CF6;
-  color: #C4B5FD;
-}
-
-/* Footer buttons dark mode */
-[data-theme="dark"] .cc-btn-cancel {
-  background: #334155;
-  border-color: #475569;
-  color: #CBD5E1;
-}
-
-[data-theme="dark"] .cc-btn-cancel:hover:not(:disabled) {
-  background: #475569;
-  border-color: #64748B;
-  color: #F8FAFC;
-}
 
 .cc-input::placeholder {
   color: #CBD5E1;
@@ -4589,66 +4429,7 @@ kbd {
    PHASE 8 — Dark Mode & Keyboard Shortcuts Styles
    ============================================================ */
 
-/* Dark Mode Overrides */
-[data-theme="dark"] body,
-[data-theme="dark"] .chat-app-shell {
-  background-color: #0B0F19;
-  color: #F8FAFC;
-}
 
-[data-theme="dark"] .nav-rail {
-  background: #0F172A;
-  border-right-color: #1E293B;
-}
-
-[data-theme="dark"] .sidebar {
-  background: #111827;
-  border-right-color: #1F2937;
-}
-
-[data-theme="dark"] .chat-header,
-[data-theme="dark"] .dm-chat-header {
-  background: #111827;
-  border-bottom-color: #1F2937;
-}
-
-[data-theme="dark"] .header-room-name,
-[data-theme="dark"] .dm-chat-info h2 {
-  color: #F8FAFC;
-}
-
-[data-theme="dark"] .messages-container {
-  background: #0B0F19;
-}
-
-[data-theme="dark"] .msg-bubble {
-  background: #1F2937;
-  color: #F3F4F6;
-  border: 1px solid #374151;
-}
-
-[data-theme="dark"] .msg-card.mine .msg-bubble {
-  background: #0052FF;
-  color: #ffffff;
-  border: none;
-}
-
-[data-theme="dark"] .composer-wrapper {
-  background: #111827;
-  border-top-color: #1F2937;
-}
-
-[data-theme="dark"] .message-input-box,
-[data-theme="dark"] .dm-input-box {
-  background: #1F2937;
-  color: #F9FAFB;
-  border-color: #374151;
-}
-
-[data-theme="dark"] .members-panel {
-  background: #111827;
-  border-left-color: #1F2937;
-}
 
 /* Core Popup Modal System */
 .modal-backdrop {
@@ -4695,25 +4476,6 @@ kbd {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-[data-theme="dark"] .modal-card {
-  background: #1E293B;
-  color: #F8FAFC;
-  border-color: #334155;
-  box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.7);
-}
-
-[data-theme="dark"] .modal-header h3 {
-  color: #F8FAFC;
-}
-
-[data-theme="dark"] .dm-discovery-section {
-  background: #1E293B;
-  border-bottom-color: #334155;
-}
-
-[data-theme="dark"] .dm-discovery-item:hover {
-  background: #334155;
-}
 
 /* Quick Switcher Modal */
 .quick-switcher-modal {

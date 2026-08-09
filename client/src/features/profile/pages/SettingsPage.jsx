@@ -797,37 +797,64 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Dark Theme Card */}
+                  {/* Dark Theme Card (Coming Soon) */}
                   <div
-                    className={`theme-card ${theme === 'dark' ? 'selected' : ''}`}
-                    onClick={() => setTheme('dark')}
+                    className="theme-card coming-soon"
                     style={{
-                      border: theme === 'dark' ? '2px solid var(--primary-mid)' : '1px solid var(--border-color)',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '16px',
                       padding: '16px',
-                      cursor: 'pointer',
                       background: '#0F172A',
                       color: '#F8FAFC',
-                      transition: 'all 0.2s ease',
                       position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'not-allowed',
+                      userSelect: 'none',
                     }}
                   >
-                    <div style={{ height: '100px', borderRadius: '10px', background: '#1E293B', padding: '10px', display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                      <div style={{ width: '20px', background: '#29410f', borderRadius: '6px' }} />
-                      <div style={{ width: '50px', background: '#0F172A', borderRadius: '6px' }} />
-                      <div style={{ flex: 1, background: '#0F172A', borderRadius: '6px', padding: '6px' }}>
-                        <div style={{ height: '8px', width: '60%', background: '#4a7c2f', borderRadius: '4px', marginBottom: '6px' }} />
-                        <div style={{ height: '6px', width: '90%', background: '#334155', borderRadius: '3px' }} />
+                    <div style={{ filter: 'blur(2px)', opacity: 0.5, pointerEvents: 'none' }}>
+                      <div style={{ height: '100px', borderRadius: '10px', background: '#1E293B', padding: '10px', display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                        <div style={{ width: '20px', background: '#29410f', borderRadius: '6px' }} />
+                        <div style={{ width: '50px', background: '#0F172A', borderRadius: '6px' }} />
+                        <div style={{ flex: 1, background: '#0F172A', borderRadius: '6px', padding: '6px' }}>
+                          <div style={{ height: '8px', width: '60%', background: '#4a7c2f', borderRadius: '4px', marginBottom: '6px' }} />
+                          <div style={{ height: '6px', width: '90%', background: '#334155', borderRadius: '3px' }} />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#F8FAFC' }}>Dark Mode</h4>
+                          <span style={{ fontSize: '12px', color: '#94A3B8' }}>Sleek & easy on eyes</span>
+                        </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#F8FAFC' }}>Dark Mode</h4>
-                        <span style={{ fontSize: '12px', color: '#94A3B8' }}>Sleek & easy on eyes</span>
-                      </div>
-                      {theme === 'dark' && (
-                        <span style={{ background: 'var(--primary-mid)', color: '#fff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700 }}>✓</span>
-                      )}
+
+                    {/* Coming Soon Overlay */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify-content: 'center',
+                        background: 'rgba(15, 23, 42, 0.35)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: 'var(--primary)',
+                          color: '#ffffff',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          letterSpacing: '0.6px',
+                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Coming Soon
+                      </span>
                     </div>
                   </div>
                 </div>
