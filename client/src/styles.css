@@ -7887,6 +7887,39 @@ body.light-theme .notif-filter-item:hover {
   .shortcuts-grid,
   .help-cards-grid {
     grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .help-card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+    gap: 8px !important;
+  }
+
+  .help-card h3 {
+    font-size: 15px !important;
+  }
+
+  .help-card p {
+    font-size: 12.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  .feedback-form-card {
+    padding: 18px 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .feedback-form-card h3 {
+    font-size: 15px !important;
+  }
+
+  .feedback-form-card button[type="submit"] {
+    width: 100% !important;
+    padding: 12px 18px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    justify-content: center !important;
   }
 
   .dm-chat-header {
