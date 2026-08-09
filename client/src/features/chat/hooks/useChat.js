@@ -444,7 +444,7 @@ export default function useChat() {
       if (roomsToBackfill.length === 0) return;
 
       try {
-        const res = await api.post('/rooms/messages/backfill', { rooms: roomsToBackfill });
+        const res = await api.post('/rooms/backfill', { rooms: roomsToBackfill });
         const backfill = res.data.backfill || {};
 
         for (const [roomId, newMsgs] of Object.entries(backfill)) {

@@ -49,7 +49,7 @@ export default function SetUsername() {
             autoFocus
             minLength={3}
             maxLength={24}
-            pattern="[a-zA-Z0-9_-]+"
+            pattern="[a-zA-Z0-9_\-]+"
             required
             autoComplete="username"
           />

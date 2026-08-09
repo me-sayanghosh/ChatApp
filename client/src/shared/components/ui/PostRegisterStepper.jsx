@@ -57,7 +57,7 @@ export default function PostRegisterStepper({ onComplete }) {
                 onChange={(e) => setUsername(e.target.value)}
                 minLength={3}
                 maxLength={24}
-                pattern="[a-zA-Z0-9_-]+"
+                pattern="[a-zA-Z0-9_\-]+"
                 autoComplete="username"
               />
               {err && <div className="error">{err}</div>}
