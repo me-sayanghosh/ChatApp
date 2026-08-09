@@ -788,7 +788,7 @@ export default function SettingsPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>☀️ Light Mode</h4>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Light Mode</h4>
                         <span style={{ fontSize: '12px', color: '#64748B' }}>Clean & high contrast</span>
                       </div>
                       {theme === 'light' && (
@@ -822,7 +822,7 @@ export default function SettingsPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#F8FAFC' }}>🌙 Dark Mode</h4>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#F8FAFC' }}>Dark Mode</h4>
                         <span style={{ fontSize: '12px', color: '#94A3B8' }}>Sleek & easy on eyes</span>
                       </div>
                       {theme === 'dark' && (
