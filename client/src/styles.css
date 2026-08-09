@@ -4495,9 +4495,6 @@ kbd {
   margin-bottom: 12px;
 }
 
-[data-theme="dark"] .quick-switcher-input-box {
-  background: #0F172A;
-}
 
 .quick-switcher-input-box input {
   flex: 1;
@@ -4582,9 +4579,6 @@ kbd {
   border-radius: 10px;
 }
 
-[data-theme="dark"] .shortcut-row {
-  background: #0F172A;
-}
 
 .shortcut-desc {
   font-size: 13px;
@@ -4601,10 +4595,6 @@ kbd {
   font-family: monospace;
 }
 
-[data-theme="dark"] .shortcut-key {
-  background: #334155;
-  color: #F8FAFC;
-}
 
 
 .control-btn.end-call:hover {
@@ -4643,12 +4633,6 @@ kbd {
   user-select: none;
 }
 
-[data-theme="dark"] .toast {
-  background: #0B1120;
-  border: 1px solid #334155;
-  border-left: 4px solid var(--primary);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-}
 
 .toast-success {
   border-left-color: #22C55E !important;
