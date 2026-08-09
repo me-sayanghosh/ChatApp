@@ -5376,8 +5376,8 @@ kbd {
 }
 
 .call-controls-wrapper {
+  display: none;
   padding: 16px 24px 0;
-  display: flex;
   flex-direction: column;
   gap: 12px;
 }
