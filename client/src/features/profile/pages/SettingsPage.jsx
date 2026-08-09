@@ -1063,7 +1063,7 @@ export default function SettingsPage() {
 
                 <div className="help-cards-grid">
                   <div className="help-card">
-                    <div className="help-card-icon">📚</div>
+                    <div className="help-card-icon"></div>
                     <h3>Help Center</h3>
                     <p>Browse tutorials, FAQs, and guides on workspace setup and E2EE encryption.</p>
                     <a href="#help-faq" onClick={(e) => { e.preventDefault(); alert('Help Center: Visit https://droptalk.ai/help'); }}>
@@ -1072,7 +1072,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="help-card">
-                    <div className="help-card-icon">💬</div>
+                    <div className="help-card-icon"></div>
                     <h3>Contact Us</h3>
                     <p>Need urgent assistance? Reach our support team 24/7 at support@droptalk.ai.</p>
                     <a href="mailto:support@droptalk.ai">Email Support &rarr;</a>
