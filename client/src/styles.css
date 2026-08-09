@@ -4829,10 +4829,6 @@ kbd {
   background: rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="dark"] .conv-menu-trigger:hover,
-[data-theme="dark"] .conv-menu-trigger.active {
-  background: rgba(255, 255, 255, 0.12);
-}
 
 .channel-ctx-menu {
   position: absolute;
@@ -4849,11 +4845,6 @@ kbd {
   animation: ctx-pop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-[data-theme="dark"] .channel-ctx-menu {
-  background: #090D16;
-  border-color: #1E293B;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
-}
 
 .channel-ctx-item {
   width: 100%;
@@ -4915,10 +4906,6 @@ kbd {
   z-index: 10000;
 }
 
-[data-theme="dark"] .channel-ctx-sub-menu {
-  background: #090D16;
-  border-color: #1E293B;
-}
 
 .channel-status-badges {
   display: inline-flex;
@@ -5006,10 +4993,6 @@ kbd {
   transition: all 0.15s ease;
 }
 
-[data-theme="dark"] .call-search-bar input {
-  background: #1E293B;
-  color: #F8FAFC;
-}
 
 .call-tabs {
   display: flex;
@@ -5102,9 +5085,6 @@ kbd {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="dark"] .call-type-badge {
-  background: #1E293B;
-}
 
 .call-item-body {
   flex: 1;
@@ -5188,9 +5168,6 @@ kbd {
   overflow-y: auto;
 }
 
-[data-theme="dark"] .call-main-container {
-  background: #090D16;
-}
 
 .call-main-header {
   display: flex;
@@ -5246,10 +5223,6 @@ kbd {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
-[data-theme="dark"] .call-stat-card {
-  background: #111827;
-  border-color: #1F2937;
-}
 
 .stat-value {
   font-size: 1.75rem;
@@ -5284,10 +5257,6 @@ kbd {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
-[data-theme="dark"] .call-table-wrapper {
-  background: #111827;
-  border-color: #1F2937;
-}
 
 .call-table {
   width: 100%;
@@ -5306,10 +5275,6 @@ kbd {
   border-bottom: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .call-table th {
-  background: #1E293B;
-  border-color: #1F2937;
-}
 
 .call-table td {
   padding: 14px 18px;
@@ -5318,9 +5283,6 @@ kbd {
   border-bottom: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .call-table td {
-  border-color: #1F2937;
-}
 
 .contact-cell {
   display: flex;
