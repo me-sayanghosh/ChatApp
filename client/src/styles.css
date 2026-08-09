@@ -8173,6 +8173,31 @@ body.light-theme .notif-filter-item:hover {
     white-space: nowrap !important;
   }
 
+  .call-start-hdr-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .call-main-container {
+    padding: 0 !important;
+    height: calc(100vh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+  }
+
+  .call-content-canvas {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
   .call-controls-wrapper {
     padding: 12px 14px 4px !important;
     gap: 10px !important;

@@ -102,20 +102,17 @@ export default function CallLogsMainView({ logs = [], selectedLog, onStartCall, 
             </svg>
           </div>
           <div className="header-room-info">
-            <h2 className="header-room-name">Calls &amp; Activity</h2>
-            <div className="header-room-meta">
-              <span className="meta-pill">Voice &amp; Video Center</span>
-            </div>
+            <h2 className="header-room-name">Calls</h2>
           </div>
         </div>
 
         <div className="header-right">
           <button
-            className="button-primary-pill"
+            className="button-primary-pill call-start-hdr-btn"
             onClick={() => setShowModal(true)}
             title="Start New Call"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             <span>Start a Call</span>
