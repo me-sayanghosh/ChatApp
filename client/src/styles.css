@@ -7946,9 +7946,12 @@ body.light-theme .notif-filter-item:hover {
     gap: 0.35rem !important;
   }
 
-  .rail-bottom .settings-btn,
-  .rail-bottom .logout-btn {
+  .rail-bottom .settings-btn {
     display: flex !important;
+  }
+
+  .rail-bottom .logout-btn {
+    display: none !important;
   }
 
   .rail-btn {
