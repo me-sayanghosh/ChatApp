@@ -8105,8 +8105,8 @@ body.light-theme .notif-filter-item:hover {
   }
 
   .header-room-name {
-    font-size: 1rem !important;
-    max-width: 180px !important;
+    font-size: 0.98rem !important;
+    max-width: calc(100vw - 110px) !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
