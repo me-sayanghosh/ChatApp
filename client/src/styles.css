@@ -1310,6 +1310,21 @@ body {
   font-weight: 700;
 }
 
+.settings-nav-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 6px 8px;
+}
+
+.settings-nav-logout {
+  color: #EF4444 !important;
+}
+
+.settings-nav-logout:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #DC2626 !important;
+}
+
 .settings-content-panel {
   flex: 1;
   padding: 28px 40px;
