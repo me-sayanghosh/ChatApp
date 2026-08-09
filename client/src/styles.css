@@ -8173,24 +8173,71 @@ body.light-theme .notif-filter-item:hover {
     white-space: nowrap !important;
   }
 
+  .call-controls-wrapper {
+    padding: 12px 14px 4px !important;
+    gap: 10px !important;
+  }
+
+  .call-search-bar {
+    margin: 0 !important;
+  }
+
+  .call-search-bar input {
+    background: #ffffff !important;
+    border: 1.5px solid var(--border-color, #E2E8F0) !important;
+    border-radius: 12px !important;
+    padding: 10px 12px 10px 34px !important;
+    font-size: 13.5px !important;
+  }
+
+  .call-tabs {
+    padding: 2px 0 6px !important;
+    border-bottom: none !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .call-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .call-tab {
+    flex: none !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: #F1F5F9 !important;
+    color: #64748B !important;
+    white-space: nowrap !important;
+  }
+
+  .call-tab.active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
   .call-main-empty {
-    padding: 32px 16px !important;
+    padding: 40px 16px !important;
     border-radius: 18px !important;
   }
 
   .call-empty-icon-wrap {
-    width: 60px !important;
-    height: 60px !important;
+    width: 64px !important;
+    height: 64px !important;
     margin-bottom: 14px !important;
   }
 
   .call-empty-icon-wrap svg {
-    width: 30px !important;
-    height: 30px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
-  .call-main-empty h2 {
-    font-size: 1.15rem !important;
+  .call-main-empty h3 {
+    font-size: 1.1rem !important;
   }
 
   .call-main-empty p {

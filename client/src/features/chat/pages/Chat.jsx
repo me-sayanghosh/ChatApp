@@ -68,13 +68,40 @@ export default function Chat() {
   const [showQuickSwitcher, setShowQuickSwitcher] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [forwardMsg, setForwardMsg] = useState(null);
-  const [navRailTab, setNavRailTab] = useState('chat');
+  const getInitialTab = () => {
+    const p = location.pathname;
+    if (p.startsWith('/calls')) return 'calls';
+    if (p.startsWith('/notifications')) return 'notifications';
+    if (p.startsWith('/dm')) return 'dm';
+    return 'chat';
+  };
+
+  const getInitialMobileView = () => {
+    const p = location.pathname;
+    if (p.startsWith('/calls') || p.startsWith('/notifications')) return 'chat';
+    return 'sidebar';
+  };
+
+  const [navRailTab, setNavRailTab] = useState(getInitialTab);
   const [dmRequestToast, setDmRequestToast] = useState(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
-  const [mobileActiveView, setMobileActiveView] = useState('sidebar'); // 'sidebar' | 'chat'
+  const [mobileActiveView, setMobileActiveView] = useState(getInitialMobileView); // 'sidebar' | 'chat'
 
-  // Read navigation state when coming from Settings
+  // Sync tab & mobile active view with URL location changes and reload
   useEffect(() => {
+    const p = location.pathname;
+    if (p.startsWith('/calls')) {
+      setNavRailTab('calls');
+      setMobileActiveView('chat');
+    } else if (p.startsWith('/notifications')) {
+      setNavRailTab('notifications');
+      setMobileActiveView('chat');
+    } else if (p.startsWith('/dm')) {
+      setNavRailTab('dm');
+    } else if (p.startsWith('/channels') || p === '/chat') {
+      setNavRailTab('chat');
+    }
+
     if (location.state?.tab) {
       setNavRailTab(location.state.tab);
     }
@@ -84,7 +111,7 @@ export default function Chat() {
     if (location.state?.openSearch) {
       setShowQuickSwitcher(true);
     }
-  }, [location.state]);
+  }, [location.pathname, location.state]);
 
   // Global Keyboard Shortcuts Listener
   useEffect(() => {

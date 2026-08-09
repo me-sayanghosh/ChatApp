@@ -47,6 +47,12 @@ export default function App() {
           <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
           <Route path="/settings/:section" element={<Protected><SettingsPage /></Protected>} />
           <Route path="/chat" element={<Protected><Chat /></Protected>} />
+          <Route path="/channels" element={<Protected><Chat /></Protected>} />
+          <Route path="/channels/:roomId" element={<Protected><Chat /></Protected>} />
+          <Route path="/dm" element={<Protected><Chat /></Protected>} />
+          <Route path="/dm/:dmId" element={<Protected><Chat /></Protected>} />
+          <Route path="/calls" element={<Protected><Chat /></Protected>} />
+          <Route path="/notifications" element={<Protected><Chat /></Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
