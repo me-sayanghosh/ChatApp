@@ -240,7 +240,7 @@ export default function Chat() {
           {/* Notification Icon Below + Icon */}
           <button
             className={`rail-btn rail-btn--notif ${navRailTab === 'notifications' ? 'active' : ''}`}
-            onClick={() => { setNavRailTab('notifications'); setMobileActiveView('chat'); }}
+            onClick={() => { nav('/notifications'); setNavRailTab('notifications'); setMobileActiveView('chat'); }}
             title="Notifications"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -264,7 +264,7 @@ export default function Chat() {
 
           <button
             className={`rail-btn ${navRailTab === 'calls' ? 'active' : ''}`}
-            onClick={() => { setNavRailTab('calls'); setMobileActiveView('chat'); }}
+            onClick={() => { nav('/calls'); setNavRailTab('calls'); setMobileActiveView('chat'); }}
             title="Calls & Call Logs"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -274,7 +274,7 @@ export default function Chat() {
 
           <button
             className={`rail-btn ${navRailTab === 'chat' ? 'active' : ''}`}
-            onClick={() => { setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
+            onClick={() => { nav('/channels'); setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
             title="Group Channels"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -286,7 +286,7 @@ export default function Chat() {
           {/* DM Icon */}
           <button
             className={`rail-btn rail-btn--dm ${navRailTab === 'dm' ? 'active' : ''}`}
-            onClick={() => { setNavRailTab('dm'); setMobileActiveView('sidebar'); }}
+            onClick={() => { nav('/dm'); setNavRailTab('dm'); setMobileActiveView('sidebar'); }}
             title="Direct Messages"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -396,7 +396,7 @@ export default function Chat() {
             selectedLog={selectedCallLog}
             onStartCall={handleStartCall}
             onClearHistory={clearCallHistory}
-            onBack={() => { setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
+            onBack={() => { nav('/channels'); setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
           />
         ) : navRailTab === 'dm' ? (
           /* DM Main View */
