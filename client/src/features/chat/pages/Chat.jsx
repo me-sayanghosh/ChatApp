@@ -336,12 +336,12 @@ export default function Chat() {
             onClearAll={clearAllNotifications}
           />
         ) : navRailTab === 'calls' ? (
-          <CallLogsPanel
+          <CallLogsMainView
             logs={callLogs}
-            loading={callLogsLoading}
-            onSelectLog={(log) => { setSelectedCallLog(log); setMobileActiveView('chat'); }}
+            selectedLog={selectedCallLog}
             onStartCall={handleStartCall}
             onClearHistory={clearCallHistory}
+            onBack={() => { nav('/channels'); setNavRailTab('chat'); setMobileActiveView('sidebar'); }}
           />
         ) : navRailTab === 'dm' ? (
           <DMPanel
