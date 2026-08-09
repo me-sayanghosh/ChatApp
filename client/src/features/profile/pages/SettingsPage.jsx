@@ -22,10 +22,18 @@ export default function SettingsPage() {
 
   // State for Profile
   const fileInputRef = useRef(null);
+  const nameInputRef = useRef(null);
+  const usernameInputRef = useRef(null);
+
   const [name, setName] = useState(user?.name || '');
   const [username, setUsername] = useState(user?.username || '');
   const [profileImage, setProfileImage] = useState(user?.profileImage || '');
   const [imagePreview, setImagePreview] = useState(user?.profileImage || '');
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [savingField, setSavingField] = useState(null);
+
   const [usernameStatus, setUsernameStatus] = useState('idle');
   const [usernameMsg, setUsernameMsg] = useState('');
   const [profileErr, setProfileErr] = useState('');
@@ -121,50 +129,11 @@ export default function SettingsPage() {
   }, [username, user?.username, checkUsername]);
 
   // Handlers for Profile
-  function handleImageChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setProfileErr('Image must be under 2 MB');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfileImage(reader.result);
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function removeImage() {
-    setProfileImage('');
-    setImagePreview('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
-
-  async function handleSaveProfile(e) {
-    e.preventDefault();
+  async function saveProfileData(body, successMsg, resetEditFn) {
     setProfileErr('');
     setProfileSuccess('');
-
-    if (username.trim() && usernameStatus === 'taken') {
-      setProfileErr('Please choose a different username');
-      return;
-    }
-
     setProfileBusy(true);
     try {
-      const body = {};
-      if (name !== (user?.name || '')) body.name = name;
-      if (username.trim() && username !== user?.username) body.username = username.trim();
-      if (profileImage !== (user?.profileImage || '')) body.profileImage = profileImage;
-
-      if (Object.keys(body).length === 0) {
-        setProfileSuccess('No changes to save');
-        setProfileBusy(false);
-        return;
-      }
-
       const res = await fetch(`${API}/auth/profile`, {
         method: 'PUT',
         headers: {
@@ -176,12 +145,60 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to update profile');
       setUser(data.user);
-      setProfileSuccess('Profile updated successfully!');
+      setProfileSuccess(successMsg);
+      if (resetEditFn) resetEditFn();
     } catch (e) {
       setProfileErr(e.message);
     } finally {
       setProfileBusy(false);
+      setSavingField(null);
     }
+  }
+
+  function handleImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileErr('Image must be under 2 MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setProfileImage(reader.result);
+      setImagePreview(reader.result);
+      saveProfileData({ profileImage: reader.result }, 'Profile picture updated!');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setProfileImage('');
+    setImagePreview('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    saveProfileData({ profileImage: '' }, 'Profile picture removed!');
+  }
+
+  async function handleSaveName() {
+    if (!name.trim()) {
+      setProfileErr('Display name cannot be empty');
+      return;
+    }
+    setSavingField('name');
+    await saveProfileData({ name: name.trim() }, 'Display name updated!', () => setIsEditingName(false));
+  }
+
+  async function handleSaveUsername() {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      setProfileErr('Username cannot be empty');
+      return;
+    }
+    if (usernameStatus === 'taken') {
+      setProfileErr('Please choose a available username');
+      return;
+    }
+    setSavingField('username');
+    await saveProfileData({ username: trimmed }, 'Username handle updated!', () => setIsEditingUsername(false));
   }
 
   // Handlers for Privacy
@@ -569,32 +586,88 @@ export default function SettingsPage() {
                   style={{ display: 'none' }}
                 />
 
-                <form onSubmit={handleSaveProfile} className="settings-form">
+                <div className="settings-form">
+                  {profileSuccess && <div className="settings-alert success">{profileSuccess}</div>}
+                  {profileErr && <div className="settings-alert error">{profileErr}</div>}
+
                   {/* Card 1: Public Identity */}
                   <div className="profile-card">
                     <h3 className="profile-card-title">Public Identity</h3>
                     <p className="profile-card-desc">How your profile appears to teammates across DropTalk channels.</p>
 
+                    {/* Display Name Field */}
                     <div className="settings-field">
                       <label>DISPLAY NAME</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Sayan Ghosh"
-                        maxLength={50}
-                      />
+                      <div className="field-input-action-wrapper">
+                        <input
+                          ref={nameInputRef}
+                          type="text"
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            setIsEditingName(true);
+                          }}
+                          placeholder="e.g. Sayan Ghosh"
+                          maxLength={50}
+                        />
+                        <button
+                          type="button"
+                          className={`field-edit-icon-btn ${isEditingName ? 'active' : ''}`}
+                          onClick={() => {
+                            setIsEditingName((prev) => !prev);
+                            if (!isEditingName) {
+                              setTimeout(() => nameInputRef.current?.focus(), 50);
+                            }
+                          }}
+                          title="Edit Display Name"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      </div>
                       <span className="field-hint">Your full name or display alias.</span>
+
+                      {(isEditingName || name !== (user?.name || '')) && (
+                        <div className="field-inline-save-row">
+                          <button
+                            type="button"
+                            className="button-primary-pill field-inline-save-btn"
+                            disabled={profileBusy || !name.trim() || name === user?.name}
+                            onClick={handleSaveName}
+                          >
+                            {savingField === 'name' ? 'Saving...' : 'Save Display Name'}
+                          </button>
+                          {name !== (user?.name || '') && (
+                            <button
+                              type="button"
+                              className="button-secondary-pill field-inline-cancel-btn"
+                              onClick={() => {
+                                setName(user?.name || '');
+                                setIsEditingName(false);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
 
+                    {/* Username Handle Field */}
                     <div className="settings-field">
                       <label>USERNAME HANDLE</label>
                       <div className="input-prefix-wrapper">
                         <span className="prefix">@</span>
                         <input
+                          ref={usernameInputRef}
                           type="text"
                           value={username}
-                          onChange={(e) => setUsername(e.target.value)}
+                          onChange={(e) => {
+                            setUsername(e.target.value);
+                            setIsEditingUsername(true);
+                          }}
                           placeholder="username"
                           minLength={3}
                           maxLength={24}
@@ -604,11 +677,54 @@ export default function SettingsPage() {
                         {usernameStatus === 'checking' && <span className="status-badge">checking...</span>}
                         {usernameStatus === 'available' && <span className="status-badge available">&check;</span>}
                         {usernameStatus === 'taken' && <span className="status-badge taken">&times;</span>}
+                        <button
+                          type="button"
+                          className={`field-edit-icon-btn ${isEditingUsername ? 'active' : ''}`}
+                          onClick={() => {
+                            setIsEditingUsername((prev) => !prev);
+                            if (!isEditingUsername) {
+                              setTimeout(() => usernameInputRef.current?.focus(), 50);
+                            }
+                          }}
+                          title="Edit Username Handle"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
                       </div>
                       {usernameMsg && (
                         <span className={`status-msg ${usernameStatus === 'available' ? 'available' : 'taken'}`}>
                           {usernameMsg}
                         </span>
+                      )}
+
+                      {(isEditingUsername || username !== (user?.username || '')) && (
+                        <div className="field-inline-save-row">
+                          <button
+                            type="button"
+                            className="button-primary-pill field-inline-save-btn"
+                            disabled={profileBusy || usernameStatus === 'taken' || !username.trim() || username === user?.username}
+                            onClick={handleSaveUsername}
+                          >
+                            {savingField === 'username' ? 'Saving...' : 'Save Username'}
+                          </button>
+                          {username !== (user?.username || '') && (
+                            <button
+                              type="button"
+                              className="button-secondary-pill field-inline-cancel-btn"
+                              onClick={() => {
+                                setUsername(user?.username || '');
+                                setIsEditingUsername(false);
+                                setUsernameStatus('idle');
+                                setUsernameMsg('');
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -632,19 +748,7 @@ export default function SettingsPage() {
                       <span className="field-hint">Tied to your DropTalk workspace organization account.</span>
                     </div>
                   </div>
-
-                  {profileErr && <div className="settings-alert error">{profileErr}</div>}
-
-                  <div className="profile-submit-row">
-                    <button
-                      type="submit"
-                      className="button-primary-pill profile-save-btn"
-                      disabled={profileBusy || usernameStatus === 'taken'}
-                    >
-                      {profileBusy ? 'Saving Changes...' : 'Save Profile Changes'}
-                    </button>
-                  </div>
-                </form>
+                </div>
               </div>
             )}
 

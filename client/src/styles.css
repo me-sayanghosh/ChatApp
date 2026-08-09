@@ -1425,6 +1425,81 @@ body {
   outline: none;
 }
 
+.field-input-action-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+[data-theme="dark"] .field-input-action-wrapper {
+  background: #0F172A;
+  border-color: #334155;
+}
+
+.field-input-action-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(41, 65, 15, 0.10);
+}
+
+.field-input-action-wrapper input {
+  flex: 1;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  padding: 10px 14px !important;
+  font-size: 14px;
+}
+
+.field-edit-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 0 12px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.field-edit-icon-btn:hover,
+.field-edit-icon-btn.active {
+  color: var(--primary);
+  background: rgba(41, 65, 15, 0.08);
+}
+
+.field-inline-save-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  animation: field-save-appear 0.15s ease-out;
+}
+
+@keyframes field-save-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.field-inline-save-btn {
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+}
+
+.field-inline-cancel-btn {
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+
 .status-badge {
   padding: 0 12px;
   font-size: 13px;
