@@ -9,7 +9,8 @@ export function registerWebRTCHandlers(socket, io) {
 
       const payload = {
         fromUserId: socket.user.id,
-        fromUsername: socket.user.username,
+        fromUsername: socket.user.name || socket.user.username,
+        profileImage: socket.user.profileImage || socket.user.avatar || null,
         roomId: roomId || null,
         isVideo: !!isVideo,
       };

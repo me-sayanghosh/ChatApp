@@ -8,10 +8,15 @@ const ICE_SERVERS = {
   ],
 };
 
-export function useWebRTC(user) {
+export function useWebRTC(user, membersMap = {}) {
   // Call States: 'idle' | 'calling' | 'incoming' | 'connected'
   const [callState, setCallState] = useState('idle');
-  const [callerInfo, setCallerInfo] = useState(null); // { fromUserId, fromUsername, roomId, isVideo }
+  const [callerInfo, setCallerInfo] = useState(null); // { fromUserId, fromUsername, profileImage, roomId, isVideo }
+
+  const membersMapRef = useRef(membersMap);
+  useEffect(() => {
+    membersMapRef.current = membersMap;
+  }, [membersMap]);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
 
@@ -230,7 +235,13 @@ export function useWebRTC(user) {
     // Incoming call listener
     socket.on('webrtc:call-incoming', (info) => {
       if (callState === 'idle') {
-        setCallerInfo(info);
+        const userMeta = membersMapRef.current?.[info.fromUserId];
+        const enriched = {
+          ...info,
+          fromUsername: info.fromUsername || userMeta?.name || userMeta?.username || 'User',
+          profileImage: info.profileImage || userMeta?.profileImage || userMeta?.avatar || null,
+        };
+        setCallerInfo(enriched);
         setCallState('incoming');
       }
     });

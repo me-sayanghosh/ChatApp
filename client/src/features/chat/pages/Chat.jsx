@@ -50,7 +50,7 @@ export default function Chat() {
   const {
     callState, callerInfo, localStream, remoteStream, isMuted, isVideoOff, isScreenSharing,
     startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, toggleScreenShare,
-  } = useWebRTC(user);
+  } = useWebRTC(user, membersMap);
 
   const { callLogs, loading: callLogsLoading, addCallLog, clearCallHistory } = useCalls(user);
   const [selectedCallLog, setSelectedCallLog] = useState(null);

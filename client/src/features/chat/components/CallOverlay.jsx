@@ -149,47 +149,100 @@ export default function CallOverlay({
         </div>
       )}
 
-      {/* 3. Connected Fullscreen Active Video Call Screen */}
+      {/* 3. Connected Active Call Screen */}
       {callState === 'connected' && (
-        <div className="call-active-grid">
-          {/* Top Bar Header Overlay */}
-          <div className="call-top-bar">
-            <div className="call-top-user">
-              <div className="call-status-dot" />
-              <span className="call-username">{callerInfo?.fromUsername || 'Peer'}</span>
-              <span className="call-hd-tag">HD 1080p</span>
+        !callerInfo?.isVideo ? (
+          /* COMPACT CONNECTED AUDIO CALL CARD (Same size as incoming/outgoing card) */
+          <div className="call-audio-connected-card">
+            <audio ref={remoteVideoRef} autoPlay playsInline style={{ display: 'none' }} />
+
+            <div className="outgoing-avatar-wrap">
+              {callerInfo?.profileImage ? (
+                <img
+                  src={callerInfo.profileImage}
+                  alt={callerInfo.fromUsername || 'User'}
+                  className="outgoing-avatar-img"
+                />
+              ) : (
+                <div className="outgoing-avatar-fallback">
+                  {(callerInfo?.fromUsername || 'U')[0].toUpperCase()}
+                </div>
+              )}
+              <div className="outgoing-pulse-ring" />
             </div>
-            <div className="call-timer-badge">
-              <span className="timer-icon">⏱</span>
-              <span>{formatTime(callDuration)}</span>
+
+            <h4 className="audio-card-name">{callerInfo?.fromUsername || 'User'}</h4>
+
+            <div className="audio-card-timer-row">
+              <span className="audio-live-dot" />
+              <span className="audio-timer-text">{formatTime(callDuration)}</span>
+            </div>
+
+            <div className="audio-card-actions-row">
+              <button
+                className={`audio-card-btn ${isMuted ? 'active-red' : ''}`}
+                onClick={onToggleMute}
+                title={isMuted ? 'Unmute Microphone' : 'Mute Microphone'}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  {isMuted && <line x1="1" y1="1" x2="23" y2="23" />}
+                </svg>
+              </button>
+
+              <button
+                className={`audio-card-btn ${isSpeakerMuted ? 'active-red' : ''}`}
+                onClick={toggleSpeaker}
+                title={isSpeakerMuted ? 'Unmute Speaker' : 'Mute Speaker'}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  {isSpeakerMuted ? (
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                  ) : (
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  )}
+                </svg>
+              </button>
+
+              <button
+                className="audio-card-btn end-call-btn"
+                onClick={onEndCall}
+                title="End Call"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91" />
+                </svg>
+              </button>
             </div>
           </div>
+        ) : (
+          /* FULLSCREEN VIDEO CALL SCREEN */
+          <div className="call-active-grid">
+            {/* Top Bar Header Overlay */}
+            <div className="call-top-bar">
+              <div className="call-top-user">
+                <div className="call-status-dot" />
+                <span className="call-username">{callerInfo?.fromUsername || 'Peer'}</span>
+                <span className="call-hd-tag">HD 1080p</span>
+              </div>
+              <div className="call-timer-badge">
+                <span className="timer-icon">⏱</span>
+                <span>{formatTime(callDuration)}</span>
+              </div>
+            </div>
 
-          {/* Main Remote Video Container */}
-          <div className="remote-video-container">
-            {remoteStream ? (
+            {/* Main Remote Video Container */}
+            <div className="remote-video-container">
               <video
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
                 className="remote-video-el"
               />
-            ) : (
-              <div className="audio-avatar-card">
-                <div className="audio-avatar-circle">
-                  {callerInfo?.profileImage ? (
-                    <img src={callerInfo.profileImage} alt={callerInfo.fromUsername} className="audio-avatar-img" />
-                  ) : (
-                    (callerInfo?.fromUsername || 'U')[0].toUpperCase()
-                  )}
-                </div>
-                <p className="audio-call-name">{callerInfo?.fromUsername || 'User'}</p>
-                <span className="audio-call-status">Connected Audio Call</span>
-              </div>
-            )}
 
-            {/* PIP Local Camera Preview (Video calls only) */}
-            {callerInfo?.isVideo && (
+              {/* PIP Local Camera Preview */}
               <div className="local-pip-container">
                 <video
                   ref={localVideoRef}
@@ -209,27 +262,25 @@ export default function CallOverlay({
                 )}
                 <div className="pip-user-label">You</div>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Bottom Floating Control Dock */}
-          <div className="call-controls-bar">
-            {/* Microphone Toggle */}
-            <button
-              className={`control-btn ${isMuted ? 'active-red' : ''}`}
-              onClick={onToggleMute}
-              title={isMuted ? 'Unmute Microphone' : 'Mute Microphone'}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                {isMuted && <line x1="1" y1="1" x2="23" y2="23" />}
-              </svg>
-              <span>{isMuted ? 'Unmute' : 'Mute'}</span>
-            </button>
+            {/* Bottom Floating Control Dock */}
+            <div className="call-controls-bar">
+              {/* Microphone Toggle */}
+              <button
+                className={`control-btn ${isMuted ? 'active-red' : ''}`}
+                onClick={onToggleMute}
+                title={isMuted ? 'Unmute Microphone' : 'Mute Microphone'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  {isMuted && <line x1="1" y1="1" x2="23" y2="23" />}
+                </svg>
+                <span>{isMuted ? 'Unmute' : 'Mute'}</span>
+              </button>
 
-            {/* Camera Toggle (Video calls only) */}
-            {callerInfo?.isVideo && (
+              {/* Camera Toggle */}
               <button
                 className={`control-btn ${isVideoOff ? 'active-red' : ''}`}
                 onClick={onToggleVideo}
@@ -242,10 +293,8 @@ export default function CallOverlay({
                 </svg>
                 <span>{isVideoOff ? 'Cam On' : 'Cam Off'}</span>
               </button>
-            )}
 
-            {/* Screen Share Toggle (Video calls only) */}
-            {callerInfo?.isVideo && (
+              {/* Screen Share Toggle */}
               <button
                 className={`control-btn ${isScreenSharing ? 'active-blue' : ''}`}
                 onClick={onToggleScreenShare}
@@ -258,27 +307,25 @@ export default function CallOverlay({
                 </svg>
                 <span>{isScreenSharing ? 'Stop Share' : 'Share'}</span>
               </button>
-            )}
 
-            {/* Speaker Mute Toggle */}
-            <button
-              className={`control-btn ${isSpeakerMuted ? 'active-red' : ''}`}
-              onClick={toggleSpeaker}
-              title={isSpeakerMuted ? 'Unmute Speaker' : 'Mute Speaker'}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                {isSpeakerMuted ? (
-                  <line x1="23" y1="9" x2="17" y2="15" />
-                ) : (
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                )}
-              </svg>
-              <span>{isSpeakerMuted ? 'Unmute Audio' : 'Audio'}</span>
-            </button>
+              {/* Speaker Mute Toggle */}
+              <button
+                className={`control-btn ${isSpeakerMuted ? 'active-red' : ''}`}
+                onClick={toggleSpeaker}
+                title={isSpeakerMuted ? 'Unmute Speaker' : 'Mute Speaker'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  {isSpeakerMuted ? (
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                  ) : (
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  )}
+                </svg>
+                <span>{isSpeakerMuted ? 'Unmute Audio' : 'Audio'}</span>
+              </button>
 
-            {/* Fullscreen Toggle (Video calls only) */}
-            {callerInfo?.isVideo && (
+              {/* Fullscreen Toggle */}
               <button
                 className={`control-btn ${isFullscreen ? 'active-blue' : ''}`}
                 onClick={toggleFullscreen}
@@ -293,21 +340,21 @@ export default function CallOverlay({
                 </svg>
                 <span>{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
               </button>
-            )}
 
-            {/* Prominent Red END CALL Button */}
-            <button
-              className="control-btn end-call-main"
-              onClick={onEndCall}
-              title="End Call Now"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91" />
-              </svg>
-              <span>End Call</span>
-            </button>
+              {/* Prominent Red END CALL Button */}
+              <button
+                className="control-btn end-call-main"
+                onClick={onEndCall}
+                title="End Call Now"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91" />
+                </svg>
+                <span>End Call</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );
