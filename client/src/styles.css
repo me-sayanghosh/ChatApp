@@ -1440,6 +1440,23 @@ body {
   border-color: #334155;
 }
 
+.field-input-action-wrapper.disabled,
+.input-prefix-wrapper.disabled {
+  background: #F8FAFC;
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .field-input-action-wrapper.disabled,
+[data-theme="dark"] .input-prefix-wrapper.disabled {
+  background: #0B1120;
+}
+
+.field-input-action-wrapper input:disabled,
+.input-prefix-wrapper input:disabled {
+  cursor: default;
+  color: var(--text-subtle);
+}
+
 .field-input-action-wrapper:focus-within {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(41, 65, 15, 0.10);

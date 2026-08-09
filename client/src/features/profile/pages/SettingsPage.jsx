@@ -5,12 +5,14 @@ import { useTheme } from '../../../shared/hooks/useTheme.js';
 import { useNotifications } from '../../notifications/useNotifications.js';
 import useDM from '../../chat/hooks/useDM.js';
 import { formatBadgeCount } from '../../../shared/utils/dateUtils.js';
+import { useToast } from '../../../shared/context/ToastContext.jsx';
 
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 
 export default function SettingsPage() {
   const { user, setUser, logout } = useAuth();
   const { theme, setTheme, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   const nav = useNavigate();
   const { section } = useParams();
   const { unreadCount } = useNotifications(user);
@@ -146,9 +148,11 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to update profile');
       setUser(data.user);
       setProfileSuccess(successMsg);
+      if (showToast) showToast(successMsg, 'success');
       if (resetEditFn) resetEditFn();
     } catch (e) {
       setProfileErr(e.message);
+      if (showToast) showToast(e.message, 'error');
     } finally {
       setProfileBusy(false);
       setSavingField(null);
@@ -598,15 +602,13 @@ export default function SettingsPage() {
                     {/* Display Name Field */}
                     <div className="settings-field">
                       <label>DISPLAY NAME</label>
-                      <div className="field-input-action-wrapper">
+                      <div className={`field-input-action-wrapper ${!isEditingName ? 'disabled' : ''}`}>
                         <input
                           ref={nameInputRef}
                           type="text"
                           value={name}
-                          onChange={(e) => {
-                            setName(e.target.value);
-                            setIsEditingName(true);
-                          }}
+                          disabled={!isEditingName}
+                          onChange={(e) => setName(e.target.value)}
                           placeholder="e.g. Sayan Ghosh"
                           maxLength={50}
                         />
@@ -614,12 +616,15 @@ export default function SettingsPage() {
                           type="button"
                           className={`field-edit-icon-btn ${isEditingName ? 'active' : ''}`}
                           onClick={() => {
-                            setIsEditingName((prev) => !prev);
-                            if (!isEditingName) {
+                            if (isEditingName) {
+                              setName(user?.name || '');
+                              setIsEditingName(false);
+                            } else {
+                              setIsEditingName(true);
                               setTimeout(() => nameInputRef.current?.focus(), 50);
                             }
                           }}
-                          title="Edit Display Name"
+                          title={isEditingName ? "Cancel Editing" : "Edit Display Name"}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -629,28 +634,26 @@ export default function SettingsPage() {
                       </div>
                       <span className="field-hint">Your full name or display alias.</span>
 
-                      {(isEditingName || name !== (user?.name || '')) && (
+                      {isEditingName && name.trim() !== (user?.name || '') && (
                         <div className="field-inline-save-row">
                           <button
                             type="button"
                             className="button-primary-pill field-inline-save-btn"
-                            disabled={profileBusy || !name.trim() || name === user?.name}
+                            disabled={profileBusy || !name.trim()}
                             onClick={handleSaveName}
                           >
-                            {savingField === 'name' ? 'Saving...' : 'Save Display Name'}
+                            {savingField === 'name' ? 'Saving...' : 'Save'}
                           </button>
-                          {name !== (user?.name || '') && (
-                            <button
-                              type="button"
-                              className="button-secondary-pill field-inline-cancel-btn"
-                              onClick={() => {
-                                setName(user?.name || '');
-                                setIsEditingName(false);
-                              }}
-                            >
-                              Cancel
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            className="button-secondary-pill field-inline-cancel-btn"
+                            onClick={() => {
+                              setName(user?.name || '');
+                              setIsEditingName(false);
+                            }}
+                          >
+                            Cancel
+                          </button>
                         </div>
                       )}
                     </div>
@@ -658,16 +661,14 @@ export default function SettingsPage() {
                     {/* Username Handle Field */}
                     <div className="settings-field">
                       <label>USERNAME HANDLE</label>
-                      <div className="input-prefix-wrapper">
+                      <div className={`input-prefix-wrapper ${!isEditingUsername ? 'disabled' : ''}`}>
                         <span className="prefix">@</span>
                         <input
                           ref={usernameInputRef}
                           type="text"
                           value={username}
-                          onChange={(e) => {
-                            setUsername(e.target.value);
-                            setIsEditingUsername(true);
-                          }}
+                          disabled={!isEditingUsername}
+                          onChange={(e) => setUsername(e.target.value)}
                           placeholder="username"
                           minLength={3}
                           maxLength={24}
@@ -681,12 +682,17 @@ export default function SettingsPage() {
                           type="button"
                           className={`field-edit-icon-btn ${isEditingUsername ? 'active' : ''}`}
                           onClick={() => {
-                            setIsEditingUsername((prev) => !prev);
-                            if (!isEditingUsername) {
+                            if (isEditingUsername) {
+                              setUsername(user?.username || '');
+                              setIsEditingUsername(false);
+                              setUsernameStatus('idle');
+                              setUsernameMsg('');
+                            } else {
+                              setIsEditingUsername(true);
                               setTimeout(() => usernameInputRef.current?.focus(), 50);
                             }
                           }}
-                          title="Edit Username Handle"
+                          title={isEditingUsername ? "Cancel Editing" : "Edit Username Handle"}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -700,30 +706,28 @@ export default function SettingsPage() {
                         </span>
                       )}
 
-                      {(isEditingUsername || username !== (user?.username || '')) && (
+                      {isEditingUsername && username.trim() !== (user?.username || '') && (
                         <div className="field-inline-save-row">
                           <button
                             type="button"
                             className="button-primary-pill field-inline-save-btn"
-                            disabled={profileBusy || usernameStatus === 'taken' || !username.trim() || username === user?.username}
+                            disabled={profileBusy || usernameStatus === 'taken' || !username.trim()}
                             onClick={handleSaveUsername}
                           >
-                            {savingField === 'username' ? 'Saving...' : 'Save Username'}
+                            {savingField === 'username' ? 'Saving...' : 'Save'}
                           </button>
-                          {username !== (user?.username || '') && (
-                            <button
-                              type="button"
-                              className="button-secondary-pill field-inline-cancel-btn"
-                              onClick={() => {
-                                setUsername(user?.username || '');
-                                setIsEditingUsername(false);
-                                setUsernameStatus('idle');
-                                setUsernameMsg('');
-                              }}
-                            >
-                              Cancel
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            className="button-secondary-pill field-inline-cancel-btn"
+                            onClick={() => {
+                              setUsername(user?.username || '');
+                              setIsEditingUsername(false);
+                              setUsernameStatus('idle');
+                              setUsernameMsg('');
+                            }}
+                          >
+                            Cancel
+                          </button>
                         </div>
                       )}
                     </div>
