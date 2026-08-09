@@ -5512,9 +5512,6 @@ kbd {
   max-width: 320px;
 }
 
-[data-theme="dark"] .msg-att-audio-card {
-  background: rgba(255, 255, 255, 0.1);
-}
 
 .audio-card-icon {
   font-size: 1.4rem;
@@ -5560,10 +5557,6 @@ kbd {
   border-color: #CBD5E1;
 }
 
-[data-theme="dark"] .msg-att-doc-card {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: #334155;
-}
 
 .doc-badge {
   font-size: 10px;
@@ -6362,10 +6355,6 @@ kbd {
   border-bottom: 1px solid var(--border-color, #e2e8f0);
 }
 
-[data-theme="dark"] .call-analytics-grid {
-  background: #0f172a;
-  border-color: #334155;
-}
 
 .call-analytics-card {
   display: flex;
@@ -6379,10 +6368,6 @@ kbd {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-[data-theme="dark"] .call-analytics-card {
-  background: #1e293b;
-  border-color: #334155;
-}
 
 .call-analytics-card:hover {
   transform: translateY(-1px);
@@ -7693,11 +7678,6 @@ body.light-theme .notif-filter-item:hover {
   left: 16px;
 }
 
-[data-theme="dark"] .mobile-back-btn {
-  background: #1e293b;
-  border-color: #334155;
-  color: #f8fafc;
-}
 
 @media (max-width: 1024px) {
   .ai-panel {
