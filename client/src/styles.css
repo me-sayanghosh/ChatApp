@@ -1903,7 +1903,7 @@ kbd {
 
 .profile-banner-bg {
   height: 90px;
-  background: #2563eb;
+  background: url('/profile-banner.png') center / cover no-repeat;
   position: relative;
 }
 
