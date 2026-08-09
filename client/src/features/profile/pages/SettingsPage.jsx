@@ -74,9 +74,21 @@ export default function SettingsPage() {
 
   // State for Help & Feedback
   const [feedbackCategory, setFeedbackCategory] = useState('General Feedback');
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryRef = useRef(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSuccess, setFeedbackSuccess] = useState('');
   const [showTermsModal, setShowTermsModal] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (categoryRef.current && !categoryRef.current.contains(e.target)) {
+        setIsCategoryOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sync state with user prop updates
   useEffect(() => {
@@ -1086,15 +1098,41 @@ export default function SettingsPage() {
                   <form onSubmit={handleSendFeedback}>
                     <div className="settings-field">
                       <label>CATEGORY</label>
-                      <select
-                        value={feedbackCategory}
-                        onChange={(e) => setFeedbackCategory(e.target.value)}
-                      >
-                        <option value="General Feedback">General Feedback</option>
-                        <option value="Bug Report">Bug Report</option>
-                        <option value="Feature Request">Feature Request</option>
-                        <option value="UI / UX Improvement">UI / UX Improvement</option>
-                      </select>
+                      <div className={`custom-select-container ${isCategoryOpen ? 'open' : ''}`} ref={categoryRef}>
+                        <button
+                          type="button"
+                          className="custom-select-trigger"
+                          onClick={() => setIsCategoryOpen((prev) => !prev)}
+                        >
+                          <span>{feedbackCategory}</span>
+                          <svg className="custom-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+
+                        {isCategoryOpen && (
+                          <div className="custom-select-dropdown">
+                            {[
+                              'General Feedback',
+                              'Bug Report',
+                              'Feature Request',
+                              'UI / UX Improvement',
+                            ].map((opt) => (
+                              <div
+                                key={opt}
+                                className={`custom-select-option ${feedbackCategory === opt ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setFeedbackCategory(opt);
+                                  setIsCategoryOpen(false);
+                                }}
+                              >
+                                <span>{opt}</span>
+                                {feedbackCategory === opt && <span className="custom-select-check">✓</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="settings-field">
