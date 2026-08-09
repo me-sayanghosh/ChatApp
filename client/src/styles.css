@@ -1702,8 +1702,19 @@ body {
 
 .block-form {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
+}
+
+.block-form .input-prefix-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.block-form button {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .blocked-list {
@@ -7840,6 +7851,36 @@ body.light-theme .notif-filter-item:hover {
   .profile-hero-actions {
     width: 100% !important;
     justify-content: center !important;
+  }
+
+  .toggle-item {
+    padding: 14px 16px !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+
+  .toggle-info h3 {
+    font-size: 14.5px !important;
+  }
+
+  .toggle-info p {
+    font-size: 12.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  .block-form {
+    gap: 8px !important;
+  }
+
+  .block-form button {
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .settings-empty-state {
+    padding: 20px 14px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
   }
 
   .shortcuts-grid,
