@@ -550,7 +550,7 @@ export default function SettingsPage() {
 
                     <div className="profile-hero-actions">
                       <button type="button" className="button-secondary-pill" onClick={() => fileInputRef.current?.click()}>
-                        Change Photo
+                        Change Picture
                       </button>
                       {imagePreview && (
                         <button type="button" onClick={removeImage} className="button-danger-pill">
