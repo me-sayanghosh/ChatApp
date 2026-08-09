@@ -522,9 +522,6 @@ export default function SettingsPage() {
               </h2>
               <div className="header-room-meta">
                 <span className="meta-pill">DropTalk</span>
-                <span className="header-sep">&middot;</span>
-                <span className="dot online"></span>
-                <span>Active Workspace</span>
               </div>
             </div>
           </div>
