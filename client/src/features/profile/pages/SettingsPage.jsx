@@ -591,7 +591,6 @@ export default function SettingsPage() {
                 />
 
                 <div className="settings-form">
-                  {profileSuccess && <div className="settings-alert success">{profileSuccess}</div>}
                   {profileErr && <div className="settings-alert error">{profileErr}</div>}
 
                   {/* Card 1: Public Identity */}
