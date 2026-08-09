@@ -836,7 +836,7 @@ export default function SettingsPage() {
                         inset: 0,
                         display: 'flex',
                         alignItems: 'center',
-                        justify-content: 'center',
+                        justifyContent: 'center',
                         background: 'rgba(15, 23, 42, 0.35)',
                       }}
                     >
